@@ -1,2 +1,1 @@
 # KillThem
-# сЕРГЕЙ F LFKM
