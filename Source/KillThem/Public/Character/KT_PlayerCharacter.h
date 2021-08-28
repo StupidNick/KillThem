@@ -2,12 +2,13 @@
 
 #include "CoreMinimal.h"
 
+
 #include "Components/TimelineComponent.h"
 #include "GameFramework/Character.h"
 #include "KT_PlayerCharacter.generated.h"
 
 
-
+class UBoxComponent;
 class UCameraComponent;
 class UMovementComponent;
 class UCurveFloat;
@@ -36,6 +37,9 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 		void WallRunningTimeLineFloatReturn(float Value);
 
+	UFUNCTION()
+		void TiltCameraOnWallRunningTimeLineFloatReturn(float Value);
+
 //private с++ variables
 private:
 
@@ -45,10 +49,15 @@ private:
 
 	UTimelineComponent* WallRunningTimeLine;
 
+	UTimelineComponent* TiltCameraOnWallRunningTimeLine;
+
 	UPROPERTY()
 		FVector CrouchingStartLocation;
 	UPROPERTY()
 		FVector CrouchingEndLocation;
+
+	UPROPERTY()
+		bool CameraTiltToRight;
 
 
 
@@ -59,7 +68,7 @@ protected:
 
 	void MoveForward(float Value);
 	UFUNCTION(Server, Reliable)
-		void OnMoveForwardOnServer(bool Value);
+		void SetMoveForwardOnServer(bool Value);
 	void MoveRight(float Value);
 
 /////////////////////////////////////Sprint/////////////////////////////////////////
@@ -130,8 +139,14 @@ protected:
 		void WallRunningBeginOnServer(AActor* OtherActor);
 	UFUNCTION(Server, Reliable)
 		void WallRunningEndOnServer(AActor* OtherActor);
-		
 
+	UFUNCTION()
+		void WallRunningCameraTiltRight(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+		void WallRunningCameraTiltLeft(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+		void EndTiltOnWallRunning(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 //protected c++ variables
 protected:
 
@@ -149,6 +164,8 @@ public:
 	FOnTimelineFloat CrouchingInterpFunction{};
 
 	FOnTimelineFloat WallRunningInterpFunction{};
+
+	FOnTimelineFloat TiltCameraOnWallRunningInterpFunction{};
 //////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -169,6 +186,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
 		UCapsuleComponent* ParkourCapsuleComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+		UBoxComponent* WallRunRightCollisionComponent;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+		UBoxComponent* WallRunLeftCollisionComponent;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Character")
 		APlayerController* PlayerController;
@@ -226,9 +249,17 @@ public:
 /////////////////////////////////////WallRunning/////////////////////////////////////////
 	UPROPERTY(EditAnywhere, Category = "Character | WallRunning")
 		UCurveFloat* CurveFloatForWallRunning;
+
+	UPROPERTY(EditAnywhere, Category = "Character | WallRunning")
+		UCurveFloat* CurveFloatForWallRunningCameraTilt;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Character | WallRunning")
 		bool OnWall;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Character | WallRunning")
+		float TiltAngle;
+
+	
 };
 
 

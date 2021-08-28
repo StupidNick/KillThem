@@ -1,12 +1,13 @@
 #include "Character/KT_PlayerCharacter.h"
 
 #include "Camera/CameraComponent.h"
-#include "Character/Controllers/KT_PlayerController.h"
+#include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Misc/OutputDeviceNull.h"
 #include "Components/TimelineComponent.h"
+#include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -19,9 +20,13 @@ AKT_PlayerCharacter::AKT_PlayerCharacter()
 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>("Camera");
 	ParkourCapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>("ParkourCapsuleComponent");
+	WallRunRightCollisionComponent = CreateDefaultSubobject<UBoxComponent>("WallRunRightCollisionComponent");
+	WallRunLeftCollisionComponent = CreateDefaultSubobject<UBoxComponent>("WallRunLeftCollisionComponent");
 	FirstPersonMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>("FirstPersonMesh");
 
 	ParkourCapsuleComponent->SetupAttachment(GetCapsuleComponent());
+	WallRunLeftCollisionComponent->SetupAttachment(GetCapsuleComponent());
+	WallRunRightCollisionComponent->SetupAttachment(GetCapsuleComponent());
 	CameraComponent->SetupAttachment(GetCapsuleComponent());
 	FirstPersonMeshComponent->SetupAttachment(CameraComponent);
 	GetCharacterMovement()->bWantsToCrouch = true;
@@ -30,15 +35,23 @@ AKT_PlayerCharacter::AKT_PlayerCharacter()
 
 	ParkourCapsuleComponent->OnComponentBeginOverlap.AddDynamic(this, &AKT_PlayerCharacter::WallRunningBegin);
 	ParkourCapsuleComponent->OnComponentEndOverlap.AddDynamic(this, &AKT_PlayerCharacter::WallRunningEnd);
+
+	WallRunRightCollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &AKT_PlayerCharacter::WallRunningCameraTiltRight);
+	WallRunLeftCollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &AKT_PlayerCharacter::WallRunningCameraTiltLeft);
+
+	WallRunRightCollisionComponent->OnComponentEndOverlap.AddDynamic(this, &AKT_PlayerCharacter::EndTiltOnWallRunning);
+	WallRunLeftCollisionComponent->OnComponentEndOverlap.AddDynamic(this, &AKT_PlayerCharacter::EndTiltOnWallRunning);
 	
 	
 	CrouchingTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("CrouchingTimeline"));
 	SlidingTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("SlidingTimeline"));
 	WallRunningTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("WallRunningTimeline"));
+	TiltCameraOnWallRunningTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("TiltCameraOnWallRunningTimeLine"));
 
 	SlidingInterpFunction.BindUFunction(this, FName("SlidingTimeLineFloatReturn"));
 	CrouchingInterpFunction.BindUFunction(this, FName("CrouchingTimeLineFloatReturn"));
 	WallRunningInterpFunction.BindUFunction(this, FName("WallRunningTimeLineFloatReturn"));
+	TiltCameraOnWallRunningInterpFunction.BindUFunction(this, FName("TiltCameraOnWallRunningTimeLineFloatReturn"));
 
 	
 }
@@ -65,6 +78,11 @@ void AKT_PlayerCharacter::BeginPlay()
 	{
 		WallRunningTimeLine->AddInterpFloat(CurveFloatForWallRunning, WallRunningInterpFunction, FName("Alpha"));
 		WallRunningTimeLine->SetLooping(true);
+	}
+	if (CurveFloatForWallRunningCameraTilt)
+	{
+		TiltCameraOnWallRunningTimeLine->AddInterpFloat(CurveFloatForWallRunningCameraTilt, TiltCameraOnWallRunningInterpFunction, FName("Alpha"));
+		TiltCameraOnWallRunningTimeLine->SetLooping(false);
 	}
 }
 
@@ -101,23 +119,31 @@ void AKT_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
 void AKT_PlayerCharacter::MoveForward(float Value)
 {
+	
 	if (Value != 0.0f)
 	{
-		AddMovementInput(GetActorForwardVector(), Value);
-		MoveForwardValue = Value;
+		if (OnWall)
+		{
+		
+		}
+		else
+		{
+			AddMovementInput(GetActorForwardVector(), Value);
+			MoveForwardValue = Value;
+		}
 		IsMoveForward = true;
-		OnMoveForwardOnServer(true);
+		SetMoveForwardOnServer(true);
 	}
 	else
 	{
 		BreakSprint();
 		IsMoveForward = false;
-		OnMoveForwardOnServer(false);
+		SetMoveForwardOnServer(false);
 	}
 }
 
 
-void AKT_PlayerCharacter::OnMoveForwardOnServer_Implementation(bool Value)
+void AKT_PlayerCharacter::SetMoveForwardOnServer_Implementation(bool Value)
 {
 	if (Value)
 	{
@@ -538,3 +564,48 @@ void AKT_PlayerCharacter::WallRunningTimeLineFloatReturn_Implementation(float Va
 }
 
 
+void AKT_PlayerCharacter::TiltCameraOnWallRunningTimeLineFloatReturn(float Value)
+{
+	if (CameraTiltToRight)
+	{
+		if (PlayerController)
+		{
+			PlayerController->SetControlRotation(FMath::LerpRange(GetActorRotation(), FRotator(GetActorRotation().Pitch, GetActorRotation().Yaw, -TiltAngle), Value));
+		}
+	}
+	else
+	{
+		if (PlayerController)
+		{
+			PlayerController->SetControlRotation(FMath::LerpRange(GetActorRotation(), FRotator(GetActorRotation().Pitch, GetActorRotation().Yaw, TiltAngle), Value));
+		}
+	}
+}
+
+	
+
+
+void AKT_PlayerCharacter::WallRunningCameraTiltRight(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor->ActorHasTag(ParkourTag) && GetMovementComponent()->IsFalling())
+	{
+		CameraTiltToRight = true;
+		TiltCameraOnWallRunningTimeLine->PlayFromStart();
+	}
+}
+
+
+void AKT_PlayerCharacter::WallRunningCameraTiltLeft(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor->ActorHasTag(ParkourTag) && GetMovementComponent()->IsFalling())
+	{
+		CameraTiltToRight = false;
+		TiltCameraOnWallRunningTimeLine->PlayFromStart();
+	}
+}
+
+
+void AKT_PlayerCharacter::EndTiltOnWallRunning(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	TiltCameraOnWallRunningTimeLine->ReverseFromEnd();
+}

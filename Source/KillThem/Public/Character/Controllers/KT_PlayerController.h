@@ -13,5 +13,12 @@ UCLASS()
 class KILLTHEM_API AKT_PlayerController : public APlayerController
 {
 	GENERATED_BODY()
+
+	AKT_PlayerController();
+
+
+//protected c++ functions
+protected:
 	
+	virtual void BeginPlay() override;
 };
