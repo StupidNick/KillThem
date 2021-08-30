@@ -546,7 +546,7 @@ void AKT_PlayerCharacter::WallRunningTimeLineFloatReturn_Implementation(float Va
 		{
 			GetCharacterMovement()->GravityScale = 0;
 			GetCharacterMovement()->SetPlaneConstraintNormal(FVector(0, 0, 1));
-			GetCharacterMovement()->AddForce(PlayerDirectionForWallRunning * SprintSpeed);
+			GetCharacterMovement()->AddForce(PlayerDirectionForWallRunning * 20000);
 		}
 		else
 		{
@@ -582,14 +582,13 @@ void AKT_PlayerCharacter::TiltCameraOnWallRunningTimeLineFloatReturn(float Value
 	}
 }
 
-	
-
 
 void AKT_PlayerCharacter::WallRunningCameraTiltRight(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor->ActorHasTag(ParkourTag) && GetMovementComponent()->IsFalling())
 	{
 		CameraTiltToRight = true;
+		CameraIsTilt = true;
 		TiltCameraOnWallRunningTimeLine->PlayFromStart();
 	}
 }
@@ -600,6 +599,7 @@ void AKT_PlayerCharacter::WallRunningCameraTiltLeft(UPrimitiveComponent* Overlap
 	if (OtherActor->ActorHasTag(ParkourTag) && GetMovementComponent()->IsFalling())
 	{
 		CameraTiltToRight = false;
+		CameraIsTilt = true;
 		TiltCameraOnWallRunningTimeLine->PlayFromStart();
 	}
 }
@@ -607,5 +607,9 @@ void AKT_PlayerCharacter::WallRunningCameraTiltLeft(UPrimitiveComponent* Overlap
 
 void AKT_PlayerCharacter::EndTiltOnWallRunning(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	TiltCameraOnWallRunningTimeLine->ReverseFromEnd();
+	if (CameraIsTilt)
+	{
+		TiltCameraOnWallRunningTimeLine->ReverseFromEnd();
+		CameraIsTilt = false;
+	}
 }

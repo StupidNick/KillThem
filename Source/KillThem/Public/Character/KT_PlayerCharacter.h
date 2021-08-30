@@ -59,6 +59,9 @@ private:
 	UPROPERTY()
 		bool CameraTiltToRight;
 
+	UPROPERTY()
+		bool CameraIsTilt = false;
+
 
 
 //protected c++ functions
