@@ -122,11 +122,7 @@ void AKT_PlayerCharacter::MoveForward(float Value)
 	
 	if (Value != 0.0f)
 	{
-		if (OnWall)
-		{
-		
-		}
-		else
+		if (!OnWall)
 		{
 			AddMovementInput(GetActorForwardVector(), Value);
 			MoveForwardValue = Value;
@@ -363,7 +359,6 @@ void AKT_PlayerCharacter::Jumping()
 
 void AKT_PlayerCharacter::JumpingOnWall()
 {
-	JumpCounter = 0;
 	GetCharacterMovement()->GravityScale = 1;
 	GetCharacterMovement()->SetPlaneConstraintNormal(FVector(0, 0, 0));
 	OnWall = false;
@@ -510,6 +505,7 @@ void AKT_PlayerCharacter::WallRunningStart(AActor* OtherActor)
 	if (OtherActor->ActorHasTag(ParkourTag) && GetMovementComponent()->IsFalling())
 	{
 		OnWall = true;
+		JumpCounter = 0;
 		WallRunningTimeLine->PlayFromStart();
 	}
 }
@@ -546,7 +542,7 @@ void AKT_PlayerCharacter::WallRunningTimeLineFloatReturn_Implementation(float Va
 		{
 			GetCharacterMovement()->GravityScale = 0;
 			GetCharacterMovement()->SetPlaneConstraintNormal(FVector(0, 0, 1));
-			GetCharacterMovement()->AddForce(PlayerDirectionForWallRunning * 20000);
+			AddMovementInput(PlayerDirectionForWallRunning, WallRunningForce);
 		}
 		else
 		{

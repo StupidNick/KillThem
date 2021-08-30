@@ -262,7 +262,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Character | WallRunning")
 		float TiltAngle;
 
-	
+	UPROPERTY(EditDefaultsOnly, Category = "Character | WallRunning")
+		float WallRunningForce;
 };
 
 
