@@ -1,6 +1,7 @@
 #include "Character/KT_PlayerCharacter.h"
 
 #include "Camera/CameraComponent.h"
+#include "Components/KT_HealthComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -23,15 +24,15 @@ AKT_PlayerCharacter::AKT_PlayerCharacter()
 	WallRunRightCollisionComponent = CreateDefaultSubobject<UBoxComponent>("WallRunRightCollisionComponent");
 	WallRunLeftCollisionComponent = CreateDefaultSubobject<UBoxComponent>("WallRunLeftCollisionComponent");
 	FirstPersonMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>("FirstPersonMesh");
+	HealthComponent = CreateDefaultSubobject<UKT_HealthComponent>("HealthComponent");
 
 	ParkourCapsuleComponent->SetupAttachment(GetCapsuleComponent());
 	WallRunLeftCollisionComponent->SetupAttachment(GetCapsuleComponent());
 	WallRunRightCollisionComponent->SetupAttachment(GetCapsuleComponent());
 	CameraComponent->SetupAttachment(GetCapsuleComponent());
 	FirstPersonMeshComponent->SetupAttachment(CameraComponent);
+	
 	GetCharacterMovement()->bWantsToCrouch = true;
-
-
 
 	ParkourCapsuleComponent->OnComponentBeginOverlap.AddDynamic(this, &AKT_PlayerCharacter::WallRunningBegin);
 	ParkourCapsuleComponent->OnComponentEndOverlap.AddDynamic(this, &AKT_PlayerCharacter::WallRunningEnd);
@@ -52,8 +53,6 @@ AKT_PlayerCharacter::AKT_PlayerCharacter()
 	CrouchingInterpFunction.BindUFunction(this, FName("CrouchingTimeLineFloatReturn"));
 	WallRunningInterpFunction.BindUFunction(this, FName("WallRunningTimeLineFloatReturn"));
 	TiltCameraOnWallRunningInterpFunction.BindUFunction(this, FName("TiltCameraOnWallRunningTimeLineFloatReturn"));
-
-	
 }
 
 
@@ -89,7 +88,6 @@ void AKT_PlayerCharacter::BeginPlay()
 void AKT_PlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
 }
 
 
@@ -609,3 +607,5 @@ void AKT_PlayerCharacter::EndTiltOnWallRunning(UPrimitiveComponent* OverlappedCo
 		CameraIsTilt = false;
 	}
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

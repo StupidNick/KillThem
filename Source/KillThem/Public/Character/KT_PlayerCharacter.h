@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 
-
 #include "Components/TimelineComponent.h"
 #include "GameFramework/Character.h"
 #include "KT_PlayerCharacter.generated.h"
@@ -12,6 +11,7 @@ class UBoxComponent;
 class UCameraComponent;
 class UMovementComponent;
 class UCurveFloat;
+class UKT_HealthComponent;
 
 
 
@@ -150,6 +150,7 @@ protected:
 
 	UFUNCTION()
 		void EndTiltOnWallRunning(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	
 //protected c++ variables
 protected:
 
@@ -158,7 +159,8 @@ protected:
 
 	UPROPERTY()
 		FVector PlayerDirectionForWallRunning;
-	
+
+//public c++ variables
 public:
 
 /////////////////////////////////////Timelines/////////////////////////////////////////
@@ -181,20 +183,23 @@ public:
 //public BP variables
 public:
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+	UPROPERTY(BlueprintReadOnly, Category = "Character | Components")
 		USkeletalMeshComponent* FirstPersonMeshComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+	UPROPERTY(BlueprintReadOnly, Category = "Character | Components")
 		UCameraComponent* CameraComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+	UPROPERTY(BlueprintReadOnly, Category = "Character | Components")
 		UCapsuleComponent* ParkourCapsuleComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+	UPROPERTY(BlueprintReadOnly, Category = "Character | Components")
 		UBoxComponent* WallRunRightCollisionComponent;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character")
+	UPROPERTY(BlueprintReadOnly, Category = "Character | Components")
 		UBoxComponent* WallRunLeftCollisionComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Components")
+		UKT_HealthComponent* HealthComponent;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Character")
 		APlayerController* PlayerController;
