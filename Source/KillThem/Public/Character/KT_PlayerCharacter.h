@@ -2,16 +2,31 @@
 
 #include "CoreMinimal.h"
 
+
 #include "Components/TimelineComponent.h"
 #include "GameFramework/Character.h"
+
 #include "KT_PlayerCharacter.generated.h"
 
 
+class UKT_ItemsManagerComponent;
 class UBoxComponent;
 class UCameraComponent;
 class UMovementComponent;
 class UCurveFloat;
 class UKT_HealthComponent;
+class AKT_BaseWeapon;
+
+
+
+UENUM()
+enum SelectedWeaponSlot
+{
+	FirstSlot	UMETA(DisplayName = "FirstSlot"),
+	SecondSlot	UMETA(DisplayName = "SecondSlot"),
+	FirstGrenadeSlot	UMETA(DisplayName = "FirstGrenadeSlot"),
+	SecondGrenadeSlot	UMETA(DisplayName = "SecondGrenadeSlot"),
+};
 
 
 
@@ -150,6 +165,36 @@ protected:
 
 	UFUNCTION()
 		void EndTiltOnWallRunning(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+/////////////////////////////////////Weapon////////////////////////////////////////
+
+	UFUNCTION()
+		void AddWeapon(TSubclassOf<AKT_BaseWeapon> InWeaponClass);
+
+	UFUNCTION()
+		FORCEINLINE AKT_BaseWeapon*& GetSelectedWeaponSlot()
+	{
+		if (SelectedWeaponSlotEnum.GetValue() == FirstSlot)
+		{
+			return FirstWeaponSlot;
+		}
+		return SecondWeaponSlot;
+	}
+	
+	UFUNCTION()
+		void OnChangeWeaponPressed();
+	
+	UFUNCTION(Server, Reliable)
+		void ChangeWeaponOnServer();
+
+	UFUNCTION()
+		void OnFirePressed();
+
+	UFUNCTION()
+		void Fire();
+	
+	UFUNCTION(Server, Reliable)
+		void FireOnServer();
 	
 //protected c++ variables
 protected:
@@ -174,16 +219,17 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////
 
 
-	virtual void Tick(float DeltaTime) override;
-
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	
 	
 //public BP variables
 public:
+
+	UPROPERTY(EditAnywhere, Category = "Character | Components")
+		UKT_ItemsManagerComponent* ItemsManagerComponent;
 	
-	UPROPERTY(BlueprintReadOnly, Category = "Character | Components")
+	UPROPERTY(EditAnywhere, Category = "Character | Components")
 		USkeletalMeshComponent* FirstPersonMeshComponent;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Character | Components")
@@ -206,6 +252,29 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Character | Parkour")
 		FName ParkourTag;
+
+
+	UPROPERTY(BlueprintReadWrite, Category = "Character | Weapons")
+		AKT_BaseWeapon* FirstWeaponSlot = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Character | Weapons")
+		TSubclassOf<AKT_BaseWeapon> FirstWeaponSlotClass = nullptr;
+	
+	UPROPERTY(BlueprintReadWrite, Category = "Character | Weapons")
+		AKT_BaseWeapon* SecondWeaponSlot = nullptr;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Character | Weapons")
+		AKT_BaseWeapon* FirstGrenadeSlot = nullptr;
+	UPROPERTY(BlueprintReadWrite, Category = "Character | Weapons")
+		AKT_BaseWeapon* SecondGrenadeSlot = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Status)
+		TEnumAsByte<SelectedWeaponSlot> SelectedWeaponSlotEnum;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Character | Weapons")
+		FName InHandsSocketName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Character | Weapons")
+		FName BehindBackSocketName;
 
 /////////////////////////////////////Moving/////////////////////////////////////////
 	UPROPERTY(BlueprintReadOnly, Category = "Character | Moving")

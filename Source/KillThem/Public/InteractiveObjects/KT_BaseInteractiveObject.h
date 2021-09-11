@@ -32,7 +32,7 @@ protected:
 	virtual void Interactive(AActor* OtherActor);
 
 	UFUNCTION(Server, Reliable)
-		virtual void InteractiveOnServer(AActor* OtherActor);
+		void InteractiveOnServer(AActor* OtherActor);
 
 	UFUNCTION()
 		void EnableObject() const;

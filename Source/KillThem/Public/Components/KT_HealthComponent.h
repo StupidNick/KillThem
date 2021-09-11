@@ -33,6 +33,9 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+		void TakeDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+
 	
 //public BP functions
 public:

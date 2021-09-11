@@ -11,7 +11,25 @@ void UKT_HealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	AActor* LOwner = GetOwner();
+	if (IsValid(LOwner))
+	{
+		LOwner->OnTakeAnyDamage.AddDynamic(this, &UKT_HealthComponent::TakeDamage);
+	}
+
 	Health = DefaultHealth;
+}
+
+
+void UKT_HealthComponent::TakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+	AController* InstigatedBy, AActor* DamageCauser)
+{
+	if (Damage <= 0)
+	{
+		return;
+	}
+
+	DecreaseInHealth(Damage);
 }
 
 
@@ -25,11 +43,11 @@ void UKT_HealthComponent::HealthRecovery(const float InHealth)
 }
 
 
-void UKT_HealthComponent::DecreaseInHealth(const float InHealth)
+void UKT_HealthComponent::DecreaseInHealth(const float InDamage)
 {
-	if (InHealth < 0)
+	if (InDamage > 0)
 	{
-		Health += InHealth;
+		Health -= InDamage;
 	}
 	if (Health < 0)
 	{

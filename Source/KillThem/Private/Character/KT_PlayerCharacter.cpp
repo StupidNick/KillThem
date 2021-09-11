@@ -10,21 +10,22 @@
 #include "Components/TimelineComponent.h"
 #include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
+#include "Weapons/KT_BaseWeapon.h"
 
+#include "Components/KT_ItemsManagerComponent.h"
 
 
 ////////////////////////////////////////////////////Begin Play//////////////////////////////////////////////////////////
 
 AKT_PlayerCharacter::AKT_PlayerCharacter()
 {
-	PrimaryActorTick.bCanEverTick = true;
-
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>("Camera");
 	ParkourCapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>("ParkourCapsuleComponent");
 	WallRunRightCollisionComponent = CreateDefaultSubobject<UBoxComponent>("WallRunRightCollisionComponent");
 	WallRunLeftCollisionComponent = CreateDefaultSubobject<UBoxComponent>("WallRunLeftCollisionComponent");
 	FirstPersonMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>("FirstPersonMesh");
 	HealthComponent = CreateDefaultSubobject<UKT_HealthComponent>("HealthComponent");
+	ItemsManagerComponent = CreateDefaultSubobject<UKT_ItemsManagerComponent>(TEXT("ItemsManagerComponent"));
 
 	ParkourCapsuleComponent->SetupAttachment(GetCapsuleComponent());
 	WallRunLeftCollisionComponent->SetupAttachment(GetCapsuleComponent());
@@ -53,13 +54,15 @@ AKT_PlayerCharacter::AKT_PlayerCharacter()
 	CrouchingInterpFunction.BindUFunction(this, FName("CrouchingTimeLineFloatReturn"));
 	WallRunningInterpFunction.BindUFunction(this, FName("WallRunningTimeLineFloatReturn"));
 	TiltCameraOnWallRunningInterpFunction.BindUFunction(this, FName("TiltCameraOnWallRunningTimeLineFloatReturn"));
+
+	ItemsManagerComponent->Initialize(this);
 }
 
 
 void AKT_PlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	SprintSpeed = WalkSpeed * 1.2;
+	SprintSpeed = WalkSpeed * 1.5;
 
 	GetMovementComponent()->SetPlaneConstraintEnabled(true);
 
@@ -83,17 +86,20 @@ void AKT_PlayerCharacter::BeginPlay()
 		TiltCameraOnWallRunningTimeLine->AddInterpFloat(CurveFloatForWallRunningCameraTilt, TiltCameraOnWallRunningInterpFunction, FName("Alpha"));
 		TiltCameraOnWallRunningTimeLine->SetLooping(false);
 	}
-}
-
-void AKT_PlayerCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
+	if (IsValid(FirstWeaponSlotClass))
+	{
+		AddWeapon(FirstWeaponSlotClass);
+	}
 }
 
 
 void AKT_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AKT_PlayerCharacter::OnFirePressed);
+
+	PlayerInputComponent->BindAction("ChangeWeapon", IE_Pressed, this, &AKT_PlayerCharacter::OnChangeWeaponPressed);
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AKT_PlayerCharacter::Jumping);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
@@ -117,7 +123,6 @@ void AKT_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
 void AKT_PlayerCharacter::MoveForward(float Value)
 {
-	
 	if (Value != 0.0f)
 	{
 		if (!OnWall)
@@ -606,6 +611,104 @@ void AKT_PlayerCharacter::EndTiltOnWallRunning(UPrimitiveComponent* OverlappedCo
 		TiltCameraOnWallRunningTimeLine->ReverseFromEnd();
 		CameraIsTilt = false;
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////Weapons//////////////////////////////////////////////////////////////////////
+
+
+
+
+void AKT_PlayerCharacter::OnChangeWeaponPressed()
+{
+	// ChangeWeaponOnServer();
+	// ItemsManagerComponent->ChangeWeapon();
+}
+
+
+void AKT_PlayerCharacter::AddWeapon(TSubclassOf<AKT_BaseWeapon> InWeaponClass)
+{
+	if (!IsValid(FirstWeaponSlot))
+	{
+		FVector LLocation = FirstPersonMeshComponent->GetSocketLocation(InHandsSocketName);
+		FRotator LRotation = GetControlRotation();
+		FActorSpawnParameters LSpawnInfo;
+	
+		FirstWeaponSlot = GetWorld()->SpawnActor<AKT_BaseWeapon>(InWeaponClass, LLocation, LRotation, LSpawnInfo);
+		FirstWeaponSlot->Initialize(this);
+		FirstWeaponSlot->ToAttachToComponent(FirstPersonMeshComponent, InHandsSocketName);
+		return;
+	}
+	if (!IsValid(SecondWeaponSlot))
+	{
+		const FVector LLocation = FirstPersonMeshComponent->GetSocketLocation(BehindBackSocketName);
+		const FRotator LRotation = GetControlRotation();
+		const FActorSpawnParameters LSpawnInfo;
+	
+		SecondWeaponSlot = GetWorld()->SpawnActor<AKT_BaseWeapon>(InWeaponClass, LLocation, LRotation, LSpawnInfo);
+		SecondWeaponSlot->Initialize(this);
+	
+		OnChangeWeaponPressed();
+		return;
+	}
+	const FVector LLocation = FirstPersonMeshComponent->GetSocketLocation(InHandsSocketName);
+	const FRotator LRotation = GetControlRotation();
+	const FActorSpawnParameters LSpawnInfo;
+	
+	GetSelectedWeaponSlot()->ToDetachFromActor();
+	GetSelectedWeaponSlot() = GetWorld()->SpawnActor<AKT_BaseWeapon>(InWeaponClass, LLocation, LRotation, LSpawnInfo);
+	GetSelectedWeaponSlot()->Initialize(this);
+}
+
+
+// void AKT_PlayerCharacter::ChangeWeapon()
+// {
+// 	if (SelectedWeaponSlotEnum.GetValue() == FirstSlot && IsValid(SecondWeaponSlot))
+// 	{
+// 		SelectedWeaponSlotEnum = SecondSlot;
+// 	}
+// 	if (SelectedWeaponSlotEnum.GetValue() == SecondSlot && IsValid(FirstWeaponSlot))
+// 	{
+// 		SelectedWeaponSlotEnum = FirstSlot;
+// 	}
+// }
+
+
+void AKT_PlayerCharacter::ChangeWeaponOnServer_Implementation()
+{
+	// ItemsManagerComponent->ChangeWeapon();
+}
+
+
+void AKT_PlayerCharacter::OnFirePressed()
+{
+	Fire();
+	// FireOnServer();
+}
+
+
+void AKT_PlayerCharacter::Fire()
+{
+	if (!IsSprinted)
+	{
+		switch (SelectedWeaponSlotEnum.GetValue())
+		{
+			case FirstSlot:
+				FirstWeaponSlot->ToUseWeapon();
+				return;
+			case SecondSlot:
+				SecondWeaponSlot->ToUseWeapon();
+				return;
+		}
+	}
+}
+
+
+void AKT_PlayerCharacter::FireOnServer_Implementation()
+{
+	Fire();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
