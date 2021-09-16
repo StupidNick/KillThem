@@ -43,7 +43,7 @@ protected:
 	UPROPERTY()
 		AKT_BaseRangeWeapon* WeaponInstigator;
 	
-//public BP variables
+//public C++ functions
 public:
 
 	UFUNCTION()
@@ -60,4 +60,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Projectile")
 		UProjectileMovementComponent* ProjectileMovementComponent = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Projectile")
+		TSubclassOf<UDamageType> DamageTypeClass;
 };

@@ -37,6 +37,7 @@ protected:
 	UFUNCTION()
 		void EnableObject() const;
 
+
 	FTimerHandle EnableTimerHandle;
 	FTimerDelegate EnableTimerDelegate;
 //public C++ functions

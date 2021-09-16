@@ -6,6 +6,7 @@
 AKT_BaseWeapon::AKT_BaseWeapon()
 {
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>("Mesh");
+	RootComponent = Mesh;
 }
 
 
@@ -19,16 +20,9 @@ void AKT_BaseWeapon::UseWeapon()
 }
 
 
-void AKT_BaseWeapon::UseWeaponOnServer_Implementation()
-{
-	UseWeapon();
-}
-
-
 void AKT_BaseWeapon::ToUseWeapon()
 {
 	UseWeapon();
-	// UseWeaponOnServer();
 }
 
 

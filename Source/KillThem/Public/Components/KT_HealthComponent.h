@@ -60,13 +60,10 @@ public:
 /////////////////////////////////////Health//////////////////////////////////////////
 
 	UFUNCTION(BlueprintCallable, Category = "HealthComponent | Health")
-		void HealthRecovery(const float InHealth);
-
-	UFUNCTION(BlueprintCallable, Category = "HealthComponent | Health")
-		void DecreaseInHealth(const float InHealth);
+		void ChangeHealth(const float InHealth);
 
 	UFUNCTION(Server, Reliable)
-		void ChangeHealthOnServer(const bool Add, const float InHealth);
+		void ChangeHealthOnServer(const float InHealth);
 
 	UFUNCTION(BlueprintCallable, Category = "HealthComponent | Health")
 		void Death();

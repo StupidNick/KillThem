@@ -24,49 +24,24 @@ void UKT_HealthComponent::BeginPlay()
 void UKT_HealthComponent::TakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 	AController* InstigatedBy, AActor* DamageCauser)
 {
-	if (Damage <= 0)
-	{
-		return;
-	}
-
-	DecreaseInHealth(Damage);
+	ChangeHealthOnServer(-Damage);
 }
 
 
-void UKT_HealthComponent::HealthRecovery(const float InHealth)
+void UKT_HealthComponent::ChangeHealth(const float InHealth)
 {
-	if (InHealth > 0)
+	Health = FMath::Min<float>(MaxHealth, Health + InHealth);
+	if (Health <= 0)
 	{
-		Health = FMath::Min<float>(MaxHealth, Health + InHealth);
-	}
-	UE_LOG(LogTemp, Error, TEXT("%f"), Health);
-}
-
-
-void UKT_HealthComponent::DecreaseInHealth(const float InDamage)
-{
-	if (InDamage > 0)
-	{
-		Health -= InDamage;
-	}
-	if (Health < 0)
-	{
-		IsDead = true;
 		Death();
 	}
+	UE_LOG(LogTemp, Error, TEXT("%s: %f"), *GetOwner()->GetName(), Health);
 }
 
 
-void UKT_HealthComponent::ChangeHealthOnServer_Implementation(const bool Add, const float InHealth)
+void UKT_HealthComponent::ChangeHealthOnServer_Implementation(const float InHealth)
 {
-	if (Add)
-	{
-		HealthRecovery(InHealth);
-	}
-	else
-	{
-		DecreaseInHealth(InHealth);
-	}
+	ChangeHealth(InHealth);
 }
 
 

@@ -28,6 +28,9 @@ public:
 public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+		TSubclassOf<UDamageType> DamageTypeClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 		float MaxDistanceAttack;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")

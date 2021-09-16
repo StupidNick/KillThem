@@ -153,10 +153,6 @@ protected:
 	UFUNCTION()
 		void WallRunningStop(AActor* OtherActor);
 
-	UFUNCTION(Server, Reliable)
-		void WallRunningBeginOnServer(AActor* OtherActor);
-	UFUNCTION(Server, Reliable)
-		void WallRunningEndOnServer(AActor* OtherActor);
 
 	UFUNCTION()
 		void WallRunningCameraTiltRight(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -186,12 +182,6 @@ protected:
 	
 	UFUNCTION(Server, Reliable)
 		void ChangeWeaponOnServer();
-
-	UFUNCTION()
-		void OnFirePressed();
-
-	UFUNCTION()
-		void Fire();
 	
 	UFUNCTION(Server, Reliable)
 		void FireOnServer();
@@ -229,7 +219,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Character | Components")
 		UKT_ItemsManagerComponent* ItemsManagerComponent;
 	
-	UPROPERTY(EditAnywhere, Category = "Character | Components")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character | Components")
 		USkeletalMeshComponent* FirstPersonMeshComponent;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Character | Components")

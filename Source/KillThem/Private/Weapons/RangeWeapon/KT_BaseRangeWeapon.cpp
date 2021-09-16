@@ -2,6 +2,7 @@
 
 #include "DrawDebugHelpers.h"
 #include "Character/KT_PlayerCharacter.h"
+#include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -9,6 +10,7 @@ void AKT_BaseRangeWeapon::UseWeapon()
 {
 	Super::UseWeapon();
 
+	
 	if (ProjectileShooting)
 	{
 		ProjectileShoot();
@@ -24,7 +26,11 @@ void AKT_BaseRangeWeapon::ProjectileShoot()
 {
 	const FVector LLocation = Mesh->GetSocketTransform(FireSocketName).GetLocation();
 	const FRotator LRotation = Mesh->GetSocketTransform(FireSocketName).GetRotation().Rotator();
-	const FActorSpawnParameters LSpawnInfo;
+	FActorSpawnParameters LSpawnInfo;
+
+	LSpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	LSpawnInfo.Owner = this;
+	LSpawnInfo.Instigator = Character;
 
 	AKT_BaseProjectile* LProjectile = GetWorld()->SpawnActor<AKT_BaseProjectile>(ProjectileClass, LLocation, LRotation, LSpawnInfo);
 	LProjectile->Initialize(Damage, Character, this);
@@ -49,13 +55,12 @@ void AKT_BaseRangeWeapon::LineTraceProjectile()
 	bool LbHit = GetWorld()->LineTraceSingleByChannel(LHitResult, LStartLocation, LEndLocation, ECollisionChannel::ECC_GameTraceChannel1, LParams);
 	if (LbHit)
 	{
-		DrawDebugBox(GetWorld(), LHitResult.ImpactPoint, FVector(10,10,10), FColor::Emerald, false, 2);
+		DrawDebugBox(GetWorld(), LHitResult.ImpactPoint, FVector(5,5,5), FColor::Emerald, false, 2);
 	}
-	if (LHitResult.Actor != Character && LbHit)
+	if (LHitResult.Actor != Character && LbHit && IsValid(DamageTypeClass))
 	{
 		const FDamageEvent LDamageEvent;
-		const TSubclassOf<UDamageType> LDamageTypeClass;
 		
-		UGameplayStatics::ApplyDamage(LHitResult.GetActor(), Damage, LHitResult.GetActor()->GetInstigatorController(), Character, LDamageTypeClass);
+		UGameplayStatics::ApplyDamage(LHitResult.GetActor(), Damage, LHitResult.GetActor()->GetInstigatorController(), Character, DamageTypeClass);
 	}
 }

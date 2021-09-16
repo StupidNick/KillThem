@@ -31,9 +31,10 @@ void AKT_HealthBox::RotationTimeLineFloatReturn(float Value)
 
 void AKT_HealthBox::HealthRecovery(AActor* OtherActor)
 {
-	if (Cast<AKT_PlayerCharacter>(OtherActor))
+	const AKT_PlayerCharacter* LPlayer = Cast<AKT_PlayerCharacter>(OtherActor);
+	if (IsValid(LPlayer))
 	{
-		Cast<AKT_PlayerCharacter>(OtherActor)->HealthComponent->HealthRecovery(Health);
+		LPlayer->HealthComponent->ChangeHealthOnServer(Health);
 	}
 }
 
@@ -42,4 +43,3 @@ void AKT_HealthBox::Interactive(AActor* OtherActor)
 {
 	HealthRecovery(OtherActor);
 }
-

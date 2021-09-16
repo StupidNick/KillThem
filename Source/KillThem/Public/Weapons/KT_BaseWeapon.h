@@ -32,8 +32,6 @@ protected:
 
 	UFUNCTION()
 		virtual void UseWeapon();
-	UFUNCTION(Server, Reliable)
-		void UseWeaponOnServer();
 
 //private C++ variables
 protected:
@@ -61,7 +59,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Character")
 		AKT_PlayerCharacter* Character;
 
-	UPROPERTY(EditAnywhere, Category = "Weapon")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 		USkeletalMeshComponent* Mesh;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")

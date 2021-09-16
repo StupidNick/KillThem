@@ -97,7 +97,7 @@ void AKT_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AKT_PlayerCharacter::OnFirePressed);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AKT_PlayerCharacter::FireOnServer);
 
 	PlayerInputComponent->BindAction("ChangeWeapon", IE_Pressed, this, &AKT_PlayerCharacter::OnChangeWeaponPressed);
 
@@ -491,14 +491,12 @@ void AKT_PlayerCharacter::DashReload()
 void AKT_PlayerCharacter::WallRunningBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	WallRunningStart(OtherActor);
-	WallRunningBeginOnServer(OtherActor);
 }
 
 
 void AKT_PlayerCharacter::WallRunningEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	WallRunningStop(OtherActor);
-	WallRunningEndOnServer(OtherActor);
 }
 
 void AKT_PlayerCharacter::WallRunningStart(AActor* OtherActor)
@@ -523,17 +521,6 @@ void AKT_PlayerCharacter::WallRunningStop(AActor* OtherActor)
 		GetCharacterMovement()->SetPlaneConstraintNormal(FVector(0, 0, 0));
 		OnWall = false;
 	}
-}
-
-
-void AKT_PlayerCharacter::WallRunningBeginOnServer_Implementation(AActor* OtherActor)
-{
-	WallRunningStart(OtherActor);
-}
-
-void AKT_PlayerCharacter::WallRunningEndOnServer_Implementation(AActor* OtherActor)
-{
-	WallRunningStop(OtherActor);
 }
 
 
@@ -613,6 +600,8 @@ void AKT_PlayerCharacter::EndTiltOnWallRunning(UPrimitiveComponent* OverlappedCo
 	}
 }
 
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -682,33 +671,20 @@ void AKT_PlayerCharacter::ChangeWeaponOnServer_Implementation()
 }
 
 
-void AKT_PlayerCharacter::OnFirePressed()
-{
-	Fire();
-	// FireOnServer();
-}
-
-
-void AKT_PlayerCharacter::Fire()
+void AKT_PlayerCharacter::FireOnServer_Implementation()
 {
 	if (!IsSprinted)
 	{
 		switch (SelectedWeaponSlotEnum.GetValue())
 		{
-			case FirstSlot:
-				FirstWeaponSlot->ToUseWeapon();
-				return;
-			case SecondSlot:
-				SecondWeaponSlot->ToUseWeapon();
-				return;
+		case FirstSlot:
+			FirstWeaponSlot->ToUseWeapon();
+			return;
+		case SecondSlot:
+			SecondWeaponSlot->ToUseWeapon();
+			return;
 		}
 	}
-}
-
-
-void AKT_PlayerCharacter::FireOnServer_Implementation()
-{
-	Fire();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

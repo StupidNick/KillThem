@@ -21,15 +21,15 @@ void AKT_BaseInteractiveObject::BeginPlay()
 	StaticMesh->OnComponentBeginOverlap.AddDynamic(this, &AKT_BaseInteractiveObject::OnComponentOverlap);
 }
 
+
 void AKT_BaseInteractiveObject::OnComponentOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
                                                    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	Interactive(OtherActor);
-	StaticMesh->SetGenerateOverlapEvents(false);
+	InteractiveOnServer(OtherActor);
 	StaticMesh->SetVisibility(false);
 
 	EnableTimerDelegate.BindUFunction(this, "EnableObject");
-    GetWorldTimerManager().SetTimer(EnableTimerHandle, EnableTimerDelegate, RecoverTime, false);
+	GetWorldTimerManager().SetTimer(EnableTimerHandle, EnableTimerDelegate, RecoverTime, false);
 }
 
 
@@ -47,4 +47,5 @@ void AKT_BaseInteractiveObject::Interactive(AActor* OtherActor)
 void AKT_BaseInteractiveObject::InteractiveOnServer_Implementation(AActor* OtherActor)
 {
 	Interactive(OtherActor);
+	StaticMesh->SetGenerateOverlapEvents(false);
 }

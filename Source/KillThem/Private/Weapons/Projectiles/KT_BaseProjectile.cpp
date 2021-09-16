@@ -19,6 +19,7 @@ AKT_BaseProjectile::AKT_BaseProjectile()
 	ProjectileMovementComponent->SetUpdatedComponent(CollisionComponent);
 
 	CollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &AKT_BaseProjectile::OnOverlap);
+	// PlayerOwner = Cast<AKT_PlayerCharacter>(GetInstigator());
 }
 
 
@@ -30,7 +31,7 @@ void AKT_BaseProjectile::BeginPlay()
 
 void AKT_BaseProjectile::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& Hit)
 {
-	if (OtherActor == PlayerOwner || OtherActor == this)
+	if (OtherActor == PlayerOwner || OtherActor == this || OtherActor == GetOwner())
 	{
 		return;
 	}
@@ -38,12 +39,11 @@ void AKT_BaseProjectile::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 	{
 		OtherComp->AddImpulseAtLocation(ProjectileMovementComponent->Velocity * 100.0f, Hit.ImpactPoint);
 	}
-	if (OtherActor->IsA<AKT_PlayerCharacter>())
+	if (OtherActor->IsA<AKT_PlayerCharacter>() && IsValid(DamageTypeClass) && IsValid(PlayerOwner))
 	{
 		const FDamageEvent LDamageEvent;
-		const TSubclassOf<UDamageType> LDamageTypeClass;
 		
-		UGameplayStatics::ApplyDamage(OtherActor, Damage, PlayerOwner->PlayerController, PlayerOwner, LDamageTypeClass);
+		UGameplayStatics::ApplyDamage(OtherActor, Damage, PlayerOwner->PlayerController, PlayerOwner, DamageTypeClass);
 	}
 	Destroy();
 }
