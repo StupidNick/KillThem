@@ -15,8 +15,22 @@ class KILLTHEM_API AKT_BaseRangeWeapon : public AKT_BaseWeapon
 
 //Constructor
 public:
+	
+	AKT_BaseRangeWeapon();
 
+//public C++ functions
+public:
+
+
+	virtual void Initialize_Implementation(AKT_PlayerCharacter* InCharacter) override;
+	
 	virtual void UseWeapon() override;
+
+	UFUNCTION()
+		void ToReload();
+
+//Protected C++ functions
+protected:
 
 	UFUNCTION()
 		virtual void ProjectileShoot();
@@ -24,8 +38,30 @@ public:
 	UFUNCTION()
 		virtual void LineTraceProjectile();
 
+	UFUNCTION()
+		void Reload(const int InAmmo);
+
+//Protected C++ variables
+protected:
+
+	UPROPERTY(BlueprintReadOnly)
+		int AmmoInTheClip;
+
+	UPROPERTY(BlueprintReadOnly)
+		bool IsReloading = false;
+
+	FTimerHandle ReloadTimerHandle;
+	
+	FTimerDelegate ReloadTimerDelegate;
+	
 //public BP variables
 public:
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+		int ClipSize;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+		float ReloadTime;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 		TSubclassOf<UDamageType> DamageTypeClass;

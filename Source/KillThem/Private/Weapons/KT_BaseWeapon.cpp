@@ -15,21 +15,47 @@ void AKT_BaseWeapon::BeginPlay()
 	Super::BeginPlay();
 }
 
+
 void AKT_BaseWeapon::UseWeapon()
 {
 }
 
 
-void AKT_BaseWeapon::ToUseWeapon()
+void AKT_BaseWeapon::AutoFireReload()
 {
-	UseWeapon();
+	CanShoot = true;
+	if (Character->CanShoot)
+	{
+		if (AutoFire)
+		{
+			UseWeapon();
+			CanShoot = false;
+			GetWorldTimerManager().SetTimer(AutoFireTimerHandle, AutoFireTimerDelegate, DelayBetweenShots, false);
+		}
+	}
 }
 
 
-void AKT_BaseWeapon::Initialize(AKT_PlayerCharacter* InCharacter)
+void AKT_BaseWeapon::ToUseWeapon()
+{
+	if (CanShoot)
+	{
+		UseWeapon();
+		
+		if (DelayBetweenShots > 0)
+		{
+			CanShoot = false;
+			
+			GetWorldTimerManager().SetTimer(AutoFireTimerHandle, AutoFireTimerDelegate, DelayBetweenShots, false);
+		}
+	}
+}
+
+
+void AKT_BaseWeapon::Initialize_Implementation(AKT_PlayerCharacter* InCharacter)
 {
 	Character = InCharacter;
-
+	AutoFireTimerDelegate.BindUFunction(this, "AutoFireReload");
 }
 
 

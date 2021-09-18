@@ -33,10 +33,15 @@ protected:
 	UFUNCTION()
 		virtual void UseWeapon();
 
+	UFUNCTION()
+		void AutoFireReload();
+
 //private C++ variables
 protected:
 
-	bool CanShoot = true;
+	FTimerHandle AutoFireTimerHandle;
+	
+	FTimerDelegate AutoFireTimerDelegate;
 
 //public C++ variables
 public:
@@ -44,14 +49,20 @@ public:
 	UFUNCTION()
 		void ToUseWeapon();
 
-	UFUNCTION()
+	UFUNCTION(BlueprintNativeEvent)
 		void Initialize(AKT_PlayerCharacter* InCharacter);
+		virtual void Initialize_Implementation(AKT_PlayerCharacter* InCharacter);
 
 	UFUNCTION()
 		void ToAttachToComponent(USkeletalMeshComponent*& InComponent, const FName InSocketName);
 
 	UFUNCTION()
 		void ToDetachFromActor();
+
+//public C++ variables
+public:
+
+	bool CanShoot = true;
 	
 //public BP variables
 public:

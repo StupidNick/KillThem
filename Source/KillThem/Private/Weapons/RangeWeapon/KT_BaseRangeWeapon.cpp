@@ -2,30 +2,47 @@
 
 #include "DrawDebugHelpers.h"
 #include "Character/KT_PlayerCharacter.h"
+#include "Components/KT_ItemsManagerComponent.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 
 
+AKT_BaseRangeWeapon::AKT_BaseRangeWeapon()
+{
+	
+}
+
+void AKT_BaseRangeWeapon::Initialize_Implementation(AKT_PlayerCharacter* InCharacter)
+{
+	Super::Initialize_Implementation(InCharacter);
+	
+	AmmoInTheClip = ClipSize;
+}
+
+
+
 void AKT_BaseRangeWeapon::UseWeapon()
 {
-	Super::UseWeapon();
-
+	if (AmmoInTheClip > 0 && !IsReloading)
+	{
+		if (ProjectileShooting)
+		{
+			ProjectileShoot();
+		}
+		else
+		{
+			LineTraceProjectile();
+		}
+	}
 	
-	if (ProjectileShooting)
-	{
-		ProjectileShoot();
-	}
-	else
-	{
-		LineTraceProjectile();
-	}
+	Super::UseWeapon();
 }
 
 
 void AKT_BaseRangeWeapon::ProjectileShoot()
 {
 	const FVector LLocation = Mesh->GetSocketTransform(FireSocketName).GetLocation();
-	const FRotator LRotation = Mesh->GetSocketTransform(FireSocketName).GetRotation().Rotator();
+	const FRotator LRotation = Character->Controller->GetControlRotation();
 	FActorSpawnParameters LSpawnInfo;
 
 	LSpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -34,6 +51,9 @@ void AKT_BaseRangeWeapon::ProjectileShoot()
 
 	AKT_BaseProjectile* LProjectile = GetWorld()->SpawnActor<AKT_BaseProjectile>(ProjectileClass, LLocation, LRotation, LSpawnInfo);
 	LProjectile->Initialize(Damage, Character, this);
+	AmmoInTheClip--;
+	
+	UE_LOG(LogTemp, Error, TEXT("%i"), AmmoInTheClip);
 }
 
 
@@ -62,5 +82,36 @@ void AKT_BaseRangeWeapon::LineTraceProjectile()
 		const FDamageEvent LDamageEvent;
 		
 		UGameplayStatics::ApplyDamage(LHitResult.GetActor(), Damage, LHitResult.GetActor()->GetInstigatorController(), Character, DamageTypeClass);
+	}
+	AmmoInTheClip--;
+	
+	UE_LOG(LogTemp, Error, TEXT("%i"), AmmoInTheClip);
+}
+
+void AKT_BaseRangeWeapon::Reload(const int InAmmo)
+{
+	IsReloading = false;
+	AmmoInTheClip += InAmmo;
+}
+
+
+void AKT_BaseRangeWeapon::ToReload()
+{
+	int LCountOfAmmo;
+	if (AmmoInTheClip < ClipSize ++ && Character->ItemsManagerComponent->FindAndCountAmmo(GetClass(), LCountOfAmmo))
+	{
+		IsReloading = true;
+
+		if (LCountOfAmmo > ClipSize - AmmoInTheClip)
+		{
+			LCountOfAmmo = ClipSize - AmmoInTheClip;
+			Character->ItemsManagerComponent->RemoveAmmo(GetClass(), LCountOfAmmo);
+		}
+		else
+		{
+			Character->ItemsManagerComponent->RemoveAmmo(GetClass(), LCountOfAmmo);
+		}
+		ReloadTimerDelegate.BindUFunction(this, "Reload", LCountOfAmmo);
+		GetWorldTimerManager().SetTimer(ReloadTimerHandle, ReloadTimerDelegate, ReloadTime, false);
 	}
 }

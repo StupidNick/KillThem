@@ -9,6 +9,7 @@
 #include "KT_PlayerCharacter.generated.h"
 
 
+
 class UKT_ItemsManagerComponent;
 class UBoxComponent;
 class UCameraComponent;
@@ -16,17 +17,6 @@ class UMovementComponent;
 class UCurveFloat;
 class UKT_HealthComponent;
 class AKT_BaseWeapon;
-
-
-
-UENUM()
-enum SelectedWeaponSlot
-{
-	FirstSlot	UMETA(DisplayName = "FirstSlot"),
-	SecondSlot	UMETA(DisplayName = "SecondSlot"),
-	FirstGrenadeSlot	UMETA(DisplayName = "FirstGrenadeSlot"),
-	SecondGrenadeSlot	UMETA(DisplayName = "SecondGrenadeSlot"),
-};
 
 
 
@@ -166,16 +156,6 @@ protected:
 
 	UFUNCTION()
 		void AddWeapon(TSubclassOf<AKT_BaseWeapon> InWeaponClass);
-
-	UFUNCTION()
-		FORCEINLINE AKT_BaseWeapon*& GetSelectedWeaponSlot()
-	{
-		if (SelectedWeaponSlotEnum.GetValue() == FirstSlot)
-		{
-			return FirstWeaponSlot;
-		}
-		return SecondWeaponSlot;
-	}
 	
 	UFUNCTION()
 		void OnChangeWeaponPressed();
@@ -185,6 +165,12 @@ protected:
 	
 	UFUNCTION(Server, Reliable)
 		void FireOnServer();
+
+	UFUNCTION(Server, Reliable)
+		void StopFireOnServer();
+
+	UFUNCTION(Server, Reliable)
+		void ReloadOnServer();
 	
 //protected c++ variables
 protected:
@@ -194,6 +180,8 @@ protected:
 
 	UPROPERTY()
 		FVector PlayerDirectionForWallRunning;
+
+	
 
 //public c++ variables
 public:
@@ -211,7 +199,8 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	
+	UPROPERTY()
+		bool CanShoot = false;
 	
 //public BP variables
 public:
@@ -242,29 +231,6 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Character | Parkour")
 		FName ParkourTag;
-
-
-	UPROPERTY(BlueprintReadWrite, Category = "Character | Weapons")
-		AKT_BaseWeapon* FirstWeaponSlot = nullptr;
-	UPROPERTY(EditAnywhere, Category = "Character | Weapons")
-		TSubclassOf<AKT_BaseWeapon> FirstWeaponSlotClass = nullptr;
-	
-	UPROPERTY(BlueprintReadWrite, Category = "Character | Weapons")
-		AKT_BaseWeapon* SecondWeaponSlot = nullptr;
-
-	UPROPERTY(BlueprintReadWrite, Category = "Character | Weapons")
-		AKT_BaseWeapon* FirstGrenadeSlot = nullptr;
-	UPROPERTY(BlueprintReadWrite, Category = "Character | Weapons")
-		AKT_BaseWeapon* SecondGrenadeSlot = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Status)
-		TEnumAsByte<SelectedWeaponSlot> SelectedWeaponSlotEnum;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Character | Weapons")
-		FName InHandsSocketName;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Character | Weapons")
-		FName BehindBackSocketName;
 
 /////////////////////////////////////Moving/////////////////////////////////////////
 	UPROPERTY(BlueprintReadOnly, Category = "Character | Moving")

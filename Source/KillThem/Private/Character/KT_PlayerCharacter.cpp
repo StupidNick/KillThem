@@ -13,6 +13,7 @@
 #include "Weapons/KT_BaseWeapon.h"
 
 #include "Components/KT_ItemsManagerComponent.h"
+#include "Weapons/RangeWeapon/KT_BaseRangeWeapon.h"
 
 
 ////////////////////////////////////////////////////Begin Play//////////////////////////////////////////////////////////
@@ -86,9 +87,9 @@ void AKT_PlayerCharacter::BeginPlay()
 		TiltCameraOnWallRunningTimeLine->AddInterpFloat(CurveFloatForWallRunningCameraTilt, TiltCameraOnWallRunningInterpFunction, FName("Alpha"));
 		TiltCameraOnWallRunningTimeLine->SetLooping(false);
 	}
-	if (IsValid(FirstWeaponSlotClass))
+	if (IsValid(ItemsManagerComponent->FirstWeaponSlotClass))
 	{
-		AddWeapon(FirstWeaponSlotClass);
+		AddWeapon(ItemsManagerComponent->FirstWeaponSlotClass);
 	}
 }
 
@@ -98,6 +99,9 @@ void AKT_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AKT_PlayerCharacter::FireOnServer);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AKT_PlayerCharacter::StopFireOnServer);
+	
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AKT_PlayerCharacter::ReloadOnServer);
 
 	PlayerInputComponent->BindAction("ChangeWeapon", IE_Pressed, this, &AKT_PlayerCharacter::OnChangeWeaponPressed);
 
@@ -619,37 +623,46 @@ void AKT_PlayerCharacter::OnChangeWeaponPressed()
 
 void AKT_PlayerCharacter::AddWeapon(TSubclassOf<AKT_BaseWeapon> InWeaponClass)
 {
-	if (!IsValid(FirstWeaponSlot))
+	if (!IsValid(ItemsManagerComponent->FirstWeaponSlot))
 	{
-		FVector LLocation = FirstPersonMeshComponent->GetSocketLocation(InHandsSocketName);
+		FVector LLocation = FirstPersonMeshComponent->GetSocketLocation(ItemsManagerComponent->InHandsSocketName);
 		FRotator LRotation = GetControlRotation();
 		FActorSpawnParameters LSpawnInfo;
 	
-		FirstWeaponSlot = GetWorld()->SpawnActor<AKT_BaseWeapon>(InWeaponClass, LLocation, LRotation, LSpawnInfo);
-		FirstWeaponSlot->Initialize(this);
-		FirstWeaponSlot->ToAttachToComponent(FirstPersonMeshComponent, InHandsSocketName);
+		ItemsManagerComponent->FirstWeaponSlot = GetWorld()->SpawnActor<AKT_BaseWeapon>(InWeaponClass, LLocation, LRotation, LSpawnInfo);
+		ItemsManagerComponent->FirstWeaponSlot->Initialize(this);
+		ItemsManagerComponent->FirstWeaponSlot->ToAttachToComponent(FirstPersonMeshComponent, ItemsManagerComponent->InHandsSocketName);
+		ItemsManagerComponent->AddAmmo(InWeaponClass, 20);
+		int LCountAmmo;
+		if (ItemsManagerComponent->FindAndCountAmmo(InWeaponClass, LCountAmmo))
+		{
+			UE_LOG(LogTemp, Error, TEXT("%s: %i"), *GetName(), LCountAmmo);
+		}
+		
 		return;
 	}
-	if (!IsValid(SecondWeaponSlot))
+	if (!IsValid(ItemsManagerComponent->SecondWeaponSlot))
 	{
-		const FVector LLocation = FirstPersonMeshComponent->GetSocketLocation(BehindBackSocketName);
+		const FVector LLocation = FirstPersonMeshComponent->GetSocketLocation(ItemsManagerComponent->BehindBackSocketName);
 		const FRotator LRotation = GetControlRotation();
 		const FActorSpawnParameters LSpawnInfo;
 	
-		SecondWeaponSlot = GetWorld()->SpawnActor<AKT_BaseWeapon>(InWeaponClass, LLocation, LRotation, LSpawnInfo);
-		SecondWeaponSlot->Initialize(this);
+		ItemsManagerComponent->SecondWeaponSlot = GetWorld()->SpawnActor<AKT_BaseWeapon>(InWeaponClass, LLocation, LRotation, LSpawnInfo);
+		ItemsManagerComponent->SecondWeaponSlot->Initialize(this);
 	
 		OnChangeWeaponPressed();
 		return;
 	}
-	const FVector LLocation = FirstPersonMeshComponent->GetSocketLocation(InHandsSocketName);
+	const FVector LLocation = FirstPersonMeshComponent->GetSocketLocation(ItemsManagerComponent->InHandsSocketName);
 	const FRotator LRotation = GetControlRotation();
 	const FActorSpawnParameters LSpawnInfo;
 	
-	GetSelectedWeaponSlot()->ToDetachFromActor();
-	GetSelectedWeaponSlot() = GetWorld()->SpawnActor<AKT_BaseWeapon>(InWeaponClass, LLocation, LRotation, LSpawnInfo);
-	GetSelectedWeaponSlot()->Initialize(this);
+	ItemsManagerComponent->GetSelectedWeaponSlot()->ToDetachFromActor();
+	ItemsManagerComponent->GetSelectedWeaponSlot() = GetWorld()->SpawnActor<AKT_BaseWeapon>(InWeaponClass, LLocation, LRotation, LSpawnInfo);
+	ItemsManagerComponent->GetSelectedWeaponSlot()->Initialize(this);
 }
+
+
 
 
 // void AKT_PlayerCharacter::ChangeWeapon()
@@ -673,17 +686,43 @@ void AKT_PlayerCharacter::ChangeWeaponOnServer_Implementation()
 
 void AKT_PlayerCharacter::FireOnServer_Implementation()
 {
-	if (!IsSprinted)
+	if (IsSprinted)
 	{
-		switch (SelectedWeaponSlotEnum.GetValue())
-		{
+		BreakSprint();
+	}
+	CanShoot = true;
+	switch (ItemsManagerComponent->SelectedWeaponSlotEnum.GetValue())
+	{
 		case FirstSlot:
-			FirstWeaponSlot->ToUseWeapon();
+			ItemsManagerComponent->FirstWeaponSlot->ToUseWeapon();
 			return;
 		case SecondSlot:
-			SecondWeaponSlot->ToUseWeapon();
+			ItemsManagerComponent->SecondWeaponSlot->ToUseWeapon();
 			return;
-		}
+	}
+}
+
+
+void AKT_PlayerCharacter::StopFireOnServer_Implementation()
+{
+	CanShoot = false;
+}
+
+
+void AKT_PlayerCharacter::ReloadOnServer_Implementation()
+{
+	if (IsSprinted)
+	{
+		BreakSprint();
+	}
+	switch (ItemsManagerComponent->SelectedWeaponSlotEnum.GetValue())
+	{
+		case FirstSlot:
+			Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->FirstWeaponSlot)->ToReload();
+			return;
+		case SecondSlot:
+			Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->FirstWeaponSlot)->ToReload();
+			return;
 	}
 }
 
