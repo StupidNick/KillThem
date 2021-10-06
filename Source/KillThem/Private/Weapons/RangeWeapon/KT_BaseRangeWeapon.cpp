@@ -50,10 +50,14 @@ void AKT_BaseRangeWeapon::ProjectileShoot()
 	LSpawnInfo.Instigator = Character;
 
 	AKT_BaseProjectile* LProjectile = GetWorld()->SpawnActor<AKT_BaseProjectile>(ProjectileClass, LLocation, LRotation, LSpawnInfo);
-	LProjectile->Initialize(Damage, Character, this);
-	AmmoInTheClip--;
+	if (IsValid(LProjectile))
+	{
+		LProjectile->Initialize(Damage, Character, this);
+		AmmoInTheClip--;
 	
-	UE_LOG(LogTemp, Error, TEXT("%i"), AmmoInTheClip);
+		UE_LOG(LogTemp, Error, TEXT("%i"), AmmoInTheClip);
+	}
+	
 }
 
 

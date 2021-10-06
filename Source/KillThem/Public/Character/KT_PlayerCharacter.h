@@ -6,10 +6,12 @@
 #include "Components/TimelineComponent.h"
 #include "GameFramework/Character.h"
 
+
 #include "KT_PlayerCharacter.generated.h"
 
 
 
+class AKT_BaseInteractiveObject;
 class UKT_ItemsManagerComponent;
 class UBoxComponent;
 class UCameraComponent;
@@ -154,8 +156,7 @@ protected:
 
 /////////////////////////////////////Weapon////////////////////////////////////////
 
-	UFUNCTION()
-		void AddWeapon(TSubclassOf<AKT_BaseWeapon> InWeaponClass);
+	
 	
 	UFUNCTION()
 		void OnChangeWeaponPressed();
@@ -171,6 +172,12 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 		void ReloadOnServer();
+
+/////////////////////////////////////Interact//////////////////////////////////////
+
+	UFUNCTION(Server, Reliable)
+		void InteractOnServer();
+
 	
 //protected c++ variables
 protected:
@@ -181,7 +188,24 @@ protected:
 	UPROPERTY()
 		FVector PlayerDirectionForWallRunning;
 
+	UPROPERTY()
+		bool CanInteract;
+
+	UPROPERTY()
+		AKT_BaseInteractiveObject* InteractiveObject = nullptr;
 	
+
+//public c++ functions
+public:
+
+	UFUNCTION()
+		AKT_BaseWeapon* AddWeapon(const TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int InAmountOfAmmo);
+
+	UFUNCTION()
+		void InteractInfo(AKT_BaseInteractiveObject* InInteractiveObject);
+
+	UFUNCTION()
+		void UnInteractInfo();
 
 //public c++ variables
 public:

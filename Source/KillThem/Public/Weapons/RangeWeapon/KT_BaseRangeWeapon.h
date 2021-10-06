@@ -45,9 +45,6 @@ protected:
 protected:
 
 	UPROPERTY(BlueprintReadOnly)
-		int AmmoInTheClip;
-
-	UPROPERTY(BlueprintReadOnly)
 		bool IsReloading = false;
 
 	FTimerHandle ReloadTimerHandle;

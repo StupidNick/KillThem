@@ -5,8 +5,14 @@
 
 AKT_BaseWeapon::AKT_BaseWeapon()
 {
+	// BoxCollision = CreateDefaultSubobject<UBoxComponent>("BoxCollision");
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>("Mesh");
+	
 	RootComponent = Mesh;
+	// BoxCollision->SetupAttachment(Mesh);
+
+	Mesh->SetCollisionProfileName(FName("IgnoreAll"));
+	// BoxCollision->SetCollisionProfileName(FName("IgnoreAll"));
 }
 
 
@@ -63,13 +69,31 @@ void AKT_BaseWeapon::ToAttachToComponent(USkeletalMeshComponent*& InComponent, c
 {
 	const FAttachmentTransformRules LRules(EAttachmentRule::KeepWorld, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false);
 	
-	SetActorEnableCollision(false);
-	AttachToComponent(InComponent, LRules, InSocketName);
+	// SetActorEnableCollision(false);
+	Mesh->AttachToComponent(InComponent, LRules, InSocketName);
 }
 
 
-void AKT_BaseWeapon::ToDetachFromActor()
+void AKT_BaseWeapon::ToDetachFromActor_Implementation()
 {
-	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	SetActorEnableCollision(true);
+	const FVector LLocation = GetActorLocation() + FVector(100, 0, 0);
+	const FRotator LRotation = GetActorRotation();
+	const FActorSpawnParameters LSpawnInfo;
+
+	if (HasAuthority())
+	{
+		AKT_BaseInteractiveWeapon* LDroppedWeapon = GetWorld()->SpawnActor<AKT_BaseInteractiveWeapon>(InteractiveWeaponClass, LLocation, LRotation, LSpawnInfo);
+		if (IsValid(LDroppedWeapon))
+		{
+			LDroppedWeapon->Initialize(AmmoInTheClip);
+			LDroppedWeapon->SkeletalMesh->SetCollisionProfileName(FName("BlockAll"));
+			LDroppedWeapon->SkeletalMesh->SetSimulatePhysics(true);
+		}
+	}
+	Destroy();
+}
+
+
+void AKT_BaseWeapon::ToDetachFromActorOnServer_Implementation()
+{
 }

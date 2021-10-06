@@ -21,6 +21,7 @@ void UKT_ItemsManagerComponent::AddAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmo
 		if (AmmoArray[i].TypeOfAmmo == InAmmoClass)
 		{
 			AmmoArray[i].CountOfAmmo += InNumberOfAmmoFound;
+			UE_LOG(LogTemp, Error, TEXT("%s: %i"), *PlayerCharacter->GetName(), AmmoArray[i].CountOfAmmo);
 			return;
 		}
 	}
@@ -58,4 +59,22 @@ bool UKT_ItemsManagerComponent::RemoveAmmo(const TSubclassOf<AKT_BaseWeapon> InA
 void UKT_ItemsManagerComponent::Initialize(AKT_PlayerCharacter* InCharacter)
 {
 	PlayerCharacter = InCharacter;
+}
+
+
+void UKT_ItemsManagerComponent::ChangeWeapon()
+{
+	if (GetSelectedWeaponSlot() == FirstWeaponSlot && IsValid(SecondWeaponSlot))
+	{
+		SelectedFirstSlot = false;
+		FirstWeaponSlot->CanShoot = false;
+		GetWorld()->GetTimerManager().ClearAllTimersForObject(FirstWeaponSlot);
+	}
+	else if (GetSelectedWeaponSlot() == SecondWeaponSlot && IsValid(FirstWeaponSlot))
+	{
+		SelectedFirstSlot = true;
+		SecondWeaponSlot->CanShoot = false;
+		GetWorld()->GetTimerManager().ClearAllTimersForObject(SecondWeaponSlot);
+	}
+	GetSelectedWeaponSlot()->CanShoot = true;
 }

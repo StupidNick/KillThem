@@ -3,7 +3,10 @@
 #include "CoreMinimal.h"
 
 
+#include "Components/BoxComponent.h"
 #include "GameFramework/Actor.h"
+#include "InteractiveObjects/Weapons/KT_BaseInteractiveWeapon.h"
+
 #include "KT_BaseWeapon.generated.h"
 
 
@@ -39,6 +42,9 @@ protected:
 //private C++ variables
 protected:
 
+	UPROPERTY(BlueprintReadOnly)
+		int AmmoInTheClip;
+	
 	FTimerHandle AutoFireTimerHandle;
 	
 	FTimerDelegate AutoFireTimerDelegate;
@@ -56,8 +62,11 @@ public:
 	UFUNCTION()
 		void ToAttachToComponent(USkeletalMeshComponent*& InComponent, const FName InSocketName);
 
-	UFUNCTION()
+	UFUNCTION(NetMulticast, Reliable)
 		void ToDetachFromActor();
+
+	UFUNCTION(Server, Reliable)
+		void ToDetachFromActorOnServer();
 
 //public C++ variables
 public:
@@ -71,6 +80,9 @@ public:
 		AKT_PlayerCharacter* Character;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+		UBoxComponent* BoxCollision;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 		USkeletalMeshComponent* Mesh;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
@@ -81,4 +93,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 		float Damage;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+		TSubclassOf<AKT_BaseInteractiveWeapon> InteractiveWeaponClass = nullptr;
 };
