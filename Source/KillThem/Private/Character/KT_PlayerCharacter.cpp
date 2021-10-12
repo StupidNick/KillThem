@@ -100,7 +100,7 @@ void AKT_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AKT_PlayerCharacter::InteractOnServer);
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AKT_PlayerCharacter::Interact);
 	
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AKT_PlayerCharacter::FireOnServer);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AKT_PlayerCharacter::StopFireOnServer);
@@ -624,6 +624,8 @@ void AKT_PlayerCharacter::OnChangeWeaponPressed()
 }
 
 
+
+
 AKT_BaseWeapon* AKT_PlayerCharacter::AddWeapon(const TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int InAmountOfAmmo)
 {
 	if (!IsValid(ItemsManagerComponent->FirstWeaponSlot))
@@ -719,11 +721,19 @@ void AKT_PlayerCharacter::ReloadOnServer_Implementation()
 
 ///////////////////////////////////////////////////Interaction//////////////////////////////////////////////////////////
 
-void AKT_PlayerCharacter::InteractOnServer_Implementation()
+void AKT_PlayerCharacter::InteractOnServer_Implementation(AKT_BaseInteractiveObject* InInteractiveObject)
+{
+	InteractiveObject = InInteractiveObject;
+	InteractiveObject->ToInteractive(this);
+}
+
+
+void AKT_PlayerCharacter::Interact()
 {
 	if (IsValid(InteractiveObject) && CanInteract)
 	{
 		InteractiveObject->ToInteractive(this);
+		InteractOnServer(InteractiveObject);
 	}
 }
 

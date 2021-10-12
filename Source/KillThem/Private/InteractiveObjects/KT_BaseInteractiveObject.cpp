@@ -45,15 +45,12 @@ void AKT_BaseInteractiveObject::BeginPlay()
 	if (!CanInteractOnOverlap)
 	{
 		BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &AKT_BaseInteractiveObject::OnBoxComponentBeginOverlap);
-		EnableTimerDelegate.BindUFunction(this, "EnableObject");
 	}
 	else
 	{
 		InteractSphereCollision->OnComponentBeginOverlap.AddDynamic(this, &AKT_BaseInteractiveObject::OnSphereComponentBeginOverlap);
 		InteractSphereCollision->OnComponentEndOverlap.AddDynamic(this, &AKT_BaseInteractiveObject::OnSphereComponentEndOverlap);
-		OnDestroyed.AddDynamic(this, &AKT_BaseInteractiveObject::OnActorDestroyed);
 	}
-	
 }
 
 
@@ -63,6 +60,7 @@ void AKT_BaseInteractiveObject::OnBoxComponentBeginOverlap(UPrimitiveComponent* 
 	ToInteractive(OtherActor);
 	if (RecoverTime > 0)
 	{
+		EnableTimerDelegate.BindUFunction(this, "EnableObject");
 		GetWorldTimerManager().SetTimer(EnableTimerHandle, EnableTimerDelegate, RecoverTime, false);
 	}
 }
@@ -71,35 +69,26 @@ void AKT_BaseInteractiveObject::OnBoxComponentBeginOverlap(UPrimitiveComponent* 
 void AKT_BaseInteractiveObject::OnSphereComponentBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor->IsA<AKT_PlayerCharacter>())
+	if (AKT_PlayerCharacter* LCharacter = Cast<AKT_PlayerCharacter>(OtherActor))
 	{
-		Players.Add(Cast<AKT_PlayerCharacter>(OtherActor));
-		Cast<AKT_PlayerCharacter>(OtherActor)->InteractInfo(this);
+		LCharacter->InteractInfo(this);
 	}
 }
 
 
 void AKT_BaseInteractiveObject::OnSphereComponentEndOverlap(UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (OtherActor->IsA<AKT_PlayerCharacter>())
+	if (AKT_PlayerCharacter* LCharacter = Cast<AKT_PlayerCharacter>(OtherActor))
 	{
-		Players.Remove(Cast<AKT_PlayerCharacter>(OtherActor));
-		Cast<AKT_PlayerCharacter>(OtherActor)->UnInteractInfo();
+		LCharacter->UnInteractInfo();
 	}
 }
 
-
-void AKT_BaseInteractiveObject::OnActorDestroyed(AActor* InActor)
-{
-	for (auto i : Players)
-	{
-		i->UnInteractInfo();
-	}
-}
 
 
 void AKT_BaseInteractiveObject::EnableObject()
 {
+	InteractSphereCollision->SetGenerateOverlapEvents(true);
 	BoxCollision->SetGenerateOverlapEvents(true);
 	if (IsValid(StaticMesh))
 	{
@@ -131,7 +120,14 @@ void AKT_BaseInteractiveObject::ToInteractive(AActor* OtherActor)
 {
 	if (CanTake)
 	{
-		InteractiveOnServer(OtherActor);
+		if (HasAuthority())
+		{
+			InteractiveOnServer(OtherActor);
+		}
+		else
+		{
+			Interactive(OtherActor);
+		}
 	}
 }
 

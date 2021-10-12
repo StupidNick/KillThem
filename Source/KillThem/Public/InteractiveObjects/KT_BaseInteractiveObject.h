@@ -45,9 +45,6 @@ protected:
 	UFUNCTION()
 		void OnSphereComponentEndOverlap(UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	UFUNCTION()
-		void OnActorDestroyed(AActor* InActor);
-
 	virtual void Interactive(AActor* OtherActor);
 
 	UFUNCTION(Server, Reliable)
@@ -76,9 +73,6 @@ public:
 	
 //public BP variables
 public:
-
-	UPROPERTY(EditDefaultsOnly, Category = "Components")
-		TArray<AKT_PlayerCharacter*> Players;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
 		UBoxComponent* BoxCollision = nullptr;

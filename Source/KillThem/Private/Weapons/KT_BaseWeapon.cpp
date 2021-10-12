@@ -69,7 +69,6 @@ void AKT_BaseWeapon::ToAttachToComponent(USkeletalMeshComponent*& InComponent, c
 {
 	const FAttachmentTransformRules LRules(EAttachmentRule::KeepWorld, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false);
 	
-	// SetActorEnableCollision(false);
 	Mesh->AttachToComponent(InComponent, LRules, InSocketName);
 }
 

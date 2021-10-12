@@ -69,12 +69,14 @@ void UKT_ItemsManagerComponent::ChangeWeapon()
 		SelectedFirstSlot = false;
 		FirstWeaponSlot->CanShoot = false;
 		GetWorld()->GetTimerManager().ClearAllTimersForObject(FirstWeaponSlot);
+		SecondWeaponSlot->CanShoot = true;
 	}
 	else if (GetSelectedWeaponSlot() == SecondWeaponSlot && IsValid(FirstWeaponSlot))
 	{
 		SelectedFirstSlot = true;
 		SecondWeaponSlot->CanShoot = false;
 		GetWorld()->GetTimerManager().ClearAllTimersForObject(SecondWeaponSlot);
+		FirstWeaponSlot->CanShoot = true;
 	}
-	GetSelectedWeaponSlot()->CanShoot = true;
+	
 }

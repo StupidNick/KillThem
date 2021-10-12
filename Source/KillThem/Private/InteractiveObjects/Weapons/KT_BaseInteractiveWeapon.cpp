@@ -14,9 +14,13 @@ void AKT_BaseInteractiveWeapon::Interactive(AActor* OtherActor)
 {
 	if (AKT_PlayerCharacter* LCharacter = Cast<AKT_PlayerCharacter>(OtherActor))
 	{
-		LCharacter->AddWeapon(WeaponClass, 0);
+		if (HasAuthority())
+		{
+			LCharacter->AddWeapon(WeaponClass, 0);
+			Destroy();
+		}
 	}
-	Destroy();
+	
 }
 
 

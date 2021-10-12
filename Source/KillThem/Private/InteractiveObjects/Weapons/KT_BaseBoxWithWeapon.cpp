@@ -1,7 +1,7 @@
 #include "InteractiveObjects/Weapons/KT_BaseBoxWithWeapon.h"
 
 #include "Character/KT_PlayerCharacter.h"
-#include "Components/BoxComponent.h"
+#include "Components/SphereComponent.h"
 
 
 AKT_BaseBoxWithWeapon::AKT_BaseBoxWithWeapon()
@@ -13,15 +13,21 @@ void AKT_BaseBoxWithWeapon::Interactive(AActor* OtherActor)
 {
 	if (!HasAuthority())
 	{
-		BoxCollision->SetGenerateOverlapEvents(false);
+		InteractSphereCollision->SetGenerateOverlapEvents(false);
 		DisableObject();
 		if (RecoverTime > 0)
 		{
+			EnableTimerDelegate.BindUFunction(this, "EnableObject");
 			GetWorldTimerManager().SetTimer(EnableTimerHandle, EnableTimerDelegate, RecoverTime, false);
 		}
 	}
+	
 	if (AKT_PlayerCharacter* LCharacter = Cast<AKT_PlayerCharacter>(OtherActor))
 	{
-		LCharacter->AddWeapon(WeaponClass, AmountOfAmmo);
+		if (HasAuthority())
+		{
+			LCharacter->AddWeapon(WeaponClass, AmountOfAmmo);
+			OnSphereComponentEndOverlap(InteractSphereCollision, OtherActor, InteractSphereCollision, 0);
+		}
 	}
 }

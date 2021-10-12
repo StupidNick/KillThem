@@ -176,7 +176,9 @@ protected:
 /////////////////////////////////////Interact//////////////////////////////////////
 
 	UFUNCTION(Server, Reliable)
-		void InteractOnServer();
+		void InteractOnServer(AKT_BaseInteractiveObject* InInteractiveObject);
+	UFUNCTION()
+		void Interact();
 
 	
 //protected c++ variables

@@ -25,6 +25,7 @@ protected:
 
 	UFUNCTION()
 		virtual void Interactive(AActor* OtherActor) override;
+	
 
 //Protected C++ variables
 protected:
