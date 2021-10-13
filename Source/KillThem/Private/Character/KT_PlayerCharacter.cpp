@@ -102,6 +102,9 @@ void AKT_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AKT_PlayerCharacter::Interact);
 	
+	PlayerInputComponent->BindAction("AlterFire", IE_Pressed, this, &AKT_PlayerCharacter::RightClick);
+	PlayerInputComponent->BindAction("AlterFire", IE_Released, this, &AKT_PlayerCharacter::RightUnClick);
+	
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AKT_PlayerCharacter::FireOnServer);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AKT_PlayerCharacter::StopFireOnServer);
 	
@@ -628,6 +631,10 @@ void AKT_PlayerCharacter::OnChangeWeaponPressed()
 
 AKT_BaseWeapon* AKT_PlayerCharacter::AddWeapon(const TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int InAmountOfAmmo)
 {
+	if (!HasAuthority())
+	{
+		UE_LOG(LogTemp, Error, TEXT("djhfvbadsrfjhvbasdfkjvhb"));
+	}
 	if (!IsValid(ItemsManagerComponent->FirstWeaponSlot))
 	{
 		FVector LLocation = FirstPersonMeshComponent->GetSocketLocation(ItemsManagerComponent->InHandsSocketName);
@@ -686,6 +693,7 @@ AKT_BaseWeapon* AKT_PlayerCharacter::AddWeapon(const TSubclassOf<AKT_BaseWeapon>
 void AKT_PlayerCharacter::ChangeWeaponOnServer_Implementation()
 {
 	ItemsManagerComponent->ChangeWeapon();
+	
 }
 
 
@@ -697,7 +705,7 @@ void AKT_PlayerCharacter::FireOnServer_Implementation()
 	}
 	CanShoot = true;
 	
-	ItemsManagerComponent->GetSelectedWeaponSlot()->ToUseWeapon();
+	ItemsManagerComponent->GetSelectedWeaponSlot()->ToUseWeapon(false);
 }
 
 
@@ -714,6 +722,56 @@ void AKT_PlayerCharacter::ReloadOnServer_Implementation()
 		BreakSprint();
 	}
 	Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot())->ToReload();
+}
+
+
+void AKT_PlayerCharacter::RightClick_Implementation()
+{
+	if (ItemsManagerComponent->GetSelectedWeaponSlot()->CanScope)
+	{
+		Scope();
+	}
+	else
+	{
+		AlterFireOnServer();
+	}
+}
+
+void AKT_PlayerCharacter::RightUnClick_Implementation()
+{
+	if (ItemsManagerComponent->GetSelectedWeaponSlot()->CanScope)
+	{
+		UnScope();
+	}
+	else
+	{
+		StopFireOnServer();
+	}
+}
+
+
+void AKT_PlayerCharacter::AlterFireOnServer_Implementation()
+{
+	if (IsSprinted)
+	{
+		BreakSprint();
+	}
+	CanShoot = true;
+	
+	ItemsManagerComponent->GetSelectedWeaponSlot()->ToUseWeapon(true);
+}
+
+
+void AKT_PlayerCharacter::Scope()
+{
+	Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot())->SetScatterFactor(0.05);
+}
+
+
+void AKT_PlayerCharacter::UnScope()
+{
+	AKT_BaseRangeWeapon* LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot());
+	LWeapon->SetScatterFactor(LWeapon->BaseScatterFactor);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -17,6 +17,7 @@ void AKT_BaseRangeWeapon::Initialize_Implementation(AKT_PlayerCharacter* InChara
 	Super::Initialize_Implementation(InCharacter);
 	
 	AmmoInTheClip = ClipSize;
+	ScatterFactor = BaseScatterFactor;
 }
 
 
@@ -27,29 +28,41 @@ void AKT_BaseRangeWeapon::UseWeapon()
 	{
 		if (ProjectileShooting)
 		{
-			ProjectileShoot();
+			if (UseAlterFire)
+			{
+				ProjectileShoot(AlterFireProjectileClass);
+			}
+			else
+			{
+				ProjectileShoot(ProjectileClass);
+			}
 		}
 		else
 		{
-			LineTraceProjectile();
+			if (UseAlterFire)
+			{
+				LineTraceShot();
+			}
+			else
+			{
+				LineTraceShot();
+			}
 		}
 	}
-	
-	Super::UseWeapon();
 }
 
 
-void AKT_BaseRangeWeapon::ProjectileShoot()
+void AKT_BaseRangeWeapon::ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass)
 {
 	const FVector LLocation = Mesh->GetSocketTransform(FireSocketName).GetLocation();
-	const FRotator LRotation = Character->Controller->GetControlRotation();
+	const FRotator LRotation = Character->Controller->GetControlRotation() + FRotator(FMath::FRandRange(-5, 5) * ScatterFactor, FMath::FRandRange(-5, 5) * ScatterFactor, FMath::FRandRange(-5, 5) * ScatterFactor);
 	FActorSpawnParameters LSpawnInfo;
 
 	LSpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	LSpawnInfo.Owner = this;
 	LSpawnInfo.Instigator = Character;
 
-	AKT_BaseProjectile* LProjectile = GetWorld()->SpawnActor<AKT_BaseProjectile>(ProjectileClass, LLocation, LRotation, LSpawnInfo);
+	AKT_BaseProjectile* LProjectile = GetWorld()->SpawnActor<AKT_BaseProjectile>(InProjectileClass, LLocation, LRotation, LSpawnInfo);
 	if (IsValid(LProjectile))
 	{
 		LProjectile->Initialize(Damage, Character, this);
@@ -61,7 +74,7 @@ void AKT_BaseRangeWeapon::ProjectileShoot()
 }
 
 
-void AKT_BaseRangeWeapon::LineTraceProjectile()
+void AKT_BaseRangeWeapon::LineTraceShot()
 {
 	FCollisionQueryParams LParams;
 	
@@ -70,6 +83,7 @@ void AKT_BaseRangeWeapon::LineTraceProjectile()
 	FRotator LStartRotation;
 	FVector LEndLocation;
 	Character->Controller->GetPlayerViewPoint(LStartLocation, LStartRotation);
+	LStartRotation += FRotator(FMath::FRandRange(-5, 5) * ScatterFactor, FMath::FRandRange(-5, 5) * ScatterFactor, FMath::FRandRange(-5, 5) * ScatterFactor);
 	LEndLocation = LStartLocation + MaxDistanceAttack * LStartRotation.Vector();
 	
 	DrawDebugLine(GetWorld(), LStartLocation, LEndLocation, FColor(255, 0, 0), false, 5, 0, 5.0);
@@ -91,6 +105,7 @@ void AKT_BaseRangeWeapon::LineTraceProjectile()
 	
 	UE_LOG(LogTemp, Error, TEXT("%i"), AmmoInTheClip);
 }
+
 
 void AKT_BaseRangeWeapon::Reload(const int InAmmo)
 {
@@ -118,4 +133,10 @@ void AKT_BaseRangeWeapon::ToReload()
 		ReloadTimerDelegate.BindUFunction(this, "Reload", LCountOfAmmo);
 		GetWorldTimerManager().SetTimer(ReloadTimerHandle, ReloadTimerDelegate, ReloadTime, false);
 	}
+}
+
+
+void AKT_BaseRangeWeapon::SetScatterFactor(const float InScatterFactor)
+{
+	ScatterFactor = InScatterFactor;
 }

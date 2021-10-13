@@ -44,29 +44,35 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 		int AmmoInTheClip;
+
+	UPROPERTY(BlueprintReadOnly)
+		bool UseAlterFire;
 	
 	FTimerHandle AutoFireTimerHandle;
+	FTimerHandle AlterFireHandle;
 	
 	FTimerDelegate AutoFireTimerDelegate;
+	FTimerDelegate AlterFireTimerDelegate;
 
 //public C++ variables
 public:
 
 	UFUNCTION()
-		void ToUseWeapon();
+		void ToUseWeapon(const bool IsAlterFire);
 
 	UFUNCTION(BlueprintNativeEvent)
 		void Initialize(AKT_PlayerCharacter* InCharacter);
 		virtual void Initialize_Implementation(AKT_PlayerCharacter* InCharacter);
 
-	UFUNCTION()
-		void ToAttachToComponent(USkeletalMeshComponent*& InComponent, const FName InSocketName);
+	UFUNCTION(NetMulticast, Reliable)
+		void ToAttachToComponent(USkeletalMeshComponent* InComponent, const FName InSocketName);
 
 	UFUNCTION(NetMulticast, Reliable)
 		void ToDetachFromActor();
 
-	UFUNCTION(Server, Reliable)
-		void ToDetachFromActorOnServer();
+	UFUNCTION(NetMulticast, Reliable)
+		void Detach();
+	
 
 //public C++ variables
 public:
@@ -79,21 +85,30 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Character")
 		AKT_PlayerCharacter* Character;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Components")
 		UBoxComponent* BoxCollision;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Components")
 		USkeletalMeshComponent* Mesh;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
 		float DelayBetweenShots;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
+		float TimeBeforeAlterFire;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
 		bool AutoFire;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
+		bool CanScope;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
 		float Damage;
 
-	UPROPERTY(EditAnywhere, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
+		float AlterDamage;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon | Interactive")
 		TSubclassOf<AKT_BaseInteractiveWeapon> InteractiveWeaponClass = nullptr;
 };

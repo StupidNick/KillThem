@@ -35,6 +35,7 @@ void AKT_BaseWeapon::AutoFireReload()
 		if (AutoFire)
 		{
 			UseWeapon();
+			
 			CanShoot = false;
 			GetWorldTimerManager().SetTimer(AutoFireTimerHandle, AutoFireTimerDelegate, DelayBetweenShots, false);
 		}
@@ -42,11 +43,21 @@ void AKT_BaseWeapon::AutoFireReload()
 }
 
 
-void AKT_BaseWeapon::ToUseWeapon()
+void AKT_BaseWeapon::ToUseWeapon(const bool IsAlterFire)
 {
+	UseAlterFire = IsAlterFire;
+	
 	if (CanShoot)
 	{
-		UseWeapon();
+		if (UseAlterFire)
+		{
+			AlterFireTimerDelegate.BindUFunction(this, "UseWeapon");
+			GetWorldTimerManager().SetTimer(AlterFireHandle, AlterFireTimerDelegate, TimeBeforeAlterFire, false);
+		}
+		else
+		{
+			UseWeapon();
+		}
 		
 		if (DelayBetweenShots > 0)
 		{
@@ -65,11 +76,17 @@ void AKT_BaseWeapon::Initialize_Implementation(AKT_PlayerCharacter* InCharacter)
 }
 
 
-void AKT_BaseWeapon::ToAttachToComponent(USkeletalMeshComponent*& InComponent, const FName InSocketName)
+void AKT_BaseWeapon::ToAttachToComponent_Implementation(USkeletalMeshComponent* InComponent, const FName InSocketName)
 {
 	const FAttachmentTransformRules LRules(EAttachmentRule::KeepWorld, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false);
 	
 	Mesh->AttachToComponent(InComponent, LRules, InSocketName);
+}
+
+
+void AKT_BaseWeapon::Detach_Implementation()
+{
+	Mesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 }
 
 
@@ -90,9 +107,4 @@ void AKT_BaseWeapon::ToDetachFromActor_Implementation()
 		}
 	}
 	Destroy();
-}
-
-
-void AKT_BaseWeapon::ToDetachFromActorOnServer_Implementation()
-{
 }

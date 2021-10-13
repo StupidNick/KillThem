@@ -29,14 +29,17 @@ public:
 	UFUNCTION()
 		void ToReload();
 
+	
+	void SetScatterFactor(const float InScatterFactor);
+
 //Protected C++ functions
 protected:
 
 	UFUNCTION()
-		virtual void ProjectileShoot();
+		virtual void ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass);
 
 	UFUNCTION()
-		virtual void LineTraceProjectile();
+		virtual void LineTraceShot();
 
 	UFUNCTION()
 		void Reload(const int InAmmo);
@@ -47,6 +50,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 		bool IsReloading = false;
 
+	UPROPERTY(BlueprintReadOnly)
+		float ScatterFactor;
+
 	FTimerHandle ReloadTimerHandle;
 	
 	FTimerDelegate ReloadTimerDelegate;
@@ -54,24 +60,33 @@ protected:
 //public BP variables
 public:
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
 		int ClipSize;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
 		float ReloadTime;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
 		TSubclassOf<UDamageType> DamageTypeClass;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
+		TSubclassOf<UDamageType> AlterDamageTypeClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
 		float MaxDistanceAttack;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
 		FName FireSocketName;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
 		bool ProjectileShooting;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
+		float BaseScatterFactor;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
 		TSubclassOf<AKT_BaseProjectile> ProjectileClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
+		TSubclassOf<AKT_BaseProjectile> AlterFireProjectileClass;
 };

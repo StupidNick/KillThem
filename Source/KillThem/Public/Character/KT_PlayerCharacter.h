@@ -155,8 +155,6 @@ protected:
 		void EndTiltOnWallRunning(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 /////////////////////////////////////Weapon////////////////////////////////////////
-
-	
 	
 	UFUNCTION()
 		void OnChangeWeaponPressed();
@@ -172,6 +170,21 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 		void ReloadOnServer();
+
+	UFUNCTION(Server, Reliable)
+		void RightClick();
+
+	UFUNCTION(Server, Reliable)
+		void RightUnClick();
+
+	UFUNCTION(Server, Reliable)
+		void AlterFireOnServer();
+
+	UFUNCTION()
+		void Scope();
+
+	UFUNCTION()
+		void UnScope();
 
 /////////////////////////////////////Interact//////////////////////////////////////
 

@@ -78,5 +78,4 @@ void UKT_ItemsManagerComponent::ChangeWeapon()
 		GetWorld()->GetTimerManager().ClearAllTimersForObject(SecondWeaponSlot);
 		FirstWeaponSlot->CanShoot = true;
 	}
-	
 }
