@@ -26,6 +26,8 @@ private:
 private:
 
 	float Health;
+	
+	float Shield;
 
 	bool IsDead = false;
 
@@ -34,7 +36,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-		void TakeDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+		void TakeDamage(AActor* DamagedActor, const float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
 	
 //public BP functions
@@ -74,6 +76,16 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////
 
 
+/////////////////////////////////////Shield//////////////////////////////////////////
+
+	UFUNCTION(BlueprintCallable, Category = "HealthComponent | Health")
+		void ChangeShield(const float InShield);
+
+	UFUNCTION(Server, Reliable)
+		void ChangeShieldOnServer(const float InShield);
+
+/////////////////////////////////////////////////////////////////////////////////////
+
 //public C++ variables
 public:
 
@@ -86,4 +98,10 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "HealthComponent | Health")
 		float MaxHealth;
+
+	UPROPERTY(EditAnywhere, Category = "HealthComponent | Shield")
+		float DefaultShield;
+
+	UPROPERTY(EditAnywhere, Category = "HealthComponent | Shield")
+		float ShieldSafeFactor;
 };

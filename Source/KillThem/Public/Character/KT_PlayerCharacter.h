@@ -69,6 +69,8 @@ private:
 	UPROPERTY()
 		bool CameraIsTilt = false;
 
+	FTimerHandle SprintTimerHandle;
+	FTimerDelegate SprintTimerDelegate;
 
 
 //protected c++ functions
@@ -91,7 +93,9 @@ protected:
 	UFUNCTION()
 		void BreakSprint();
 	UFUNCTION(Server, Reliable)
-		void SprintOnServer(float InSpeed);
+		void SetCharacterSpeedOnServer(const float InSpeed);
+	UFUNCTION(Server, Reliable)
+		void SetCanShootOnServer(const bool InCanShoot);
 
 /////////////////////////////////////Crouch/////////////////////////////////////////
 	UFUNCTION()
@@ -213,14 +217,22 @@ protected:
 //public c++ functions
 public:
 
-	UFUNCTION()
-		AKT_BaseWeapon* AddWeapon(const TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int InAmountOfAmmo);
+	UFUNCTION(Server, Reliable)
+		void AddWeapon(TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int InAmountOfAmmo, const int AmmoInTheClip = -1);
 
 	UFUNCTION()
 		void InteractInfo(AKT_BaseInteractiveObject* InInteractiveObject);
 
 	UFUNCTION()
 		void UnInteractInfo();
+
+	UFUNCTION()
+		void ChangeCharacterSpeeds(const float InSpeedFactor);
+
+	UFUNCTION(Server, Reliable)
+		void CheckCanFireOnServer();
+
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 //public c++ variables
 public:
@@ -235,17 +247,47 @@ public:
 	FOnTimelineFloat TiltCameraOnWallRunningInterpFunction{};
 //////////////////////////////////////////////////////////////////////////////////////
 
+	UPROPERTY()
+		bool CanShoot = true;
+	
+	UPROPERTY()
+		bool NeedShoot = false;
 
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
+////////////////////////////////////PersonParams//////////////////////////////////////
 
 	UPROPERTY()
-		bool CanShoot = false;
-	
+		float SpeedOfWalk;
+
+	UPROPERTY()
+		float SpeedOfRun;
+
+	UPROPERTY()
+		float SpeedOfCrouch;
+
+	UPROPERTY()
+		float SpeedOfSliding;
+
+	UPROPERTY()
+		float SpeedOfDash;
+
+	UPROPERTY()
+		float DamageBooster;
+
+	UPROPERTY()
+		float BerserkBooster;
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+
 //public BP variables
 public:
 
 	UPROPERTY(EditAnywhere, Category = "Character | Components")
 		UKT_ItemsManagerComponent* ItemsManagerComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Components")
+		UKT_HealthComponent* HealthComponent;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character | Components")
 		USkeletalMeshComponent* FirstPersonMeshComponent;
@@ -261,9 +303,6 @@ public:
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Character | Components")
 		UBoxComponent* WallRunLeftCollisionComponent;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Components")
-		UKT_HealthComponent* HealthComponent;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Character")
 		APlayerController* PlayerController;

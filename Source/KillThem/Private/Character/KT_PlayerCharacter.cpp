@@ -65,9 +65,24 @@ AKT_PlayerCharacter::AKT_PlayerCharacter()
 void AKT_PlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	SprintSpeed = WalkSpeed * 1.5;
+	
+	SprintSpeed = WalkSpeed * 1.5; //Fix this
+	
+	SpeedOfWalk = WalkSpeed;
+	SpeedOfRun = SprintSpeed;
+	SpeedOfCrouch = CrouchSpeed;
+	SpeedOfSliding = SlidingSpeed;
+	SpeedOfDash = DashSpeed;
+	DamageBooster = 1;
+	BerserkBooster = 1;
+
+	CanShoot = true;
+
+	SprintTimerDelegate.BindUFunction(this, "SlidingReload");
 
 	GetMovementComponent()->SetPlaneConstraintEnabled(true);
+
+	GetCharacterMovement()->MaxWalkSpeed = SpeedOfWalk;
 
 	if (CurveFloatForSliding)
 	{
@@ -91,7 +106,8 @@ void AKT_PlayerCharacter::BeginPlay()
 	}
 	if (IsValid(ItemsManagerComponent->FirstWeaponSlotClass) && HasAuthority())
 	{
-		ItemsManagerComponent->GetSelectedWeaponSlot() = AddWeapon(ItemsManagerComponent->FirstWeaponSlotClass, 20);
+		ItemsManagerComponent->SelectedFirstSlot = true;
+		AddWeapon(ItemsManagerComponent->FirstWeaponSlotClass, 20);
 	}
 }
 
@@ -146,7 +162,10 @@ void AKT_PlayerCharacter::MoveForward(float Value)
 	}
 	else
 	{
-		BreakSprint();
+		if (IsSprinted)
+		{
+			BreakSprint();
+		}
 		IsMoveForward = false;
 		SetMoveForwardOnServer(false);
 	}
@@ -180,6 +199,32 @@ void AKT_PlayerCharacter::MoveRight(float Value)
 	}
 }
 
+
+void AKT_PlayerCharacter::ChangeCharacterSpeeds(const float InSpeedFactor)
+{
+	SpeedOfWalk *= InSpeedFactor;
+	SpeedOfRun *= InSpeedFactor;
+	SpeedOfCrouch *= InSpeedFactor;
+	SpeedOfSliding *= InSpeedFactor;
+	SpeedOfDash *= InSpeedFactor;
+
+	if (IsSprinted)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = SpeedOfRun;
+		SetCharacterSpeedOnServer(SpeedOfRun);
+	}
+	else if (IsCrouching)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = SpeedOfCrouch;
+		SetCharacterSpeedOnServer(SpeedOfCrouch);
+	}
+	else 
+	{
+		GetCharacterMovement()->MaxWalkSpeed = SpeedOfWalk;
+		SetCharacterSpeedOnServer(SpeedOfWalk);
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -191,11 +236,11 @@ void AKT_PlayerCharacter::DoSprint()
 	{
 		if (IsSprinted)
 		{
-			Sprint();
+			UnSprint();
 		}
 		else
 		{
-			UnSprint();
+			Sprint();
 		}
 	}
 }
@@ -203,28 +248,26 @@ void AKT_PlayerCharacter::DoSprint()
 
 void AKT_PlayerCharacter::Sprint()
 {
-	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-	SprintOnServer(WalkSpeed);
-	IsSprinted = false;
-	CanSliding = false;
+	if (IsCrouching)
+	{
+		DoCrouch();
+	}
+	GetCharacterMovement()->MaxWalkSpeed = SpeedOfRun;
+	SetCharacterSpeedOnServer(SpeedOfRun);
+	SetCanShootOnServer(false);
+	IsSprinted = true;
+	
+	GetWorldTimerManager().SetTimer(SprintTimerHandle, SprintTimerDelegate, 0.5, false);
 }
 
 
 void AKT_PlayerCharacter::UnSprint()
 {
-	if (IsCrouching)
-	{
-		DoCrouch();
-	}
-	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
-	SprintOnServer(SprintSpeed);
-	IsSprinted = true;
-
-	FTimerHandle LTimerHandle;
-	FTimerDelegate LTimerDelegate;
-
-	LTimerDelegate.BindUFunction(this, "SlidingReload");
-	GetWorldTimerManager().SetTimer(LTimerHandle, LTimerDelegate, 0.5, false);
+	GetCharacterMovement()->MaxWalkSpeed = SpeedOfWalk;
+	SetCharacterSpeedOnServer(SpeedOfWalk);
+	SetCanShootOnServer(true);
+	IsSprinted = false;
+	CanSliding = false;
 }
 
 
@@ -234,14 +277,15 @@ void AKT_PlayerCharacter::BreakSprint()
 	{
 		return;
 	}
-	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-	SprintOnServer(WalkSpeed);
+	GetCharacterMovement()->MaxWalkSpeed = SpeedOfWalk;
+	SetCharacterSpeedOnServer(SpeedOfWalk);
+	SetCanShootOnServer(true);
 	IsSprinted = false;
 	CanSliding = false;
 }
 
 
-void AKT_PlayerCharacter::SprintOnServer_Implementation(float InSpeed)
+void AKT_PlayerCharacter::SetCharacterSpeedOnServer_Implementation(const float InSpeed)
 {
 	GetCharacterMovement()->MaxWalkSpeed = InSpeed;
 }
@@ -275,10 +319,11 @@ void AKT_PlayerCharacter::Crouching()
 	CrouchingEndLocation = CrouchingStartLocation = CameraComponent->GetRelativeLocation();
 	CrouchingEndLocation.Z -= 50;
 	
-	GetCharacterMovement()->MaxWalkSpeed = CrouchSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = SpeedOfCrouch;
 	
 	CrouchingTimeLine->Play();
-	
+
+	CanShoot = true;
 	IsCrouching = true;
 	IsSprinted = false;
 	CanDash = false;
@@ -286,7 +331,7 @@ void AKT_PlayerCharacter::Crouching()
 
 void AKT_PlayerCharacter::UnCrouching()
 {
-	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = SpeedOfWalk;
 	
 	CrouchingTimeLine->Reverse();
 	
@@ -440,11 +485,11 @@ void AKT_PlayerCharacter::RightDash(bool Right)
 {
 	if (Right)
 	{
-		LaunchCharacter(FVector(UKismetMathLibrary::GetRightVector(GetActorRotation()) * DashSpeed), true, false);
+		LaunchCharacter(FVector(UKismetMathLibrary::GetRightVector(GetActorRotation()) * SpeedOfDash), true, false);
 	}
 	else
 	{
-		LaunchCharacter(FVector(UKismetMathLibrary::GetRightVector(GetActorRotation()) * -DashSpeed), true, false);
+		LaunchCharacter(FVector(UKismetMathLibrary::GetRightVector(GetActorRotation()) * -SpeedOfDash), true, false);
 	}
 }
 
@@ -453,11 +498,11 @@ void AKT_PlayerCharacter::ForwardDash(bool Forward)
 {
 	if (Forward)
 	{
-		LaunchCharacter(FVector(UKismetMathLibrary::GetForwardVector(GetActorRotation()) * DashSpeed), true, false);
+		LaunchCharacter(FVector(UKismetMathLibrary::GetForwardVector(GetActorRotation()) * SpeedOfDash), true, false);
 	}
 	else
 	{
-		LaunchCharacter(FVector(UKismetMathLibrary::GetForwardVector(GetActorRotation()) * -DashSpeed), true, false);
+		LaunchCharacter(FVector(UKismetMathLibrary::GetForwardVector(GetActorRotation()) * -SpeedOfDash), true, false);
 	}
 }
 
@@ -627,14 +672,8 @@ void AKT_PlayerCharacter::OnChangeWeaponPressed()
 }
 
 
-
-
-AKT_BaseWeapon* AKT_PlayerCharacter::AddWeapon(const TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int InAmountOfAmmo)
+void AKT_PlayerCharacter::AddWeapon_Implementation(TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int InAmountOfAmmo, const int AmmoInTheClip)
 {
-	if (!HasAuthority())
-	{
-		UE_LOG(LogTemp, Error, TEXT("djhfvbadsrfjhvbasdfkjvhb"));
-	}
 	if (!IsValid(ItemsManagerComponent->FirstWeaponSlot))
 	{
 		FVector LLocation = FirstPersonMeshComponent->GetSocketLocation(ItemsManagerComponent->InHandsSocketName);
@@ -644,11 +683,11 @@ AKT_BaseWeapon* AKT_PlayerCharacter::AddWeapon(const TSubclassOf<AKT_BaseWeapon>
 		ItemsManagerComponent->FirstWeaponSlot = GetWorld()->SpawnActor<AKT_BaseWeapon>(InWeaponClass, LLocation, LRotation, LSpawnInfo);
 		if (IsValid(ItemsManagerComponent->FirstWeaponSlot))
 		{
-			ItemsManagerComponent->FirstWeaponSlot->Initialize(this);
+			ItemsManagerComponent->FirstWeaponSlot->Initialize(this, AmmoInTheClip);
 			ItemsManagerComponent->FirstWeaponSlot->ToAttachToComponent(FirstPersonMeshComponent, ItemsManagerComponent->InHandsSocketName);
 			ItemsManagerComponent->AddAmmo(InWeaponClass, InAmountOfAmmo);
 		}
-		return ItemsManagerComponent->FirstWeaponSlot;
+		return;
 	}
 	if (!IsValid(ItemsManagerComponent->SecondWeaponSlot))
 	{
@@ -663,12 +702,12 @@ AKT_BaseWeapon* AKT_PlayerCharacter::AddWeapon(const TSubclassOf<AKT_BaseWeapon>
 		}
 		if (IsValid(ItemsManagerComponent->SecondWeaponSlot))
 		{
-			ItemsManagerComponent->SecondWeaponSlot->Initialize(this);
+			ItemsManagerComponent->SecondWeaponSlot->Initialize(this, AmmoInTheClip);
 			ItemsManagerComponent->SecondWeaponSlot->ToAttachToComponent(LMesh, ItemsManagerComponent->BehindBackSocketName);
 			ItemsManagerComponent->AddAmmo(InWeaponClass, InAmountOfAmmo);
 		}
 		
-		return ItemsManagerComponent->SecondWeaponSlot;
+		return;
 	}
 	const FVector LLocation = FirstPersonMeshComponent->GetSocketLocation(ItemsManagerComponent->InHandsSocketName);
 	const FRotator LRotation = GetControlRotation();
@@ -681,19 +720,16 @@ AKT_BaseWeapon* AKT_PlayerCharacter::AddWeapon(const TSubclassOf<AKT_BaseWeapon>
 	ItemsManagerComponent->GetSelectedWeaponSlot() = GetWorld()->SpawnActor<AKT_BaseWeapon>(InWeaponClass, LLocation, LRotation, LSpawnInfo);
 	if (IsValid(ItemsManagerComponent->GetSelectedWeaponSlot()))
 	{
-		ItemsManagerComponent->GetSelectedWeaponSlot()->Initialize(this);
+		ItemsManagerComponent->GetSelectedWeaponSlot()->Initialize(this, AmmoInTheClip);
 		ItemsManagerComponent->GetSelectedWeaponSlot()->ToAttachToComponent(FirstPersonMeshComponent, ItemsManagerComponent->InHandsSocketName);
 		ItemsManagerComponent->AddAmmo(InWeaponClass, InAmountOfAmmo);
 	}
-
-	return ItemsManagerComponent->GetSelectedWeaponSlot();
 }
 
 
 void AKT_PlayerCharacter::ChangeWeaponOnServer_Implementation()
 {
 	ItemsManagerComponent->ChangeWeapon();
-	
 }
 
 
@@ -703,9 +739,11 @@ void AKT_PlayerCharacter::FireOnServer_Implementation()
 	{
 		BreakSprint();
 	}
-	CanShoot = true;
-	
-	ItemsManagerComponent->GetSelectedWeaponSlot()->ToUseWeapon(false);
+
+	if (CanShoot)
+	{
+		ItemsManagerComponent->GetSelectedWeaponSlot()->ToUseWeapon(false);
+	}
 }
 
 
@@ -743,10 +781,6 @@ void AKT_PlayerCharacter::RightUnClick_Implementation()
 	{
 		UnScope();
 	}
-	else
-	{
-		StopFireOnServer();
-	}
 }
 
 
@@ -756,9 +790,11 @@ void AKT_PlayerCharacter::AlterFireOnServer_Implementation()
 	{
 		BreakSprint();
 	}
-	CanShoot = true;
 	
-	ItemsManagerComponent->GetSelectedWeaponSlot()->ToUseWeapon(true);
+	if (CanShoot)
+	{
+		ItemsManagerComponent->GetSelectedWeaponSlot()->ToUseWeapon(true);
+	}
 }
 
 
@@ -772,6 +808,21 @@ void AKT_PlayerCharacter::UnScope()
 {
 	AKT_BaseRangeWeapon* LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot());
 	LWeapon->SetScatterFactor(LWeapon->BaseScatterFactor);
+}
+
+
+void AKT_PlayerCharacter::SetCanShootOnServer_Implementation(const bool InCanShoot)
+{
+	CanShoot = InCanShoot;
+}
+
+
+void AKT_PlayerCharacter::CheckCanFireOnServer_Implementation()
+{
+	if (!IsSprinted)
+	{
+		CanShoot = true;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

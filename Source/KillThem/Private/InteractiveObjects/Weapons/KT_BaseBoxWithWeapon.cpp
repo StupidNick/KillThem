@@ -4,16 +4,16 @@
 #include "Components/SphereComponent.h"
 
 
+
 AKT_BaseBoxWithWeapon::AKT_BaseBoxWithWeapon()
 {
 }
 
 
-void AKT_BaseBoxWithWeapon::Interactive(AActor* OtherActor)
+void AKT_BaseBoxWithWeapon::Interactive(AKT_PlayerCharacter* Player)
 {
 	if (!HasAuthority())
 	{
-		InteractSphereCollision->SetGenerateOverlapEvents(false);
 		DisableObject();
 		if (RecoverTime > 0)
 		{
@@ -22,12 +22,9 @@ void AKT_BaseBoxWithWeapon::Interactive(AActor* OtherActor)
 		}
 	}
 	
-	if (AKT_PlayerCharacter* LCharacter = Cast<AKT_PlayerCharacter>(OtherActor))
+	if (HasAuthority())
 	{
-		if (HasAuthority())
-		{
-			LCharacter->AddWeapon(WeaponClass, AmountOfAmmo);
-			OnSphereComponentEndOverlap(InteractSphereCollision, OtherActor, InteractSphereCollision, 0);
-		}
+		Player->AddWeapon(WeaponClass, AmountOfAmmo);
+		OnSphereComponentEndOverlap(InteractSphereCollision, Player, InteractSphereCollision, 0);
 	}
 }

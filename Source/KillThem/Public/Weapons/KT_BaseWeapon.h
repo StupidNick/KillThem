@@ -60,9 +60,12 @@ public:
 	UFUNCTION()
 		void ToUseWeapon(const bool IsAlterFire);
 
+	UFUNCTION()
+		void StopFire();
+
 	UFUNCTION(BlueprintNativeEvent)
-		void Initialize(AKT_PlayerCharacter* InCharacter);
-		virtual void Initialize_Implementation(AKT_PlayerCharacter* InCharacter);
+		void Initialize(AKT_PlayerCharacter* InCharacter, const int InAmmoInTheClip = -1);
+		virtual void Initialize_Implementation(AKT_PlayerCharacter* InCharacter, const int InAmmoInTheClip = -1);
 
 	UFUNCTION(NetMulticast, Reliable)
 		void ToAttachToComponent(USkeletalMeshComponent* InComponent, const FName InSocketName);
@@ -90,6 +93,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Components")
 		USkeletalMeshComponent* Mesh;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
+		int ClipSize;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
 		float DelayBetweenShots;

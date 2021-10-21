@@ -12,11 +12,10 @@ AKT_BaseRangeWeapon::AKT_BaseRangeWeapon()
 	
 }
 
-void AKT_BaseRangeWeapon::Initialize_Implementation(AKT_PlayerCharacter* InCharacter)
+void AKT_BaseRangeWeapon::Initialize_Implementation(AKT_PlayerCharacter* InCharacter, const int InAmmoInTheClip)
 {
-	Super::Initialize_Implementation(InCharacter);
+	Super::Initialize_Implementation(InCharacter, InAmmoInTheClip);
 	
-	AmmoInTheClip = ClipSize;
 	ScatterFactor = BaseScatterFactor;
 }
 
@@ -65,7 +64,7 @@ void AKT_BaseRangeWeapon::ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> 
 	AKT_BaseProjectile* LProjectile = GetWorld()->SpawnActor<AKT_BaseProjectile>(InProjectileClass, LLocation, LRotation, LSpawnInfo);
 	if (IsValid(LProjectile))
 	{
-		LProjectile->Initialize(Damage, Character, this);
+		LProjectile->Initialize(Damage * Character->DamageBooster, Character, this);
 		AmmoInTheClip--;
 	
 		UE_LOG(LogTemp, Error, TEXT("%i"), AmmoInTheClip);
@@ -98,8 +97,8 @@ void AKT_BaseRangeWeapon::LineTraceShot()
 	if (LHitResult.Actor != Character && LbHit && IsValid(DamageTypeClass))
 	{
 		const FDamageEvent LDamageEvent;
-		
-		UGameplayStatics::ApplyDamage(LHitResult.GetActor(), Damage, LHitResult.GetActor()->GetInstigatorController(), Character, DamageTypeClass);
+
+		UGameplayStatics::ApplyDamage(LHitResult.GetActor(), Damage * Character->DamageBooster, LHitResult.GetActor()->GetInstigatorController(), Character, DamageTypeClass);
 	}
 	AmmoInTheClip--;
 	
@@ -131,7 +130,7 @@ void AKT_BaseRangeWeapon::ToReload()
 			Character->ItemsManagerComponent->RemoveAmmo(GetClass(), LCountOfAmmo);
 		}
 		ReloadTimerDelegate.BindUFunction(this, "Reload", LCountOfAmmo);
-		GetWorldTimerManager().SetTimer(ReloadTimerHandle, ReloadTimerDelegate, ReloadTime, false);
+		GetWorldTimerManager().SetTimer(ReloadTimerHandle, ReloadTimerDelegate, ReloadTime / Character->BerserkBooster, false);
 	}
 }
 

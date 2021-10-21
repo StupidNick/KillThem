@@ -10,20 +10,20 @@ AKT_BaseInteractiveWeapon::AKT_BaseInteractiveWeapon()
 }
 
 
-void AKT_BaseInteractiveWeapon::Interactive(AActor* OtherActor)
+void AKT_BaseInteractiveWeapon::Interactive(AKT_PlayerCharacter* Player)
 {
-	if (AKT_PlayerCharacter* LCharacter = Cast<AKT_PlayerCharacter>(OtherActor))
+	if (HasAuthority())
 	{
-		if (HasAuthority())
-		{
-			LCharacter->AddWeapon(WeaponClass, 0);
-			Destroy();
-		}
+		Player->AddWeapon(WeaponClass, 0, AmmoInTheClip);
+		Destroy();
 	}
-	
 }
 
 
 void AKT_BaseInteractiveWeapon::Initialize(int InAmountOfAmmo)
 {
+	if (HasAuthority())
+	{
+		AmmoInTheClip = InAmountOfAmmo;
+	}
 }

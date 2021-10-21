@@ -18,13 +18,21 @@ void UKT_HealthComponent::BeginPlay()
 	}
 
 	Health = DefaultHealth;
+	Shield = DefaultShield;
 }
 
 
-void UKT_HealthComponent::TakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+void UKT_HealthComponent::TakeDamage(AActor* DamagedActor, const float Damage, const UDamageType* DamageType,
 	AController* InstigatedBy, AActor* DamageCauser)
 {
-	ChangeHealthOnServer(-Damage);
+	if (Shield > 0)
+	{
+		ChangeShieldOnServer(-Damage);
+	}
+	else
+	{
+		ChangeHealthOnServer(-Damage);
+	}
 }
 
 
@@ -35,7 +43,7 @@ void UKT_HealthComponent::ChangeHealth(const float InHealth)
 	{
 		Death();
 	}
-	UE_LOG(LogTemp, Error, TEXT("%s: %f"), *GetOwner()->GetName(), Health);
+	UE_LOG(LogTemp, Error, TEXT("%s: %f(Health), %f(Shield)"), *GetOwner()->GetName(), Health, Shield);
 }
 
 
@@ -45,10 +53,43 @@ void UKT_HealthComponent::ChangeHealthOnServer_Implementation(const float InHeal
 }
 
 
+void UKT_HealthComponent::ChangeShield(const float InShield)
+{
+	if (InShield > 0)
+	{
+		Shield -= InShield;
+		if (Shield > MaxHealth)
+		{
+			Shield = MaxHealth;
+		}
+	}
+	else
+	{
+		Shield += InShield * ShieldSafeFactor;
+		if (Shield > 0)
+		{
+			ChangeHealth(InShield * (1 - ShieldSafeFactor));
+		}
+		else
+		{
+			ChangeHealth(InShield * (1 - ShieldSafeFactor) + Shield);
+			Shield = 0;
+		}
+	}
+}
+
+
+void UKT_HealthComponent::ChangeShieldOnServer_Implementation(const float InShield)
+{
+	ChangeShield(InShield);
+}
+
+
 void UKT_HealthComponent::Death()
 {
 	//TODO
 }
+
 
 void UKT_HealthComponent::DeathOnServer_Implementation()
 {

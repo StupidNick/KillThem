@@ -24,12 +24,14 @@ public:
 //private C++ functions
 private:
 
+	UPROPERTY()
+		int AmmoInTheClip;
 	
 //protected C++ functions
 protected:
 
 	UFUNCTION()
-		virtual void Interactive(AActor* OtherActor) override;
+		virtual void Interactive(AKT_PlayerCharacter* Player) override;
 
 //public C++ functions
 public:

@@ -37,6 +37,9 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
+		void RotationObject();
+
+	UFUNCTION()
 		void OnBoxComponentBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
@@ -45,10 +48,10 @@ protected:
 	UFUNCTION()
 		void OnSphereComponentEndOverlap(UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	virtual void Interactive(AActor* OtherActor);
+	virtual void Interactive(AKT_PlayerCharacter* Player);
 
 	UFUNCTION(Server, Reliable)
-		void InteractiveOnServer(AActor* OtherActor);
+		void InteractiveOnServer(AKT_PlayerCharacter* OtherActor);
 
 	UFUNCTION()
 		void EnableObject();
@@ -64,12 +67,15 @@ protected:
 protected:
 
 	bool CanTake = true;
+
+	FTimerHandle RotationTimerHandle;
+	FTimerDelegate RotationTimerDelegate;
 	
 //public C++ functions
 public:
 
 	UFUNCTION()
-		void ToInteractive(AActor* OtherActor);
+		void ToInteractive(AKT_PlayerCharacter* Player);
 	
 //public BP variables
 public:
@@ -90,5 +96,11 @@ public:
 		float RecoverTime;
 
 	UPROPERTY(EditDefaultsOnly, Category = "WorkInfo")
-		bool CanInteractOnOverlap;
+		bool InteractOnPressButton;
+
+	UPROPERTY(EditDefaultsOnly, Category = "WorkInfo")
+		bool RotateObject = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "WorkInfo")
+		float RotationTime;
 };

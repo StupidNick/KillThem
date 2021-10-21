@@ -24,7 +24,7 @@ public:
 protected:
 
 	UFUNCTION()
-		virtual void Interactive(AActor* OtherActor) override;
+		virtual void Interactive(AKT_PlayerCharacter* Player) override;
 	
 
 //Protected C++ variables

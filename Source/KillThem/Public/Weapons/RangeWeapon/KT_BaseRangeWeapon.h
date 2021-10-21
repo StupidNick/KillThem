@@ -22,7 +22,7 @@ public:
 public:
 
 
-	virtual void Initialize_Implementation(AKT_PlayerCharacter* InCharacter) override;
+	virtual void Initialize_Implementation(AKT_PlayerCharacter* InCharacter, const int InAmmoInTheClip = -1) override;
 	
 	virtual void UseWeapon() override;
 
@@ -59,9 +59,6 @@ protected:
 	
 //public BP variables
 public:
-
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
-		int ClipSize;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
 		float ReloadTime;
