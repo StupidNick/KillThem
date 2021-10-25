@@ -10,7 +10,7 @@
 #include "KT_PlayerCharacter.generated.h"
 
 
-
+class AKT_BaseGrenade;
 class AKT_BaseInteractiveObject;
 class UKT_ItemsManagerComponent;
 class UBoxComponent;
@@ -170,6 +170,12 @@ protected:
 		void FireOnServer();
 
 	UFUNCTION(Server, Reliable)
+		void DropFirstGrenadeOnServer();
+
+	UFUNCTION(Server, Reliable)
+		void DropSecondGrenadeOnServer();
+
+	UFUNCTION(Server, Reliable)
 		void StopFireOnServer();
 
 	UFUNCTION(Server, Reliable)
@@ -219,6 +225,9 @@ public:
 
 	UFUNCTION(Server, Reliable)
 		void AddWeapon(TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int InAmountOfAmmo, const int AmmoInTheClip = -1);
+
+	UFUNCTION(Server, Reliable)
+    	void AddGrenade(TSubclassOf<AKT_BaseGrenade> InGrenadeClass, const bool InToFirstSlot);
 
 	UFUNCTION()
 		void InteractInfo(AKT_BaseInteractiveObject* InInteractiveObject);

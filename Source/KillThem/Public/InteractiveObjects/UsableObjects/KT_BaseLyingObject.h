@@ -3,16 +3,16 @@
 #include "CoreMinimal.h"
 
 #include "KillThem/Public/InteractiveObjects/KT_BaseInteractiveObject.h"
-#include "KT_BaseBooster.generated.h"
+#include "KT_BaseLyingObject.generated.h"
 
 
 UCLASS()
-class KILLTHEM_API AKT_BaseBooster : public AKT_BaseInteractiveObject
+class KILLTHEM_API AKT_BaseLyingObject : public AKT_BaseInteractiveObject
 {
 	GENERATED_BODY()
 	
 public:
-	AKT_BaseBooster();
+	AKT_BaseLyingObject();
 
 //private C++ functions
 private:
@@ -41,4 +41,7 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Boosts")
 		float BoostDownTimer;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Boosts")
+		bool IsABooster;
 };

@@ -2,32 +2,25 @@
 
 #include "CoreMinimal.h"
 #include "InteractiveObjects/UsableObjects/KT_BaseLyingObject.h"
-#include "KT_BerserkBooster.generated.h"
+#include "KT_BaseAmmo.generated.h"
 
 
 
 UCLASS()
-class KILLTHEM_API AKT_BerserkBooster : public AKT_BaseLyingObject
+class KILLTHEM_API AKT_BaseAmmo : public AKT_BaseLyingObject
 {
 	GENERATED_BODY()
-
-				
+		
 public:
 	
-	AKT_BerserkBooster();
-
-//private C++ functions
-private:
+	AKT_BaseAmmo();
 
 
 //protected C++ functions
 protected:
 
-	virtual void BeginPlay() override;
-
 	virtual void Interactive(AKT_PlayerCharacter* Player) override;
-	
-	virtual void BoostDown(AKT_PlayerCharacter* Player) const override;
+
 
 //protected C++ variables
 protected:
@@ -35,9 +28,13 @@ protected:
 	FTimerHandle BoostDownTimerHandle;
 	FTimerDelegate BoostDownTimerDelegate;
 
+	
 //public BP variables
 public:
 
-	UPROPERTY(EditDefaultsOnly, Category = "Boosts")
-		float BerserkFactor;
+	UPROPERTY(EditDefaultsOnly, Category = "Ammo")
+		TSubclassOf<AKT_BaseWeapon> ClassOfAmmo;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Ammo")
+		int CountOfAmmo;
 };

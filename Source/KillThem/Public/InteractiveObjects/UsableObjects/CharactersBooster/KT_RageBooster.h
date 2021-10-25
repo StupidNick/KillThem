@@ -1,13 +1,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InteractiveObjects/UsableObjects/KT_BaseBooster.h"
+#include "InteractiveObjects/UsableObjects/KT_BaseLyingObject.h"
 #include "KT_RageBooster.generated.h"
 
 
 
 UCLASS()
-class KILLTHEM_API AKT_RageBooster : public AKT_BaseBooster
+class KILLTHEM_API AKT_RageBooster : public AKT_BaseLyingObject
 {
 	GENERATED_BODY()
 

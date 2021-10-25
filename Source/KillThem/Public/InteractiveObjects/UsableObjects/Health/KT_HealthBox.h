@@ -1,13 +1,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InteractiveObjects/UsableObjects/KT_BaseBooster.h"
+#include "InteractiveObjects/UsableObjects/KT_BaseLyingObject.h"
 #include "KT_HealthBox.generated.h"
 
 
 
 UCLASS()
-class KILLTHEM_API AKT_HealthBox : public AKT_BaseBooster
+class KILLTHEM_API AKT_HealthBox : public AKT_BaseLyingObject
 {
 	GENERATED_BODY()
 

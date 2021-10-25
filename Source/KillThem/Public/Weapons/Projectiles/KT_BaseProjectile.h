@@ -47,7 +47,7 @@ protected:
 public:
 
 	UFUNCTION()
-		void Initialize(float InDamage, AKT_PlayerCharacter* InPlayerOwner, AKT_BaseRangeWeapon* InWeaponInstigator);
+		void Initialize(float InDamage, AKT_PlayerCharacter* InPlayerOwner, AKT_BaseRangeWeapon* InWeaponInstigator = nullptr);
 	
 //public BP variables
 public:

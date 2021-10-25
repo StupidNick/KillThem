@@ -89,9 +89,6 @@ public:
 		AKT_PlayerCharacter* Character;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Components")
-		UBoxComponent* BoxCollision;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Components")
 		USkeletalMeshComponent* Mesh;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")

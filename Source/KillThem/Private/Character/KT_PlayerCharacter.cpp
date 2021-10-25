@@ -118,6 +118,10 @@ void AKT_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AKT_PlayerCharacter::Interact);
 	
+	PlayerInputComponent->BindAction("FirstGrenadeSlot", IE_Pressed, this, &AKT_PlayerCharacter::DropFirstGrenadeOnServer);
+	
+	PlayerInputComponent->BindAction("SecondGrenadeSlot", IE_Pressed, this, &AKT_PlayerCharacter::DropSecondGrenadeOnServer);
+	
 	PlayerInputComponent->BindAction("AlterFire", IE_Pressed, this, &AKT_PlayerCharacter::RightClick);
 	PlayerInputComponent->BindAction("AlterFire", IE_Released, this, &AKT_PlayerCharacter::RightUnClick);
 	
@@ -669,6 +673,59 @@ void AKT_PlayerCharacter::EndTiltOnWallRunning(UPrimitiveComponent* OverlappedCo
 void AKT_PlayerCharacter::OnChangeWeaponPressed()
 {
 	ChangeWeaponOnServer();
+}
+
+
+void AKT_PlayerCharacter::DropFirstGrenadeOnServer_Implementation()
+{
+	if (IsValid(ItemsManagerComponent->FirstGrenadeSlot))
+	{
+		ItemsManagerComponent->FirstGrenadeSlot->ToUseWeapon(false);
+		ItemsManagerComponent->FirstGrenadeSlot->Destroy();
+		ItemsManagerComponent->FirstGrenadeSlot = nullptr;
+	}
+}
+
+
+void AKT_PlayerCharacter::DropSecondGrenadeOnServer_Implementation()
+{
+	if (IsValid(ItemsManagerComponent->SecondGrenadeSlot))
+	{
+		ItemsManagerComponent->SecondGrenadeSlot->ToUseWeapon(false);
+		ItemsManagerComponent->SecondGrenadeSlot->Destroy();
+		ItemsManagerComponent->SecondGrenadeSlot = nullptr;
+	}
+}
+
+
+void AKT_PlayerCharacter::AddGrenade_Implementation(TSubclassOf<AKT_BaseGrenade> InGrenadeClass, const bool InToFirstSlot)
+{
+	const FAttachmentTransformRules LRules(EAttachmentRule::KeepWorld, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false);
+	const FRotator LRotation = GetControlRotation();
+	const FActorSpawnParameters LSpawnInfo;
+	
+	if (InToFirstSlot)
+	{
+		const FVector LLocation = GetMesh()->GetSocketLocation(ItemsManagerComponent->FirstGrenadeSlotSocketName);
+		ItemsManagerComponent->FirstGrenadeSlot = GetWorld()->SpawnActor<AKT_BaseGrenade>(InGrenadeClass, LLocation, LRotation, LSpawnInfo);
+		if (IsValid(ItemsManagerComponent->FirstGrenadeSlot))
+		{
+			ItemsManagerComponent->FirstGrenadeSlot->Initialize(this);
+			ItemsManagerComponent->FirstGrenadeSlot->AttachToComponent(GetMesh(), LRules, ItemsManagerComponent->FirstGrenadeSlotSocketName);
+		}
+		
+	}
+	else
+	{
+		const FVector LLocation = GetMesh()->GetSocketLocation(ItemsManagerComponent->SecondGrenadeSlotSocketName);
+		ItemsManagerComponent->SecondGrenadeSlot = GetWorld()->SpawnActor<AKT_BaseGrenade>(InGrenadeClass, LLocation, LRotation, LSpawnInfo);
+
+		if (IsValid(ItemsManagerComponent->SecondGrenadeSlot))
+		{
+			ItemsManagerComponent->SecondGrenadeSlot->Initialize(this);
+			ItemsManagerComponent->SecondGrenadeSlot->AttachToComponent(GetMesh(), LRules, ItemsManagerComponent->FirstGrenadeSlotSocketName);
+		}
+	}
 }
 
 

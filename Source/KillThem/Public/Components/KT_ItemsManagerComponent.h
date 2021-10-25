@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Weapons/KT_BaseWeapon.h"
+#include "Weapons/Grenades/KT_BaseGrenade.h"
 
 #include "KT_ItemsManagerComponent.generated.h"
 
@@ -83,10 +84,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Character | Weapons")
 		AKT_BaseWeapon* SecondWeaponSlot = nullptr;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Character | Weapons")
-		AKT_BaseWeapon* FirstGrenadeSlot = nullptr;
-	UPROPERTY(BlueprintReadWrite, Category = "Character | Weapons")
-		AKT_BaseWeapon* SecondGrenadeSlot = nullptr;
+	UPROPERTY(BlueprintReadWrite, Category = "Character | Grenade")
+		AKT_BaseGrenade* FirstGrenadeSlot = nullptr;
+	UPROPERTY(BlueprintReadWrite, Category = "Character | Grenade")
+		AKT_BaseGrenade* SecondGrenadeSlot = nullptr;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Character | Grenade")
+		TSubclassOf<AKT_BaseGrenade> FirstGrenadeSlotClass;
+	UPROPERTY(BlueprintReadWrite, Category = "Character | Grenade")
+		TSubclassOf<AKT_BaseGrenade> SecondGrenadeSlotClass;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Status")
 		bool SelectedFirstSlot = true;
@@ -96,6 +102,11 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Character | Weapons")
 		FName BehindBackSocketName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Character | Grenade")
+		FName FirstGrenadeSlotSocketName;
+	UPROPERTY(EditDefaultsOnly, Category = "Character | Grenade")
+		FName SecondGrenadeSlotSocketName;
 
 	UPROPERTY(EditAnywhere, Category = "WeaponsAmmo")
 		TArray<FAmmo> AmmoArray;

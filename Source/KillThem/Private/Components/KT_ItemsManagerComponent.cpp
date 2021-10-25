@@ -29,7 +29,7 @@ void UKT_ItemsManagerComponent::AddAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmo
 
 
 bool UKT_ItemsManagerComponent::FindAndCountAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass,
-	int& InNumberOfAmmo)
+                                                 int& InNumberOfAmmo)
 {
 	for (auto i : AmmoArray)
 	{
