@@ -1,9 +1,13 @@
 #include "Components/KT_HealthComponent.h"
 
+#include "Character/KT_PlayerCharacter.h"
+#include "Net/UnrealNetwork.h"
+#include "UI/MainHUD_WD/KT_MainHUD_WD.h"
 
 
 UKT_HealthComponent::UKT_HealthComponent()
 {
+	SetIsReplicated(true);
 }
 
 
@@ -22,6 +26,12 @@ void UKT_HealthComponent::BeginPlay()
 }
 
 
+void UKT_HealthComponent::Initialize(AKT_PlayerCharacter* InCharacter)
+{
+	PlayerCharacter = InCharacter;
+}
+
+
 void UKT_HealthComponent::TakeDamage(AActor* DamagedActor, const float Damage, const UDamageType* DamageType,
 	AController* InstigatedBy, AActor* DamageCauser)
 {
@@ -33,6 +43,27 @@ void UKT_HealthComponent::TakeDamage(AActor* DamagedActor, const float Damage, c
 	{
 		ChangeHealthOnServer(-Damage);
 	}
+}
+
+
+void UKT_HealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+ 
+	DOREPLIFETIME(UKT_HealthComponent, Health);
+	DOREPLIFETIME(UKT_HealthComponent, Shield);
+}
+
+
+void UKT_HealthComponent::OnRep_Health_Implementation()
+{
+	OnHPChangeBind.Broadcast(Health);
+}
+
+
+void UKT_HealthComponent::OnRep_Shield_Implementation()
+{
+	OnSPChangeBind.Broadcast(Shield);
 }
 
 
@@ -57,7 +88,7 @@ void UKT_HealthComponent::ChangeShield(const float InShield)
 {
 	if (InShield > 0)
 	{
-		Shield -= InShield;
+		Shield += InShield;
 		if (Shield > MaxHealth)
 		{
 			Shield = MaxHealth;
@@ -68,11 +99,11 @@ void UKT_HealthComponent::ChangeShield(const float InShield)
 		Shield += InShield * ShieldSafeFactor;
 		if (Shield > 0)
 		{
-			ChangeHealth(InShield * (1 - ShieldSafeFactor));
+			ChangeHealthOnServer(InShield * (1 - ShieldSafeFactor));
 		}
 		else
 		{
-			ChangeHealth(InShield * (1 - ShieldSafeFactor) + Shield);
+			ChangeHealthOnServer(InShield * (1 - ShieldSafeFactor) + Shield);
 			Shield = 0;
 		}
 	}
@@ -95,30 +126,3 @@ void UKT_HealthComponent::DeathOnServer_Implementation()
 {
 	Death();
 }
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-///////////////////////////////////////////Setters//////////////////////////////////////////////////////////////////////
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-///////////////////////////////////////////Getters//////////////////////////////////////////////////////////////////////
-
-float UKT_HealthComponent::GetHealth() const
-{
-	return Health;
-}
-
-bool UKT_HealthComponent::GetIsDead() const
-{
-	return IsDead;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

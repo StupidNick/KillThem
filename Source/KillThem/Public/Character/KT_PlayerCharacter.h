@@ -19,6 +19,7 @@ class UMovementComponent;
 class UCurveFloat;
 class UKT_HealthComponent;
 class AKT_BaseWeapon;
+class AKT_GameHUD;
 
 
 
@@ -318,6 +319,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Character | Parkour")
 		FName ParkourTag;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Character | Parkour")
+		AKT_GameHUD* HUD;
 
 /////////////////////////////////////Moving/////////////////////////////////////////
 	UPROPERTY(BlueprintReadOnly, Category = "Character | Moving")

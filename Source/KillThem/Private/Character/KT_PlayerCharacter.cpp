@@ -14,6 +14,7 @@
 #include "InteractiveObjects/KT_BaseInteractiveObject.h"
 
 #include "Components/KT_ItemsManagerComponent.h"
+#include "GameMode/KT_GameHUD.h"
 #include "Weapons/RangeWeapon/KT_BaseRangeWeapon.h"
 
 
@@ -108,6 +109,10 @@ void AKT_PlayerCharacter::BeginPlay()
 	{
 		ItemsManagerComponent->SelectedFirstSlot = true;
 		AddWeapon(ItemsManagerComponent->FirstWeaponSlotClass, 20);
+	}
+	if (!HasAuthority() && IsValid(HUD))
+	{
+		HUD->CreateMainHUD();
 	}
 }
 

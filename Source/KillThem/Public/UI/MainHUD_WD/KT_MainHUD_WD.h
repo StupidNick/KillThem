@@ -1,0 +1,83 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Blueprint/UserWidget.h"
+#include "Panels/KT_ProgressBarWithText.h"
+#include "KT_MainHUD_WD.generated.h"
+
+
+class UImage;
+class UProgressBar;
+class AKT_PlayerCharacter;
+class UKT_IconWithTextWD;
+
+
+
+UCLASS()
+class KILLTHEM_API UKT_MainHUD_WD : public UUserWidget
+{
+	GENERATED_BODY()
+
+//Constructor
+public:
+
+	UKT_MainHUD_WD(const FObjectInitializer& ObjectInitializer);
+	
+
+
+
+//c++ private values
+public:
+
+	
+
+//c++ protected values
+protected:
+
+
+//c++ protected methods
+protected:
+
+
+
+//Blueprint methods
+public:
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "MainHUD_WD")
+		void InitializeMainHUD(AKT_PlayerCharacter* PlayerCharacter);
+		virtual void InitializeMainHUD_Implementation(AKT_PlayerCharacter* PlayerCharacter);
+	
+
+
+	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "MainHUD_WD | HPBar")
+		void UpdateHP(float HPStat);
+
+	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "MainHUD_WD | SPBar")
+		void UpdateSP(float SPStat);
+
+	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "MainHUD_WD | Weapon")
+		void UpdateAmmo(const int InClipAmmo, const int InAmmo);
+
+	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "MainHUD_WD | Weapon")
+		void UpdateIcon(const UImage* InIcon);
+
+
+
+//Blueprint values
+public:
+
+	UPROPERTY(BlueprintReadOnly)
+		AKT_PlayerCharacter* Character = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget), Category = "MainHUD_WD | Widgets")
+		UKT_ProgressBarWithText* HPBar = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget), Category = "MainHUD_WD | Widgets")
+		UKT_ProgressBarWithText* SPBar = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget), Category = "MainHUD_WD | Widgets")
+		UKT_IconWithTextWD* WeaponBar = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "MainHUD_WD | Widgets")
+		FString Delimiter;
+};
