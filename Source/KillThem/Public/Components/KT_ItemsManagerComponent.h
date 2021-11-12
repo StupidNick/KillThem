@@ -61,9 +61,6 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 		void ChangeIcon();
 
-	UFUNCTION(NetMulticast, Reliable)
-		void OnRep_WeaponChanged();
-
 	UFUNCTION()
     	void AddAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmoFound);
 
@@ -98,7 +95,7 @@ public:
 		AKT_PlayerCharacter* PlayerCharacter = nullptr;
 
 	
-	UPROPERTY(ReplicatedUsing = OnRep_WeaponChanged)
+	UPROPERTY(BlueprintReadWrite, Category = "Character | Weapons")
 		AKT_BaseWeapon* FirstWeaponSlot = nullptr;
 	UPROPERTY(EditAnywhere, Category = "Character | Weapons")
 		TSubclassOf<AKT_BaseWeapon> FirstWeaponSlotClass = nullptr;

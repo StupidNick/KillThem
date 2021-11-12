@@ -18,8 +18,7 @@ void UKT_ItemsManagerComponent::BeginPlay()
 void UKT_ItemsManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(UKT_ItemsManagerComponent, FirstWeaponSlot);
+	
 }
 
 
@@ -38,18 +37,6 @@ void UKT_ItemsManagerComponent::ChangeAmmoInTheClip_Implementation(int Ammo)
 void UKT_ItemsManagerComponent::AmountOfAmmoChanged_Implementation(const int Ammo)
 {
 	OnAmmoChangeBind.Broadcast(Ammo);
-}
-
-
-void UKT_ItemsManagerComponent::OnRep_WeaponChanged_Implementation()
-{
-	int LAmountAmmo;
-	OnAmmoInTheClipChange.Broadcast(GetSelectedWeaponSlot()->GetAmmoInTheClip());
-	if (FindAndCountAmmo(GetSelectedWeaponSlot()->GetClass(), LAmountAmmo))
-	{
-		OnAmmoChangeBind.Broadcast(LAmountAmmo);
-	}
-	OnWeaponChange.Broadcast(GetSelectedWeaponSlot()->Icon);
 }
 
 
