@@ -1,6 +1,7 @@
 #include "Components/KT_ItemsManagerComponent.h"
 
 #include "Character/KT_PlayerCharacter.h"
+#include "Net/UnrealNetwork.h"
 
 
 UKT_ItemsManagerComponent::UKT_ItemsManagerComponent()
@@ -14,6 +15,31 @@ void UKT_ItemsManagerComponent::BeginPlay()
 }
 
 
+void UKT_ItemsManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+}
+
+
+void UKT_ItemsManagerComponent::ChangeIcon_Implementation()
+{
+	OnWeaponChange.Broadcast(GetSelectedWeaponSlot()->Icon);
+}
+
+
+void UKT_ItemsManagerComponent::ChangeAmmoInTheClip_Implementation(int Ammo)
+{
+	OnAmmoInTheClipChange.Broadcast(Ammo);
+}
+
+
+void UKT_ItemsManagerComponent::AmountOfAmmoChanged_Implementation(const int Ammo)
+{
+	OnAmmoChangeBind.Broadcast(Ammo);
+}
+
+
 void UKT_ItemsManagerComponent::AddAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmoFound)
 {
 	for (int i = 0; i < AmmoArray.Num(); i++)
@@ -21,7 +47,8 @@ void UKT_ItemsManagerComponent::AddAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmo
 		if (AmmoArray[i].TypeOfAmmo == InAmmoClass)
 		{
 			AmmoArray[i].CountOfAmmo += InNumberOfAmmoFound;
-			UE_LOG(LogTemp, Error, TEXT("%s: %i"), *PlayerCharacter->GetName(), AmmoArray[i].CountOfAmmo);
+			UE_LOG(LogTemp, Error, TEXT("%s: %i"), *GetSelectedWeaponSlot()->GetName(), AmmoArray[i].CountOfAmmo);
+			AmountOfAmmoChanged(AmmoArray[i].CountOfAmmo);
 			return;
 		}
 	}
@@ -50,6 +77,7 @@ bool UKT_ItemsManagerComponent::RemoveAmmo(const TSubclassOf<AKT_BaseWeapon> InA
 		if (AmmoArray[i].TypeOfAmmo == InAmmoClass && AmmoArray[i].CountOfAmmo >= InNumberOfAmmo)
 		{
 			AmmoArray[i].CountOfAmmo -= InNumberOfAmmo;
+			AmountOfAmmoChanged(AmmoArray[i].CountOfAmmo);
 			return true;
 		}
 	}
@@ -79,4 +107,5 @@ void UKT_ItemsManagerComponent::ChangeWeapon()
 		GetWorld()->GetTimerManager().ClearAllTimersForObject(SecondWeaponSlot);
 		FirstWeaponSlot->CanShoot = true;
 	}
+	ChangeIcon();
 }

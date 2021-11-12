@@ -11,6 +11,7 @@ AKT_PlayerController::AKT_PlayerController()
 
 void AKT_PlayerController::BeginPlay()
 {
+	
 	GameHUD = Cast<AKT_GameHUD>(GetHUD());
 	if (Cast<AKT_PlayerCharacter>(GetPawn()))
 	{
@@ -18,6 +19,8 @@ void AKT_PlayerController::BeginPlay()
 		PlayerCharacter->PlayerController = this;
 		PlayerCharacter->HUD = GameHUD;
 	}
-	
-	// GameHUD->CreateMainHUD();
+	if (IsLocalController())
+	{
+		
+	}
 }

@@ -110,6 +110,7 @@ void AKT_BaseRangeWeapon::Reload(const int InAmmo)
 {
 	IsReloading = false;
 	AmmoInTheClip += InAmmo;
+	Character->ItemsManagerComponent->RemoveAmmo(GetClass(), InAmmo);
 }
 
 
@@ -123,11 +124,6 @@ void AKT_BaseRangeWeapon::ToReload()
 		if (LCountOfAmmo > ClipSize - AmmoInTheClip)
 		{
 			LCountOfAmmo = ClipSize - AmmoInTheClip;
-			Character->ItemsManagerComponent->RemoveAmmo(GetClass(), LCountOfAmmo);
-		}
-		else
-		{
-			Character->ItemsManagerComponent->RemoveAmmo(GetClass(), LCountOfAmmo);
 		}
 		ReloadTimerDelegate.BindUFunction(this, "Reload", LCountOfAmmo);
 		GetWorldTimerManager().SetTimer(ReloadTimerHandle, ReloadTimerDelegate, ReloadTime / Character->BerserkBooster, false);

@@ -56,10 +56,13 @@ public:
 		void UpdateSP(float SPStat);
 
 	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "MainHUD_WD | Weapon")
-		void UpdateAmmo(const int InClipAmmo, const int InAmmo);
+		void UpdateAmmo(int InAmmo);
 
 	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "MainHUD_WD | Weapon")
-		void UpdateIcon(const UImage* InIcon);
+		void UpdateAmmoInTheClip(int InAmmo);
+
+	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "MainHUD_WD | Weapon")
+		void UpdateIcon(UTexture2D* InIcon);
 
 
 

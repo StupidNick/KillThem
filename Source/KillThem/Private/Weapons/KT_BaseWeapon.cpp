@@ -1,6 +1,8 @@
 #include "Weapons/KT_BaseWeapon.h"
 
 #include "Character/KT_PlayerCharacter.h"
+#include "Components/KT_ItemsManagerComponent.h"
+#include "Net/UnrealNetwork.h"
 
 
 AKT_BaseWeapon::AKT_BaseWeapon()
@@ -13,6 +15,7 @@ AKT_BaseWeapon::AKT_BaseWeapon()
 
 	Mesh->SetCollisionProfileName(FName("IgnoreAll"));
 	// BoxCollision->SetCollisionProfileName(FName("IgnoreAll"));
+	bReplicates = true;
 }
 
 
@@ -44,6 +47,23 @@ void AKT_BaseWeapon::AutoFireReload()
 	else
 	{
 		Character->CheckCanFireOnServer();
+	}
+}
+
+
+void AKT_BaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AKT_BaseWeapon, AmmoInTheClip);
+}
+
+
+void AKT_BaseWeapon::OnRep_AmmoInTheClip_Implementation()
+{
+	if (IsValid(GetOwner()) && !HasAuthority())
+	{
+		Cast<AKT_PlayerCharacter>(GetOwner())->ItemsManagerComponent->OnAmmoInTheClipChange.Broadcast(AmmoInTheClip);
 	}
 }
 

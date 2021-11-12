@@ -1,6 +1,7 @@
 #include "UI/MainHUD_WD/KT_MainHUD_WD.h"
 
 #include "Character/KT_PlayerCharacter.h"
+#include "Components/Image.h"
 #include "Components/KT_HealthComponent.h"
 #include "Components/KT_ItemsManagerComponent.h"
 #include "Components/ProgressBar.h"
@@ -27,8 +28,9 @@ void UKT_MainHUD_WD::InitializeMainHUD_Implementation(AKT_PlayerCharacter* Playe
 	Character->HealthComponent->OnSPChangeBind.AddDynamic(this, &UKT_MainHUD_WD::UpdateSP);
 	UpdateSP(Character->HealthComponent->GetShield());
 
-	// Character->ItemsManagerComponent->OnCountOfAmmoChange.AddDynamic(this, &UKT_MainHUD_WD::UpdateAmmo);
-	// UpdateAmmo(1, Character->ItemsManagerComponent->GetCountOfAmmoForWeaponInHand());
+	Character->ItemsManagerComponent->OnAmmoChangeBind.AddDynamic(this, &UKT_MainHUD_WD::UpdateAmmo);
+	Character->ItemsManagerComponent->OnAmmoInTheClipChange.AddDynamic(this, &UKT_MainHUD_WD::UpdateAmmoInTheClip);
+	Character->ItemsManagerComponent->OnWeaponChange.AddDynamic(this, &UKT_MainHUD_WD::UpdateIcon);
 	
 }
 
@@ -47,17 +49,19 @@ void UKT_MainHUD_WD::UpdateSP_Implementation(float SPStat)
 }
 
 
-void UKT_MainHUD_WD::UpdateAmmo_Implementation(const int ClipAmmo, const int Ammo)
+void UKT_MainHUD_WD::UpdateAmmo_Implementation(int InAmmo)
 {
-	FString LAmmoString = FString::FromInt(ClipAmmo);
-	LAmmoString.Append(Delimiter);
-	LAmmoString.Append(FString::FromInt(Ammo));
-	const FText LAmmoText = FText::FromString(LAmmoString);
-
-	WeaponBar->TextBlock->SetText(LAmmoText);
+	WeaponBar->AmmoTextBlock->SetText(FText::FromString(FString::FromInt(InAmmo)));
 }
 
 
-void UKT_MainHUD_WD::UpdateIcon_Implementation(const UImage* InIcon)
+void UKT_MainHUD_WD::UpdateAmmoInTheClip_Implementation(int InAmmo)
 {
+	WeaponBar->AmmoInTheClipTextBlock->SetText(FText::FromString(FString::FromInt(InAmmo)));
+}
+
+
+void UKT_MainHUD_WD::UpdateIcon_Implementation(UTexture2D* InIcon)
+{
+	WeaponBar->Icon->SetBrushFromTexture(InIcon);
 }

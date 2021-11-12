@@ -44,7 +44,10 @@ public:
 public:
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget), Category = "IconWithTextWD | Widgets")
-		UTextBlock* TextBlock = nullptr;
+		UTextBlock* AmmoTextBlock = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget), Category = "IconWithTextWD | Widgets")
+		UTextBlock* AmmoInTheClipTextBlock = nullptr;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget), Category = "IconWithTextWD | Widgets")
 		UImage* Icon = nullptr;

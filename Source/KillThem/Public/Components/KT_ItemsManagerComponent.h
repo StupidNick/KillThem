@@ -3,12 +3,19 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Weapons/KT_BaseWeapon.h"
+#include "Engine/Texture2D.h"
 #include "Weapons/Grenades/KT_BaseGrenade.h"
 
 #include "KT_ItemsManagerComponent.generated.h"
 
 
+
 class AKT_PlayerCharacter;
+
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAmmoChange, int, AmmoStat);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAmmoInTheClipChange, int, AmmoStat);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponChange, UTexture2D*, Icon);
 
 
 
@@ -41,7 +48,18 @@ protected:
 	virtual void BeginPlay() override;
 
 //Public C++ functions
-public:	
+public:
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	UFUNCTION(NetMulticast, Reliable)
+		void AmountOfAmmoChanged(const int Ammo);
+
+	UFUNCTION(NetMulticast, Reliable)
+		void ChangeAmmoInTheClip(int Ammo);
+
+	UFUNCTION(NetMulticast, Reliable)
+		void ChangeIcon();
 
 	UFUNCTION()
     	void AddAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmoFound);
@@ -67,6 +85,7 @@ public:
 		}
 		return SecondWeaponSlot;
 	}
+
 	
 
 //Public BP variables
@@ -80,8 +99,11 @@ public:
 		AKT_BaseWeapon* FirstWeaponSlot = nullptr;
 	UPROPERTY(EditAnywhere, Category = "Character | Weapons")
 		TSubclassOf<AKT_BaseWeapon> FirstWeaponSlotClass = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Character | Weapons")
+		int AmmoForFirstWeapon;
 	
-	UPROPERTY(BlueprintReadWrite, Category = "Character | Weapons")
+	UPROPERTY(BlueprintReadWrite, Replicated, Category = "Character | Weapons")
 		AKT_BaseWeapon* SecondWeaponSlot = nullptr;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Character | Grenade")
@@ -108,6 +130,15 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Character | Grenade")
 		FName SecondGrenadeSlotSocketName;
 
-	UPROPERTY(EditAnywhere, Category = "WeaponsAmmo")
+	UPROPERTY(EditAnywhere, Category = "Stats")
 		TArray<FAmmo> AmmoArray;
+
+	UPROPERTY(BlueprintAssignable, Category = "ItemsManager | EventsForBind")
+		FOnAmmoChange OnAmmoChangeBind;
+
+	UPROPERTY(BlueprintAssignable, Category = "ItemsManager | EventsForBind")
+		FOnAmmoInTheClipChange OnAmmoInTheClipChange;
+
+	UPROPERTY(BlueprintAssignable, Category = "ItemsManager | EventsForBind")
+		FOnWeaponChange OnWeaponChange;
 };

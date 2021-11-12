@@ -10,7 +10,11 @@
 #include "KT_BaseWeapon.generated.h"
 
 
+class UImage;
 class AKT_PlayerCharacter;
+
+
+
 UCLASS()
 class KILLTHEM_API AKT_BaseWeapon : public AActor
 {
@@ -42,7 +46,7 @@ protected:
 //private C++ variables
 protected:
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Transient, ReplicatedUsing = OnRep_AmmoInTheClip, Category = "Stats")
 		int AmmoInTheClip;
 
 	UPROPERTY(BlueprintReadOnly)
@@ -54,8 +58,13 @@ protected:
 	FTimerDelegate AutoFireTimerDelegate;
 	FTimerDelegate AlterFireTimerDelegate;
 
-//public C++ variables
+//public C++ functions
 public:
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION(NetMulticast, Reliable)
+		void OnRep_AmmoInTheClip();
 
 	UFUNCTION()
 		void ToUseWeapon(const bool IsAlterFire);
@@ -63,9 +72,8 @@ public:
 	UFUNCTION()
 		void StopFire();
 
-	UFUNCTION(BlueprintNativeEvent)
+	UFUNCTION(NetMulticast, Reliable)
 		void Initialize(AKT_PlayerCharacter* InCharacter, const int InAmmoInTheClip = -1);
-		virtual void Initialize_Implementation(AKT_PlayerCharacter* InCharacter, const int InAmmoInTheClip = -1);
 
 	UFUNCTION(NetMulticast, Reliable)
 		void ToAttachToComponent(USkeletalMeshComponent* InComponent, const FName InSocketName);
@@ -75,6 +83,12 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable)
 		void Detach();
+
+	UFUNCTION()
+	FORCEINLINE int GetAmmoInTheClip() const
+	{
+		return AmmoInTheClip;
+	}
 	
 
 //public C++ variables
@@ -85,7 +99,7 @@ public:
 //public BP variables
 public:
 
-	UPROPERTY(BlueprintReadOnly, Category = "Character")
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Character")
 		AKT_PlayerCharacter* Character;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Components")
@@ -93,6 +107,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
 		int ClipSize;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon | Info")
+		UTexture2D* Icon;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
 		float DelayBetweenShots;

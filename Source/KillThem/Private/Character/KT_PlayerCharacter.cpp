@@ -15,6 +15,7 @@
 
 #include "Components/KT_ItemsManagerComponent.h"
 #include "GameMode/KT_GameHUD.h"
+#include "UI/MainHUD_WD/KT_MainHUD_WD.h"
 #include "Weapons/RangeWeapon/KT_BaseRangeWeapon.h"
 
 
@@ -60,12 +61,21 @@ AKT_PlayerCharacter::AKT_PlayerCharacter()
 
 	ItemsManagerComponent->Initialize(this);
 	
+	ItemsManagerComponent->SetIsReplicated(true);
+	HealthComponent->SetIsReplicated(true);
+	
 }
 
 
 void AKT_PlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (!HasAuthority() && IsValid(HUD))
+	{
+		HUD->CreateMainHUD();
+		ItemsManagerComponent->AmountOfAmmoChanged(ItemsManagerComponent->AmmoForFirstWeapon);
+	}
 	
 	SprintSpeed = WalkSpeed * 1.5; //Fix this
 	
@@ -84,6 +94,7 @@ void AKT_PlayerCharacter::BeginPlay()
 	GetMovementComponent()->SetPlaneConstraintEnabled(true);
 
 	GetCharacterMovement()->MaxWalkSpeed = SpeedOfWalk;
+	
 
 	if (CurveFloatForSliding)
 	{
@@ -107,13 +118,19 @@ void AKT_PlayerCharacter::BeginPlay()
 	}
 	if (IsValid(ItemsManagerComponent->FirstWeaponSlotClass) && HasAuthority())
 	{
-		ItemsManagerComponent->SelectedFirstSlot = true;
-		AddWeapon(ItemsManagerComponent->FirstWeaponSlotClass, 20);
+		AddWeapon(ItemsManagerComponent->FirstWeaponSlotClass, ItemsManagerComponent->AmmoForFirstWeapon);
 	}
-	if (!HasAuthority() && IsValid(HUD))
+	
+	if (!HasAuthority() && IsValid(ItemsManagerComponent->GetSelectedWeaponSlot()))
 	{
-		HUD->CreateMainHUD();
+		int LAmmo;
+		ItemsManagerComponent->FindAndCountAmmo(ItemsManagerComponent->GetSelectedWeaponSlot()->GetClass(), LAmmo);
+		ItemsManagerComponent->ChangeAmmoInTheClip(LAmmo);
 	}
+	// if (HasAuthority() && IsValid(ItemsManagerComponent->FirstWeaponSlot))
+	// {
+	// 	UE_LOG(LogTemp, Error, TEXT("No"));
+	// }
 }
 
 
@@ -746,6 +763,7 @@ void AKT_PlayerCharacter::AddWeapon_Implementation(TSubclassOf<AKT_BaseWeapon> I
 		if (IsValid(ItemsManagerComponent->FirstWeaponSlot))
 		{
 			ItemsManagerComponent->FirstWeaponSlot->Initialize(this, AmmoInTheClip);
+			ItemsManagerComponent->FirstWeaponSlot->SetOwner(this);
 			ItemsManagerComponent->FirstWeaponSlot->ToAttachToComponent(FirstPersonMeshComponent, ItemsManagerComponent->InHandsSocketName);
 			ItemsManagerComponent->AddAmmo(InWeaponClass, InAmountOfAmmo);
 		}
@@ -765,6 +783,7 @@ void AKT_PlayerCharacter::AddWeapon_Implementation(TSubclassOf<AKT_BaseWeapon> I
 		if (IsValid(ItemsManagerComponent->SecondWeaponSlot))
 		{
 			ItemsManagerComponent->SecondWeaponSlot->Initialize(this, AmmoInTheClip);
+			ItemsManagerComponent->FirstWeaponSlot->SetOwner(this);
 			ItemsManagerComponent->SecondWeaponSlot->ToAttachToComponent(LMesh, ItemsManagerComponent->BehindBackSocketName);
 			ItemsManagerComponent->AddAmmo(InWeaponClass, InAmountOfAmmo);
 		}
@@ -783,6 +802,7 @@ void AKT_PlayerCharacter::AddWeapon_Implementation(TSubclassOf<AKT_BaseWeapon> I
 	if (IsValid(ItemsManagerComponent->GetSelectedWeaponSlot()))
 	{
 		ItemsManagerComponent->GetSelectedWeaponSlot()->Initialize(this, AmmoInTheClip);
+		ItemsManagerComponent->FirstWeaponSlot->SetOwner(this);
 		ItemsManagerComponent->GetSelectedWeaponSlot()->ToAttachToComponent(FirstPersonMeshComponent, ItemsManagerComponent->InHandsSocketName);
 		ItemsManagerComponent->AddAmmo(InWeaponClass, InAmountOfAmmo);
 	}

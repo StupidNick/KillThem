@@ -7,7 +7,6 @@
 
 UKT_HealthComponent::UKT_HealthComponent()
 {
-	SetIsReplicated(true);
 }
 
 
