@@ -120,17 +120,6 @@ void AKT_PlayerCharacter::BeginPlay()
 	{
 		AddWeapon(ItemsManagerComponent->FirstWeaponSlotClass, ItemsManagerComponent->AmmoForFirstWeapon);
 	}
-	
-	if (!HasAuthority() && IsValid(ItemsManagerComponent->GetSelectedWeaponSlot()))
-	{
-		int LAmmo;
-		ItemsManagerComponent->FindAndCountAmmo(ItemsManagerComponent->GetSelectedWeaponSlot()->GetClass(), LAmmo);
-		ItemsManagerComponent->ChangeAmmoInTheClip(LAmmo);
-	}
-	// if (HasAuthority() && IsValid(ItemsManagerComponent->FirstWeaponSlot))
-	// {
-	// 	UE_LOG(LogTemp, Error, TEXT("No"));
-	// }
 }
 
 
