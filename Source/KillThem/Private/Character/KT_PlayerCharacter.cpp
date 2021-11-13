@@ -810,7 +810,12 @@ void AKT_PlayerCharacter::FireOnServer_Implementation()
 	{
 		BreakSprint();
 	}
+	else
+	{
+		CanShoot = true;
+	}
 
+	
 	if (CanShoot)
 	{
 		ItemsManagerComponent->GetSelectedWeaponSlot()->ToUseWeapon(false);
@@ -852,6 +857,10 @@ void AKT_PlayerCharacter::RightUnClick_Implementation()
 	{
 		UnScope();
 	}
+	else
+	{
+		CanShoot = false;
+	}
 }
 
 
@@ -860,6 +869,10 @@ void AKT_PlayerCharacter::AlterFireOnServer_Implementation()
 	if (IsSprinted)
 	{
 		BreakSprint();
+	}
+	else
+	{
+		CanShoot = true;
 	}
 	
 	if (CanShoot)

@@ -36,10 +36,10 @@ public:
 protected:
 
 	UFUNCTION()
-		virtual void ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass);
+		virtual void ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage);
 
 	UFUNCTION()
-		virtual void LineTraceShot();
+		virtual void LineTraceShot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage);
 
 	UFUNCTION()
 		void Reload(const int InAmmo);
@@ -64,26 +64,32 @@ public:
 		float ReloadTime;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
-		TSubclassOf<UDamageType> DamageTypeClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
-		TSubclassOf<UDamageType> AlterDamageTypeClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
 		float MaxDistanceAttack;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
-		FName FireSocketName;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
-		bool ProjectileShooting;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
 		float BaseScatterFactor;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
+		bool ProjectileShooting;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
 		TSubclassOf<AKT_BaseProjectile> ProjectileClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
+		TSubclassOf<UDamageType> DamageTypeClass;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
+		FName FireSocketName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
+		bool ProjectileShootingAtAlterFire;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
 		TSubclassOf<AKT_BaseProjectile> AlterFireProjectileClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
+		TSubclassOf<UDamageType> AlterDamageTypeClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
+		FName AlterFireSocketName;
 };

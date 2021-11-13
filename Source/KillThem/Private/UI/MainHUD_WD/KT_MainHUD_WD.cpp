@@ -5,11 +5,13 @@
 #include "Components/KT_HealthComponent.h"
 #include "Components/KT_ItemsManagerComponent.h"
 #include "Components/ProgressBar.h"
+#include "UI/MainHUD_WD/Panels/KT_AimWD.h"
 #include "UI/MainHUD_WD/Panels/KT_IconWithTextWD.h"
 
 
 UKT_MainHUD_WD::UKT_MainHUD_WD(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+	
 }
 
 
@@ -38,14 +40,14 @@ void UKT_MainHUD_WD::InitializeMainHUD_Implementation(AKT_PlayerCharacter* Playe
 void UKT_MainHUD_WD::UpdateHP_Implementation(float HPStat)
 {
 	HPBar->ValueProgressBar->SetPercent(HPStat / 100);
-	HPBar->ValueTextBlock->SetText(FText::FromString(FString::SanitizeFloat(HPStat)));
+	HPBar->ValueTextBlock->SetText(FText::FromString(FString::FromInt(HPStat)));
 }
 
 
 void UKT_MainHUD_WD::UpdateSP_Implementation(float SPStat)
 {
 	SPBar->ValueProgressBar->SetPercent(SPStat / 100);
-	SPBar->ValueTextBlock->SetText(FText::FromString(FString::SanitizeFloat(SPStat)));
+	SPBar->ValueTextBlock->SetText(FText::FromString(FString::FromInt(SPStat)));
 }
 
 
@@ -61,7 +63,8 @@ void UKT_MainHUD_WD::UpdateAmmoInTheClip_Implementation(int InAmmo)
 }
 
 
-void UKT_MainHUD_WD::UpdateIcon_Implementation(UTexture2D* InIcon)
+void UKT_MainHUD_WD::UpdateIcon_Implementation(UTexture2D* InWeaponIcon, UTexture2D* InAimIcon)
 {
-	WeaponBar->Icon->SetBrushFromTexture(InIcon);
+	WeaponBar->Icon->SetBrushFromTexture(InWeaponIcon);
+	Aim->Aim->SetBrushFromTexture(InAimIcon);
 }

@@ -27,6 +27,15 @@ void AKT_BaseWeapon::BeginPlay()
 
 void AKT_BaseWeapon::UseWeapon()
 {
+	CanShoot = false;
+	if (UseAlterFire)
+	{
+		GetWorldTimerManager().SetTimer(AutoFireTimerHandle, AutoFireTimerDelegate, DelayBetweenAlterShots / Character->BerserkBooster, false);
+	}
+	else
+	{
+		GetWorldTimerManager().SetTimer(AutoFireTimerHandle, AutoFireTimerDelegate, DelayBetweenShots / Character->BerserkBooster, false);
+	}
 }
 
 
@@ -41,10 +50,17 @@ void AKT_BaseWeapon::AutoFireReload()
 			UseWeapon();
 			
 			CanShoot = false;
-			GetWorldTimerManager().SetTimer(AutoFireTimerHandle, AutoFireTimerDelegate, DelayBetweenShots / Character->BerserkBooster, false);
+			if (UseAlterFire)
+			{
+				GetWorldTimerManager().SetTimer(AutoFireTimerHandle, AutoFireTimerDelegate, DelayBetweenAlterShots / Character->BerserkBooster, false);
+			}
+			else
+			{
+				GetWorldTimerManager().SetTimer(AutoFireTimerHandle, AutoFireTimerDelegate, DelayBetweenShots / Character->BerserkBooster, false);
+			}
 		}
 	}
-	else
+	else if (HasAuthority())
 	{
 		Character->CheckCanFireOnServer();
 	}
@@ -72,23 +88,16 @@ void AKT_BaseWeapon::ToUseWeapon(const bool IsAlterFire)
 {
 	UseAlterFire = IsAlterFire;
 	
-	if (CanShoot)
+	if (CanShoot && !Character->IsSprinted)
 	{
 		if (UseAlterFire)
 		{
-			AlterFireTimerDelegate.BindUFunction(this, "UseWeapon");
+			CanShoot = false;
 			GetWorldTimerManager().SetTimer(AlterFireHandle, AlterFireTimerDelegate, TimeBeforeAlterFire / Character->BerserkBooster, false);
 		}
 		else
 		{
 			UseWeapon();
-		}
-		
-		if (DelayBetweenShots > 0)
-		{
-			CanShoot = false;
-			
-			GetWorldTimerManager().SetTimer(AutoFireTimerHandle, AutoFireTimerDelegate, DelayBetweenShots / Character->BerserkBooster, false);
 		}
 	}
 }
@@ -110,6 +119,7 @@ void AKT_BaseWeapon::Initialize_Implementation(AKT_PlayerCharacter* InCharacter,
 		}
 	}
 	Character = InCharacter;
+	AlterFireTimerDelegate.BindUFunction(this, "UseWeapon");
 	AutoFireTimerDelegate.BindUFunction(this, "AutoFireReload");
 }
 

@@ -109,13 +109,16 @@ public:
 		int ClipSize;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon | Info")
-		UTexture2D* Icon;
+		UTexture2D* WeaponIcon;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon | Info")
+		UTexture2D* AimIcon;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
 		float DelayBetweenShots;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
-		float TimeBeforeAlterFire;
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
+		float Damage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
 		bool AutoFire;
@@ -123,11 +126,17 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
 		bool CanScope;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
-		float Damage;
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
+		float TimeBeforeAlterFire;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
 		float AlterDamage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
+		bool AutoFireAtAlterFire;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
+		float DelayBetweenAlterShots;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon | Interactive")
 		TSubclassOf<AKT_BaseInteractiveWeapon> InteractiveWeaponClass = nullptr;

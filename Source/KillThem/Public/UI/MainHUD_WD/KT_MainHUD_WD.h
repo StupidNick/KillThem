@@ -6,7 +6,7 @@
 #include "KT_MainHUD_WD.generated.h"
 
 
-class UImage;
+class UKT_AimWD;
 class UProgressBar;
 class AKT_PlayerCharacter;
 class UKT_IconWithTextWD;
@@ -62,7 +62,7 @@ public:
 		void UpdateAmmoInTheClip(int InAmmo);
 
 	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "MainHUD_WD | Weapon")
-		void UpdateIcon(UTexture2D* InIcon);
+		void UpdateIcon(UTexture2D* InWeaponIcon, UTexture2D* InAimIcon);
 
 
 
@@ -81,6 +81,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget), Category = "MainHUD_WD | Widgets")
 		UKT_IconWithTextWD* WeaponBar = nullptr;
 
-	UPROPERTY(EditAnywhere, Category = "MainHUD_WD | Widgets")
-		FString Delimiter;
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget), Category = "MainHUD_WD | Widgets")
+		UKT_AimWD* Aim = nullptr;
 };

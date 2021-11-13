@@ -15,7 +15,7 @@ class AKT_PlayerCharacter;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAmmoChange, int, AmmoStat);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAmmoInTheClipChange, int, AmmoStat);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponChange, UTexture2D*, Icon);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWeaponChange, UTexture2D*, WeaponIcon, UTexture2D*, AimIcon);
 
 
 
@@ -61,6 +61,9 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 		void ChangeIcon();
 
+	UFUNCTION(NetMulticast, Reliable)
+		void OnRep_WeaponChanged();
+
 	UFUNCTION()
     	void AddAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmoFound);
 
@@ -95,7 +98,7 @@ public:
 		AKT_PlayerCharacter* PlayerCharacter = nullptr;
 
 	
-	UPROPERTY(BlueprintReadWrite, Category = "Character | Weapons")
+	UPROPERTY(ReplicatedUsing = OnRep_WeaponChanged)
 		AKT_BaseWeapon* FirstWeaponSlot = nullptr;
 	UPROPERTY(EditAnywhere, Category = "Character | Weapons")
 		TSubclassOf<AKT_BaseWeapon> FirstWeaponSlotClass = nullptr;

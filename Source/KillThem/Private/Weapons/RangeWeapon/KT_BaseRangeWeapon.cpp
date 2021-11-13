@@ -1,10 +1,12 @@
 #include "Weapons/RangeWeapon/KT_BaseRangeWeapon.h"
 
 #include "DrawDebugHelpers.h"
+#include "Camera/CameraComponent.h"
 #include "Character/KT_PlayerCharacter.h"
 #include "Components/KT_ItemsManagerComponent.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 
 
 AKT_BaseRangeWeapon::AKT_BaseRangeWeapon()
@@ -23,67 +25,46 @@ void AKT_BaseRangeWeapon::Initialize_Implementation(AKT_PlayerCharacter* InChara
 
 void AKT_BaseRangeWeapon::UseWeapon()
 {
+	Super::UseWeapon();
+	
 	if (AmmoInTheClip > 0 && !IsReloading)
 	{
-		if (ProjectileShooting)
+		if (UseAlterFire)
 		{
-			if (UseAlterFire)
+			if (ProjectileShootingAtAlterFire)
 			{
-				ProjectileShoot(AlterFireProjectileClass);
+				ProjectileShoot(AlterFireProjectileClass, AlterDamage);
 			}
 			else
 			{
-				ProjectileShoot(ProjectileClass);
+				LineTraceShot(AlterFireProjectileClass, AlterDamage);
 			}
 		}
 		else
 		{
-			if (UseAlterFire)
+			if (ProjectileShooting)
 			{
-				LineTraceShot();
+				ProjectileShoot(ProjectileClass, Damage);
 			}
 			else
 			{
-				LineTraceShot();
+				LineTraceShot(ProjectileClass, Damage);
 			}
 		}
 	}
 }
 
 
-void AKT_BaseRangeWeapon::ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass)
-{
-	const FVector LLocation = Mesh->GetSocketTransform(FireSocketName).GetLocation();
-	const FRotator LRotation = Character->Controller->GetControlRotation() + FRotator(FMath::FRandRange(-5, 5) * ScatterFactor, FMath::FRandRange(-5, 5) * ScatterFactor, FMath::FRandRange(-5, 5) * ScatterFactor);
-	FActorSpawnParameters LSpawnInfo;
-
-	LSpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	LSpawnInfo.Owner = this;
-	LSpawnInfo.Instigator = Character;
-
-	AKT_BaseProjectile* LProjectile = GetWorld()->SpawnActor<AKT_BaseProjectile>(InProjectileClass, LLocation, LRotation, LSpawnInfo);
-	if (IsValid(LProjectile))
-	{
-		LProjectile->Initialize(Damage * Character->DamageBooster, Character, this);
-		AmmoInTheClip--;
-	
-		UE_LOG(LogTemp, Error, TEXT("%i"), AmmoInTheClip);
-	}
-	
-}
-
-
-void AKT_BaseRangeWeapon::LineTraceShot()
+void AKT_BaseRangeWeapon::ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage)
 {
 	FCollisionQueryParams LParams;
 	
 	FHitResult LHitResult;
 	FVector LStartLocation;
-	FRotator LStartRotation;
 	FVector LEndLocation;
-	Character->Controller->GetPlayerViewPoint(LStartLocation, LStartRotation);
-	LStartRotation += FRotator(FMath::FRandRange(-5, 5) * ScatterFactor, FMath::FRandRange(-5, 5) * ScatterFactor, FMath::FRandRange(-5, 5) * ScatterFactor);
-	LEndLocation = LStartLocation + MaxDistanceAttack * LStartRotation.Vector();
+	FRotator LStartRotation;
+	LStartLocation = Character->CameraComponent->GetSocketLocation(FName(""));
+	LEndLocation = LStartLocation + MaxDistanceAttack * Character->CameraComponent->GetForwardVector();
 	
 	DrawDebugLine(GetWorld(), LStartLocation, LEndLocation, FColor(255, 0, 0), false, 5, 0, 5.0);
 	LParams.AddIgnoredActor(this);
@@ -92,13 +73,71 @@ void AKT_BaseRangeWeapon::LineTraceShot()
 	bool LbHit = GetWorld()->LineTraceSingleByChannel(LHitResult, LStartLocation, LEndLocation, ECollisionChannel::ECC_GameTraceChannel1, LParams);
 	if (LbHit)
 	{
-		DrawDebugBox(GetWorld(), LHitResult.ImpactPoint, FVector(5,5,5), FColor::Emerald, false, 2);
+		LStartRotation = UKismetMathLibrary::FindLookAtRotation(Mesh->GetSocketTransform(FireSocketName).GetLocation(), LHitResult.Location);
 	}
+	else
+	{
+		LStartRotation = UKismetMathLibrary::FindLookAtRotation(Mesh->GetSocketTransform(FireSocketName).GetLocation(), LEndLocation);
+		
+	}
+	LStartRotation += FRotator(FMath::FRandRange(-5, 5) * ScatterFactor, FMath::FRandRange(-5, 5) * ScatterFactor, FMath::FRandRange(-5, 5) * ScatterFactor);
+
+	FActorSpawnParameters LSpawnInfo;
+	LSpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	LSpawnInfo.Owner = this;
+	LSpawnInfo.Instigator = Character;
+
+	AKT_BaseProjectile* LProjectile = GetWorld()->SpawnActor<AKT_BaseProjectile>(InProjectileClass, Mesh->GetSocketTransform(FireSocketName).GetLocation(), LStartRotation, LSpawnInfo);
+	if (IsValid(LProjectile))
+	{
+		LProjectile->Initialize(InDamage * Character->DamageBooster, Character, this);
+		AmmoInTheClip--;
+	
+		UE_LOG(LogTemp, Error, TEXT("%i"), AmmoInTheClip);
+	}
+	DrawDebugBox(GetWorld(), LHitResult.ImpactPoint, FVector(5,5,5), FColor::Emerald, false, 2);
+}
+
+
+void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage)
+{
+	FCollisionQueryParams LParams;
+	
+	FHitResult LHitResult;
+	FVector LStartLocation;
+	FVector LEndLocation;
+	FRotator LStartRotation;
+	LStartLocation = Character->CameraComponent->GetSocketLocation(FName(""));
+	LEndLocation = LStartLocation + MaxDistanceAttack * (Character->CameraComponent->GetForwardVector() + FVector(FMath::FRandRange(-0.05, 0.05) * ScatterFactor, FMath::FRandRange(-0.05, 0.05) * ScatterFactor, FMath::FRandRange(-0.05, 0.05) * ScatterFactor));
+	
+	DrawDebugLine(GetWorld(), LStartLocation, LEndLocation, FColor(255, 0, 0), false, 5, 0, 5.0);
+	LParams.AddIgnoredActor(this);
+	LParams.AddIgnoredActor(Character);
+	
+	bool LbHit = GetWorld()->LineTraceSingleByChannel(LHitResult, LStartLocation, LEndLocation, ECollisionChannel::ECC_GameTraceChannel1, LParams);
+	if (LbHit)
+	{
+		LStartRotation = UKismetMathLibrary::FindLookAtRotation(Mesh->GetSocketTransform(FireSocketName).GetLocation(), LHitResult.Location);
+	}
+	else
+	{
+		LStartRotation = UKismetMathLibrary::FindLookAtRotation(Mesh->GetSocketTransform(FireSocketName).GetLocation(), LEndLocation);
+	}
+	
+	LStartRotation += FRotator(FMath::FRandRange(-5, 5) * ScatterFactor, FMath::FRandRange(-5, 5) * ScatterFactor, FMath::FRandRange(-5, 5) * ScatterFactor);
+
+	FActorSpawnParameters LSpawnInfo;
+	LSpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	LSpawnInfo.Owner = this;
+	LSpawnInfo.Instigator = Character;
+
+	GetWorld()->SpawnActor<AKT_BaseProjectile>(InProjectileClass, Mesh->GetSocketTransform(FireSocketName).GetLocation(), LStartRotation, LSpawnInfo);
+	DrawDebugBox(GetWorld(), LHitResult.ImpactPoint, FVector(5,5,5), FColor::Emerald, false, 2);
 	if (LHitResult.Actor != Character && LbHit && IsValid(DamageTypeClass))
 	{
 		const FDamageEvent LDamageEvent;
 
-		UGameplayStatics::ApplyDamage(LHitResult.GetActor(), Damage * Character->DamageBooster, LHitResult.GetActor()->GetInstigatorController(), Character, DamageTypeClass);
+		UGameplayStatics::ApplyDamage(LHitResult.GetActor(), InDamage * Character->DamageBooster, LHitResult.GetActor()->GetInstigatorController(), Character, DamageTypeClass);
 	}
 	AmmoInTheClip--;
 	
