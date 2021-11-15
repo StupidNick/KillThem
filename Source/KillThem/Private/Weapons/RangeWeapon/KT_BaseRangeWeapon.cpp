@@ -33,29 +33,29 @@ void AKT_BaseRangeWeapon::UseWeapon()
 		{
 			if (ProjectileShootingAtAlterFire)
 			{
-				ProjectileShoot(AlterFireProjectileClass, AlterDamage);
+				ProjectileShoot(AlterFireProjectileClass, AlterDamage, AlterFireSocketName, CostAlterShotInAmmo);
 			}
 			else
 			{
-				LineTraceShot(AlterFireProjectileClass, AlterDamage);
+				LineTraceShot(AlterFireProjectileClass, AlterDamage, AlterFireSocketName, CostAlterShotInAmmo);
 			}
 		}
 		else
 		{
 			if (ProjectileShooting)
 			{
-				ProjectileShoot(ProjectileClass, Damage);
+				ProjectileShoot(ProjectileClass, Damage, FireSocketName);
 			}
 			else
 			{
-				LineTraceShot(ProjectileClass, Damage);
+				LineTraceShot(ProjectileClass, Damage, FireSocketName);
 			}
 		}
 	}
 }
 
 
-void AKT_BaseRangeWeapon::ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage)
+void AKT_BaseRangeWeapon::ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage, const FName InShotSocketName, const int InSpentAmmo)
 {
 	FCollisionQueryParams LParams;
 	
@@ -87,11 +87,11 @@ void AKT_BaseRangeWeapon::ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> 
 	LSpawnInfo.Owner = this;
 	LSpawnInfo.Instigator = Character;
 
-	AKT_BaseProjectile* LProjectile = GetWorld()->SpawnActor<AKT_BaseProjectile>(InProjectileClass, Mesh->GetSocketTransform(FireSocketName).GetLocation(), LStartRotation, LSpawnInfo);
+	AKT_BaseProjectile* LProjectile = GetWorld()->SpawnActor<AKT_BaseProjectile>(InProjectileClass, Mesh->GetSocketTransform(InShotSocketName).GetLocation(), LStartRotation, LSpawnInfo);
 	if (IsValid(LProjectile))
 	{
 		LProjectile->Initialize(InDamage * Character->DamageBooster, Character, this);
-		AmmoInTheClip--;
+		AmmoInTheClip -= InSpentAmmo;
 	
 		UE_LOG(LogTemp, Error, TEXT("%i"), AmmoInTheClip);
 	}
@@ -99,7 +99,7 @@ void AKT_BaseRangeWeapon::ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> 
 }
 
 
-void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage)
+void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage, const FName InShotSocketName, const int InSpentAmmo)
 {
 	FCollisionQueryParams LParams;
 	
@@ -131,7 +131,7 @@ void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile> In
 	LSpawnInfo.Owner = this;
 	LSpawnInfo.Instigator = Character;
 
-	GetWorld()->SpawnActor<AKT_BaseProjectile>(InProjectileClass, Mesh->GetSocketTransform(FireSocketName).GetLocation(), LStartRotation, LSpawnInfo);
+	GetWorld()->SpawnActor<AKT_BaseProjectile>(InProjectileClass, Mesh->GetSocketTransform(InShotSocketName).GetLocation(), LStartRotation, LSpawnInfo);
 	DrawDebugBox(GetWorld(), LHitResult.ImpactPoint, FVector(5,5,5), FColor::Emerald, false, 2);
 	if (LHitResult.Actor != Character && LbHit && IsValid(DamageTypeClass))
 	{
@@ -139,7 +139,7 @@ void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile> In
 
 		UGameplayStatics::ApplyDamage(LHitResult.GetActor(), InDamage * Character->DamageBooster, LHitResult.GetActor()->GetInstigatorController(), Character, DamageTypeClass);
 	}
-	AmmoInTheClip--;
+	AmmoInTheClip -= InSpentAmmo;
 	
 	UE_LOG(LogTemp, Error, TEXT("%i"), AmmoInTheClip);
 }

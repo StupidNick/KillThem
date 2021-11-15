@@ -36,10 +36,10 @@ public:
 protected:
 
 	UFUNCTION()
-		virtual void ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage);
+		virtual void ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage, const FName InShotSocketName, const int InSpentAmmo = 1);
 
 	UFUNCTION()
-		virtual void LineTraceShot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage);
+		virtual void LineTraceShot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage, const FName InShotSocketName, const int InSpentAmmo = 1);
 
 	UFUNCTION()
 		void Reload(const int InAmmo);

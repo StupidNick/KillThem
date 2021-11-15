@@ -138,6 +138,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
 		float DelayBetweenAlterShots;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
+		int CostAlterShotInAmmo;
+
 	UPROPERTY(EditAnywhere, Category = "Weapon | Interactive")
 		TSubclassOf<AKT_BaseInteractiveWeapon> InteractiveWeaponClass = nullptr;
 };
