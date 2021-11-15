@@ -73,7 +73,7 @@ void AKT_PlayerCharacter::BeginPlay()
 
 	if (!HasAuthority() && IsValid(HUD))
 	{
-		HUD->CreateMainHUD();
+		HUD->CreateMainHUD_WD();
 		ItemsManagerComponent->AmountOfAmmoChanged(ItemsManagerComponent->AmmoForFirstWeapon);
 	}
 	

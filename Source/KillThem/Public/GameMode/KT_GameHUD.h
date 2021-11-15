@@ -5,7 +5,8 @@
 #include "KT_GameHUD.generated.h"
 
 
-
+class UKT_FindServerWD;
+class UKT_MainMenuWD;
 class UKT_MainHUD_WD;
 
 
@@ -57,9 +58,29 @@ private:
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "MainHUD")
-		void CreateMainHUD();
+		void CreateMainHUD_WD();
 	UFUNCTION(BlueprintCallable, Category = "MainHUD")
-		void RemoveMainHUD();
+		void RemoveMainHUD_WD();
+
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void CreateMainMenuWD();
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void RemoveMainMenuWD();
+
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void CreateFindServerWD();
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void RemoveFindServerWD();
+
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void CreateSettingsWD();
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void RemoveSettingsWD();
+
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void CreateMadeByWD();
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void RemoveMadeByWD();
 
 
 //Blueprint values
@@ -69,6 +90,26 @@ public:
 		TSubclassOf<UKT_MainHUD_WD>  MainHUDClass;
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
 		UKT_MainHUD_WD* MainHUD = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+		TSubclassOf<UKT_MainMenuWD>  MainMenuClass;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UKT_MainMenuWD* MainMenu = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+		TSubclassOf<UKT_FindServerWD>  FindServerClass;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UKT_FindServerWD* FindServer = nullptr;
+
+	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+	// 	TSubclassOf<UKT_MainMenuWD>  MainMenuClass;
+	// UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+	// 	UKT_MainMenuWD* MainMenu = nullptr;
+	//
+	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+	// 	TSubclassOf<UKT_MainMenuWD>  MainMenuClass;
+	// UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+	// 	UKT_MainMenuWD* MainMenu = nullptr;
 	
 	UPROPERTY(BlueprintReadOnly)
 		class AKT_PlayerController* MyController = nullptr;
