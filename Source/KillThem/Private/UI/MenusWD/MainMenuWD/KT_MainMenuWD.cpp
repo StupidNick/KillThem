@@ -3,6 +3,7 @@
 #include "Character/Controllers/KT_PlayerController.h"
 #include "Components/Button.h"
 #include "GameMode/KT_GameHUD.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 
 UKT_MainMenuWD::UKT_MainMenuWD(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
@@ -28,6 +29,7 @@ void UKT_MainMenuWD::OnFindServerButtonClick()
 void UKT_MainMenuWD::OnSettingsButtonClick()
 {
 	GameHUD->CreateSettingsWD();
+	GameHUD->RemoveMainMenuWD();
 }
 
 
@@ -39,7 +41,7 @@ void UKT_MainMenuWD::OnMadeByButtonClick()
 
 void UKT_MainMenuWD::OnExitButtonClick()
 {
-	//TODO
+	UKismetSystemLibrary::QuitGame(GetWorld(), GameHUD->MyController, EQuitPreference::Quit, true);
 }
 
 

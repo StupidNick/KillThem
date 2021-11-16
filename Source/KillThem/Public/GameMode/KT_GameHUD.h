@@ -5,6 +5,7 @@
 #include "KT_GameHUD.generated.h"
 
 
+class UKT_SettingsWD;
 class UKT_FindServerWD;
 class UKT_MainMenuWD;
 class UKT_MainHUD_WD;
@@ -101,10 +102,10 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
 		UKT_FindServerWD* FindServer = nullptr;
 
-	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
-	// 	TSubclassOf<UKT_MainMenuWD>  MainMenuClass;
-	// UPROPERTY(BlueprintReadOnly, Category = "Widgets")
-	// 	UKT_MainMenuWD* MainMenu = nullptr;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+		TSubclassOf<UKT_SettingsWD>  SettingsWDClass;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UKT_SettingsWD* SettingsWD = nullptr;
 	//
 	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
 	// 	TSubclassOf<UKT_MainMenuWD>  MainMenuClass;

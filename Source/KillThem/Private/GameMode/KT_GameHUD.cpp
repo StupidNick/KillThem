@@ -3,8 +3,9 @@
 #include "Blueprint/UserWidget.h"
 #include "Character/Controllers/KT_PlayerController.h"
 #include "UI/MainHUD_WD/KT_MainHUD_WD.h"
-#include "UI/MenusWD/FindServerWD/KT_FindServerWD.h"
 #include "UI/menusWD/MainMenuWD/KT_MainMenuWD.h"
+#include "UI/MenusWD/MainMenuWD/FindServerWD/KT_FindServerWD.h"
+#include "UI/MenusWD/SettingsWD/KT_SettingsWD.h"
 
 
 AKT_GameHUD::AKT_GameHUD()
@@ -92,11 +93,22 @@ void AKT_GameHUD::RemoveFindServerWD()
 
 void AKT_GameHUD::CreateSettingsWD()
 {
+	if (SettingsWDClass && !SettingsWD)
+	{
+		SettingsWD = CreateWidget<UKT_SettingsWD>(GetWorld(), SettingsWDClass);
+		SettingsWD->AddToViewport();
+		SettingsWD->InitializeSettingsWD(this);
+	}
 }
 
 
 void AKT_GameHUD::RemoveSettingsWD()
 {
+	if (SettingsWD)
+	{
+		SettingsWD->RemoveFromParent();
+		SettingsWD = nullptr;
+	}
 }
 
 

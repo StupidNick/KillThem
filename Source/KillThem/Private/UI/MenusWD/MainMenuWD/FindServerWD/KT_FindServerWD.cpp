@@ -1,4 +1,4 @@
-#include "UI/MenusWD/FindServerWD/KT_FindServerWD.h"
+#include "UI/MenusWD/MainMenuWD/FindServerWD/KT_FindServerWD.h"
 
 #include "Components/Button.h"
 #include "GameMode/KT_GameHUD.h"
