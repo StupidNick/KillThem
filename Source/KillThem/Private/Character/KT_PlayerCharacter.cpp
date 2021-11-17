@@ -839,7 +839,7 @@ void AKT_PlayerCharacter::ReloadOnServer_Implementation()
 }
 
 
-void AKT_PlayerCharacter::RightClick_Implementation()
+void AKT_PlayerCharacter::RightClick()
 {
 	if (ItemsManagerComponent->GetSelectedWeaponSlot()->CanScope)
 	{
@@ -882,16 +882,17 @@ void AKT_PlayerCharacter::AlterFireOnServer_Implementation()
 }
 
 
-void AKT_PlayerCharacter::Scope()
+void AKT_PlayerCharacter::Scope_Implementation()
 {
-	Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot())->SetScatterFactor(0.05);
+	const auto LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot());
+	LWeapon->Scope();
 }
 
 
 void AKT_PlayerCharacter::UnScope()
 {
-	AKT_BaseRangeWeapon* LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot());
-	LWeapon->SetScatterFactor(LWeapon->BaseScatterFactor);
+	const auto LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot());
+	LWeapon->UnScope();
 }
 
 

@@ -72,7 +72,7 @@ public:
 	UFUNCTION()
 		void StopFire();
 
-	UFUNCTION(NetMulticast, Reliable)
+	UFUNCTION(Server, Reliable)
 		void Initialize(AKT_PlayerCharacter* InCharacter, const int InAmmoInTheClip = -1);
 
 	UFUNCTION(NetMulticast, Reliable)
@@ -124,9 +124,6 @@ public:
 		bool AutoFire;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
-		bool CanScope;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
 		float TimeBeforeAlterFire;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
@@ -140,6 +137,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
 		int CostAlterShotInAmmo;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Scoping")
+		bool CanScope;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon | Interactive")
 		TSubclassOf<AKT_BaseInteractiveWeapon> InteractiveWeaponClass = nullptr;

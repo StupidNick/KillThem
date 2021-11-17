@@ -110,13 +110,10 @@ void AKT_BaseWeapon::StopFire()
 
 void AKT_BaseWeapon::Initialize_Implementation(AKT_PlayerCharacter* InCharacter, const int InAmmoInTheClip)
 {
-	if (HasAuthority())
+	AmmoInTheClip = InAmmoInTheClip;
+	if (AmmoInTheClip == -1)
 	{
-		AmmoInTheClip = InAmmoInTheClip;
-		if (AmmoInTheClip == -1)
-		{
-			AmmoInTheClip = ClipSize;
-		}
+		AmmoInTheClip = ClipSize;
 	}
 	Character = InCharacter;
 	AlterFireTimerDelegate.BindUFunction(this, "UseWeapon");

@@ -7,18 +7,30 @@
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 
 AKT_BaseRangeWeapon::AKT_BaseRangeWeapon()
 {
-	
+	CameraComponent = CreateDefaultSubobject<UCameraComponent>("Camera");
+	CameraComponent->SetupAttachment(Mesh);
 }
+
 
 void AKT_BaseRangeWeapon::Initialize_Implementation(AKT_PlayerCharacter* InCharacter, const int InAmmoInTheClip)
 {
 	Super::Initialize_Implementation(InCharacter, InAmmoInTheClip);
 	
 	ScatterFactor = BaseScatterFactor;
+}
+
+
+void AKT_BaseRangeWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AKT_BaseRangeWeapon, IsScoping);
+	DOREPLIFETIME(AKT_BaseRangeWeapon, Character);
 }
 
 
@@ -33,29 +45,29 @@ void AKT_BaseRangeWeapon::UseWeapon()
 		{
 			if (ProjectileShootingAtAlterFire)
 			{
-				ProjectileShoot(AlterFireProjectileClass, AlterDamage, AlterFireSocketName, CostAlterShotInAmmo);
+				ProjectileShoot(AlterFireProjectileClass, AlterDamage, AlterFireSocketName, AlterFireScatterFactor, CostAlterShotInAmmo);
 			}
 			else
 			{
-				LineTraceShot(AlterFireProjectileClass, AlterDamage, AlterFireSocketName, CostAlterShotInAmmo);
+				LineTraceShot(AlterFireProjectileClass, AlterDamage, AlterFireSocketName, AlterFireScatterFactor, CostAlterShotInAmmo);
 			}
 		}
 		else
 		{
 			if (ProjectileShooting)
 			{
-				ProjectileShoot(ProjectileClass, Damage, FireSocketName);
+				ProjectileShoot(ProjectileClass, Damage, FireSocketName, ScatterFactor);
 			}
 			else
 			{
-				LineTraceShot(ProjectileClass, Damage, FireSocketName);
+				LineTraceShot(ProjectileClass, Damage, FireSocketName, ScatterFactor);
 			}
 		}
 	}
 }
 
 
-void AKT_BaseRangeWeapon::ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage, const FName InShotSocketName, const int InSpentAmmo)
+void AKT_BaseRangeWeapon::ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage, const FName InShotSocketName, const float InScatterFactor, const int InSpentAmmo)
 {
 	FCollisionQueryParams LParams;
 	
@@ -80,7 +92,7 @@ void AKT_BaseRangeWeapon::ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> 
 		LStartRotation = UKismetMathLibrary::FindLookAtRotation(Mesh->GetSocketTransform(FireSocketName).GetLocation(), LEndLocation);
 		
 	}
-	LStartRotation += FRotator(FMath::FRandRange(-5, 5) * ScatterFactor, FMath::FRandRange(-5, 5) * ScatterFactor, FMath::FRandRange(-5, 5) * ScatterFactor);
+	LStartRotation += FRotator(FMath::FRandRange(-5, 5) * InScatterFactor, FMath::FRandRange(-5, 5) * InScatterFactor, FMath::FRandRange(-5, 5) * InScatterFactor);
 
 	FActorSpawnParameters LSpawnInfo;
 	LSpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -99,7 +111,7 @@ void AKT_BaseRangeWeapon::ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> 
 }
 
 
-void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage, const FName InShotSocketName, const int InSpentAmmo)
+void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage, const FName InShotSocketName, const float InScatterFactor, const int InSpentAmmo)
 {
 	FCollisionQueryParams LParams;
 	
@@ -108,7 +120,7 @@ void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile> In
 	FVector LEndLocation;
 	FRotator LStartRotation;
 	LStartLocation = Character->CameraComponent->GetSocketLocation(FName(""));
-	LEndLocation = LStartLocation + MaxDistanceAttack * (Character->CameraComponent->GetForwardVector() + FVector(FMath::FRandRange(-0.05, 0.05) * ScatterFactor, FMath::FRandRange(-0.05, 0.05) * ScatterFactor, FMath::FRandRange(-0.05, 0.05) * ScatterFactor));
+	LEndLocation = LStartLocation + MaxDistanceAttack * (Character->CameraComponent->GetForwardVector() + FVector(FMath::FRandRange(-0.05, 0.05) * InScatterFactor, FMath::FRandRange(-0.05, 0.05) * InScatterFactor, FMath::FRandRange(-0.05, 0.05) * InScatterFactor));
 	
 	DrawDebugLine(GetWorld(), LStartLocation, LEndLocation, FColor(255, 0, 0), false, 5, 0, 5.0);
 	LParams.AddIgnoredActor(this);
@@ -124,7 +136,7 @@ void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile> In
 		LStartRotation = UKismetMathLibrary::FindLookAtRotation(Mesh->GetSocketTransform(FireSocketName).GetLocation(), LEndLocation);
 	}
 	
-	LStartRotation += FRotator(FMath::FRandRange(-5, 5) * ScatterFactor, FMath::FRandRange(-5, 5) * ScatterFactor, FMath::FRandRange(-5, 5) * ScatterFactor);
+	LStartRotation += FRotator(FMath::FRandRange(-5, 5) * InScatterFactor, FMath::FRandRange(-5, 5) * InScatterFactor, FMath::FRandRange(-5, 5) * InScatterFactor);
 
 	FActorSpawnParameters LSpawnInfo;
 	LSpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -156,6 +168,10 @@ void AKT_BaseRangeWeapon::Reload(const int InAmmo)
 void AKT_BaseRangeWeapon::ToReload()
 {
 	int LCountOfAmmo;
+	if (IsScoping)
+	{
+		UnScope();
+	}
 	if (AmmoInTheClip < ClipSize ++ && Character->ItemsManagerComponent->FindAndCountAmmo(GetClass(), LCountOfAmmo))
 	{
 		IsReloading = true;
@@ -166,6 +182,39 @@ void AKT_BaseRangeWeapon::ToReload()
 		}
 		ReloadTimerDelegate.BindUFunction(this, "Reload", LCountOfAmmo);
 		GetWorldTimerManager().SetTimer(ReloadTimerHandle, ReloadTimerDelegate, ReloadTime / Character->BerserkBooster, false);
+	}
+	
+}
+
+
+void AKT_BaseRangeWeapon::Scope_Implementation()
+{
+	if (!IsReloading)
+	{
+		IsScoping = true;
+	}
+}
+
+
+void AKT_BaseRangeWeapon::UnScope()
+{
+	IsScoping = false;
+}
+
+
+void AKT_BaseRangeWeapon::OnRep_Scoping_Implementation()
+{
+	if (IsScoping)
+	{
+		CameraComponent->SetActive(true);
+		Character->CameraComponent->SetActive(false, true);
+		SetScatterFactor(ScopeScatterFactor);
+	}
+	else
+	{
+		CameraComponent->SetActive(false);
+		Character->CameraComponent->SetActive(true);
+		SetScatterFactor(BaseScatterFactor);
 	}
 }
 

@@ -182,7 +182,7 @@ protected:
 	UFUNCTION(Server, Reliable)
 		void ReloadOnServer();
 
-	UFUNCTION(Server, Reliable)
+	UFUNCTION()
 		void RightClick();
 
 	UFUNCTION(Server, Reliable)
@@ -191,7 +191,7 @@ protected:
 	UFUNCTION(Server, Reliable)
 		void AlterFireOnServer();
 
-	UFUNCTION()
+	UFUNCTION(Client, Reliable)
 		void Scope();
 
 	UFUNCTION()
@@ -302,7 +302,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character | Components")
 		USkeletalMeshComponent* FirstPersonMeshComponent;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Character | Components")
+	UPROPERTY(EditAnywhere, Category = "Character | Components")
 		UCameraComponent* CameraComponent;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Character | Components")

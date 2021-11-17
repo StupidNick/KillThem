@@ -18,9 +18,20 @@ public:
 	
 	AKT_BaseRangeWeapon();
 
-//public C++ functions
+//public C++ variable
 public:
 
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Scoping)
+		bool IsScoping = false;
+
+
+//public C++ functions
+public:
+	
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	UFUNCTION(NetMulticast, Reliable)
+		void OnRep_Scoping();
 
 	virtual void Initialize_Implementation(AKT_PlayerCharacter* InCharacter, const int InAmmoInTheClip = -1) override;
 	
@@ -29,6 +40,12 @@ public:
 	UFUNCTION()
 		void ToReload();
 
+	UFUNCTION(Server, Reliable)
+		void Scope();
+
+	UFUNCTION()
+		void UnScope();
+
 	
 	void SetScatterFactor(const float InScatterFactor);
 
@@ -36,10 +53,10 @@ public:
 protected:
 
 	UFUNCTION()
-		virtual void ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage, const FName InShotSocketName, const int InSpentAmmo = 1);
+		virtual void ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage, const FName InShotSocketName, const float InScatterFactor, const int InSpentAmmo = 1);
 
 	UFUNCTION()
-		virtual void LineTraceShot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage, const FName InShotSocketName, const int InSpentAmmo = 1);
+		virtual void LineTraceShot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage, const FName InShotSocketName, const float InScatterFactor, const int InSpentAmmo = 1);
 
 	UFUNCTION()
 		void Reload(const int InAmmo);
@@ -53,6 +70,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 		float ScatterFactor;
 
+	UPROPERTY(BlueprintReadOnly)
+		float AlterFireScatterFactor;
+
 	FTimerHandle ReloadTimerHandle;
 	
 	FTimerDelegate ReloadTimerDelegate;
@@ -60,14 +80,21 @@ protected:
 //public BP variables
 public:
 
+	UPROPERTY(EditAnywhere, Category = "Weapon | Components")
+		UCameraComponent* CameraComponent;
+	
+
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
 		float ReloadTime;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
 		float MaxDistanceAttack;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
 		float BaseScatterFactor;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
+		float ScopeScatterFactor;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
 		bool ProjectileShooting;
@@ -91,5 +118,11 @@ public:
 		TSubclassOf<UDamageType> AlterDamageTypeClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
+		float BaseAlterFireScatterFactor;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
 		FName AlterFireSocketName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Scoping")
+		FName ScopingSocketName;
 };
