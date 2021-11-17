@@ -48,6 +48,14 @@ private:
 	UFUNCTION()
 		void TiltCameraOnWallRunningTimeLineFloatReturn(float Value);
 
+	UFUNCTION()
+		void ScopingTimeLineFloatReturn(float Value);
+
+	UFUNCTION()
+		FTransform CalculateADSTransform();
+
+	
+
 //private с++ variables
 private:
 
@@ -59,6 +67,8 @@ private:
 
 	UTimelineComponent* TiltCameraOnWallRunningTimeLine;
 
+	UTimelineComponent* ScopingTimeLine;
+
 	UPROPERTY()
 		FVector CrouchingStartLocation;
 	UPROPERTY()
@@ -69,6 +79,9 @@ private:
 
 	UPROPERTY()
 		bool CameraIsTilt = false;
+
+	UPROPERTY()
+		FTransform DefaultArmsTransform;
 
 	FTimerHandle SprintTimerHandle;
 	FTimerDelegate SprintTimerDelegate;
@@ -193,9 +206,13 @@ protected:
 
 	UFUNCTION(Client, Reliable)
 		void Scope();
+	UFUNCTION(Server, Reliable)
+		void ScopeOnServer();
 
-	UFUNCTION()
+	UFUNCTION(Client, Reliable)
 		void UnScope();
+	UFUNCTION(Server, Reliable)
+		void UnScopeOnServer();
 
 /////////////////////////////////////Interact//////////////////////////////////////
 
@@ -255,6 +272,8 @@ public:
 	FOnTimelineFloat WallRunningInterpFunction{};
 
 	FOnTimelineFloat TiltCameraOnWallRunningInterpFunction{};
+
+	FOnTimelineFloat ScopingInterpFunction{};
 //////////////////////////////////////////////////////////////////////////////////////
 
 	UPROPERTY()
@@ -385,6 +404,13 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Character | WallRunning")
 		float WallRunningForce;
+
+/////////////////////////////////////WallRunning/////////////////////////////////////////
+	UPROPERTY(EditAnywhere, Category = "Character | Weapons")
+		UCurveFloat* ScopingCameraTilt;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Character | Weapons")
+		bool IsScoping = false;
 };
 
 

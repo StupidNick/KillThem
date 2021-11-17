@@ -12,8 +12,6 @@
 
 AKT_BaseRangeWeapon::AKT_BaseRangeWeapon()
 {
-	CameraComponent = CreateDefaultSubobject<UCameraComponent>("Camera");
-	CameraComponent->SetupAttachment(Mesh);
 }
 
 
@@ -31,6 +29,7 @@ void AKT_BaseRangeWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 	DOREPLIFETIME(AKT_BaseRangeWeapon, IsScoping);
 	DOREPLIFETIME(AKT_BaseRangeWeapon, Character);
+	DOREPLIFETIME(AKT_BaseRangeWeapon, IsReloading);
 }
 
 
@@ -168,9 +167,9 @@ void AKT_BaseRangeWeapon::Reload(const int InAmmo)
 void AKT_BaseRangeWeapon::ToReload()
 {
 	int LCountOfAmmo;
-	if (IsScoping)
+	if (Character->IsScoping)
 	{
-		UnScope();
+		Character->UnScope_Implementation();
 	}
 	if (AmmoInTheClip < ClipSize ++ && Character->ItemsManagerComponent->FindAndCountAmmo(GetClass(), LCountOfAmmo))
 	{
@@ -187,33 +186,14 @@ void AKT_BaseRangeWeapon::ToReload()
 }
 
 
-void AKT_BaseRangeWeapon::Scope_Implementation()
-{
-	if (!IsReloading)
-	{
-		IsScoping = true;
-	}
-}
-
-
-void AKT_BaseRangeWeapon::UnScope()
-{
-	IsScoping = false;
-}
-
-
 void AKT_BaseRangeWeapon::OnRep_Scoping_Implementation()
 {
 	if (IsScoping)
 	{
-		CameraComponent->SetActive(true);
-		Character->CameraComponent->SetActive(false, true);
 		SetScatterFactor(ScopeScatterFactor);
 	}
 	else
 	{
-		CameraComponent->SetActive(false);
-		Character->CameraComponent->SetActive(true);
 		SetScatterFactor(BaseScatterFactor);
 	}
 }

@@ -14,6 +14,7 @@
 #include "InteractiveObjects/KT_BaseInteractiveObject.h"
 
 #include "Components/KT_ItemsManagerComponent.h"
+#include "Editor/EditorEngine.h"
 #include "GameMode/KT_GameHUD.h"
 #include "UI/MainHUD_WD/KT_MainHUD_WD.h"
 #include "Weapons/RangeWeapon/KT_BaseRangeWeapon.h"
@@ -53,17 +54,18 @@ AKT_PlayerCharacter::AKT_PlayerCharacter()
 	SlidingTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("SlidingTimeline"));
 	WallRunningTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("WallRunningTimeline"));
 	TiltCameraOnWallRunningTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("TiltCameraOnWallRunningTimeLine"));
+	ScopingTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("ScopingTimeLine"));
 
 	SlidingInterpFunction.BindUFunction(this, FName("SlidingTimeLineFloatReturn"));
 	CrouchingInterpFunction.BindUFunction(this, FName("CrouchingTimeLineFloatReturn"));
 	WallRunningInterpFunction.BindUFunction(this, FName("WallRunningTimeLineFloatReturn"));
 	TiltCameraOnWallRunningInterpFunction.BindUFunction(this, FName("TiltCameraOnWallRunningTimeLineFloatReturn"));
+	ScopingInterpFunction.BindUFunction(this, FName("ScopingTimeLineFloatReturn"));
 
 	ItemsManagerComponent->Initialize(this);
 	
 	ItemsManagerComponent->SetIsReplicated(true);
 	HealthComponent->SetIsReplicated(true);
-	
 }
 
 
@@ -94,7 +96,8 @@ void AKT_PlayerCharacter::BeginPlay()
 	GetMovementComponent()->SetPlaneConstraintEnabled(true);
 
 	GetCharacterMovement()->MaxWalkSpeed = SpeedOfWalk;
-	
+
+	DefaultArmsTransform = FirstPersonMeshComponent->GetRelativeTransform();
 
 	if (CurveFloatForSliding)
 	{
@@ -115,6 +118,11 @@ void AKT_PlayerCharacter::BeginPlay()
 	{
 		TiltCameraOnWallRunningTimeLine->AddInterpFloat(CurveFloatForWallRunningCameraTilt, TiltCameraOnWallRunningInterpFunction, FName("Alpha"));
 		TiltCameraOnWallRunningTimeLine->SetLooping(false);
+	}
+	if (ScopingCameraTilt)
+	{
+		ScopingTimeLine->AddInterpFloat(ScopingCameraTilt, ScopingInterpFunction, FName("Alpha"));
+		ScopingTimeLine->SetLooping(false);
 	}
 	if (IsValid(ItemsManagerComponent->FirstWeaponSlotClass) && HasAuthority())
 	{
@@ -844,6 +852,7 @@ void AKT_PlayerCharacter::RightClick()
 	if (ItemsManagerComponent->GetSelectedWeaponSlot()->CanScope)
 	{
 		Scope();
+		ScopeOnServer();
 	}
 	else
 	{
@@ -856,6 +865,7 @@ void AKT_PlayerCharacter::RightUnClick_Implementation()
 	if (ItemsManagerComponent->GetSelectedWeaponSlot()->CanScope)
 	{
 		UnScope();
+		UnScopeOnServer();
 	}
 	else
 	{
@@ -882,17 +892,55 @@ void AKT_PlayerCharacter::AlterFireOnServer_Implementation()
 }
 
 
-void AKT_PlayerCharacter::Scope_Implementation()
+void AKT_PlayerCharacter::ScopingTimeLineFloatReturn(float Value)
 {
-	const auto LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot());
-	LWeapon->Scope();
+	
+	if (IsScoping)
+	{
+		FirstPersonMeshComponent->SetRelativeTransform(UKismetMathLibrary::TLerp(FirstPersonMeshComponent->GetRelativeTransform(), CalculateADSTransform(), Value));
+	}
+	else
+	{
+		FirstPersonMeshComponent->SetRelativeTransform(UKismetMathLibrary::TLerp(FirstPersonMeshComponent->GetRelativeTransform(), DefaultArmsTransform, Value));
+	}
 }
 
 
-void AKT_PlayerCharacter::UnScope()
+FTransform AKT_PlayerCharacter::CalculateADSTransform()
 {
 	const auto LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot());
-	LWeapon->UnScope();
+	return  UKismetMathLibrary::InvertTransform(UKismetMathLibrary::MakeRelativeTransform(LWeapon->Mesh->GetSocketTransform(LWeapon->ScopingSocketName), FirstPersonMeshComponent->GetComponentTransform()));
+
+}
+
+
+void AKT_PlayerCharacter::Scope_Implementation()
+{
+	const auto LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot());
+	if (!LWeapon->IsReloading)
+	{
+		IsScoping = true;
+		ScopingTimeLine->Play();
+	}
+}
+
+
+void AKT_PlayerCharacter::ScopeOnServer_Implementation()
+{
+	IsScoping = true;
+}
+
+
+void AKT_PlayerCharacter::UnScope_Implementation()
+{
+	IsScoping = false;
+	ScopingTimeLine->Reverse();
+}
+
+
+void AKT_PlayerCharacter::UnScopeOnServer_Implementation()
+{
+	IsScoping = false;
 }
 
 

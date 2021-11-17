@@ -24,6 +24,8 @@ public:
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Scoping)
 		bool IsScoping = false;
 
+	UPROPERTY(BlueprintReadOnly, Replicated)
+		bool IsReloading = false;
 
 //public C++ functions
 public:
@@ -39,12 +41,6 @@ public:
 
 	UFUNCTION()
 		void ToReload();
-
-	UFUNCTION(Server, Reliable)
-		void Scope();
-
-	UFUNCTION()
-		void UnScope();
 
 	
 	void SetScatterFactor(const float InScatterFactor);
@@ -65,9 +61,6 @@ protected:
 protected:
 
 	UPROPERTY(BlueprintReadOnly)
-		bool IsReloading = false;
-
-	UPROPERTY(BlueprintReadOnly)
 		float ScatterFactor;
 
 	UPROPERTY(BlueprintReadOnly)
@@ -79,9 +72,6 @@ protected:
 	
 //public BP variables
 public:
-
-	UPROPERTY(EditAnywhere, Category = "Weapon | Components")
-		UCameraComponent* CameraComponent;
 	
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
