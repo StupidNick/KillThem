@@ -32,7 +32,7 @@ public:
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
-	UFUNCTION(NetMulticast, Reliable)
+	UFUNCTION(Server, Reliable)
 		void OnRep_Scoping();
 
 	virtual void Initialize_Implementation(AKT_PlayerCharacter* InCharacter, const int InAmmoInTheClip = -1) override;

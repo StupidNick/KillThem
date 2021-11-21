@@ -927,7 +927,7 @@ void AKT_PlayerCharacter::Scope_Implementation()
 
 void AKT_PlayerCharacter::ScopeOnServer_Implementation()
 {
-	IsScoping = true;
+	Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot())->IsScoping = true;
 }
 
 
@@ -940,7 +940,7 @@ void AKT_PlayerCharacter::UnScope_Implementation()
 
 void AKT_PlayerCharacter::UnScopeOnServer_Implementation()
 {
-	IsScoping = false;
+	Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot())->IsScoping = false;
 }
 
 
