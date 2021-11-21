@@ -106,7 +106,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Character | Weapons")
 		int AmmoForFirstWeapon;
 	
-	UPROPERTY(BlueprintReadWrite, Replicated, Category = "Character | Weapons")
+	UPROPERTY(BlueprintReadWrite, ReplicatedUsing = OnRep_WeaponChanged, Category = "Character | Weapons")
 		AKT_BaseWeapon* SecondWeaponSlot = nullptr;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Character | Grenade")
@@ -119,7 +119,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Character | Grenade")
 		TSubclassOf<AKT_BaseGrenade> SecondGrenadeSlotClass;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Status")
+	UPROPERTY(BlueprintReadWrite, ReplicatedUsing = OnRep_WeaponChanged, Category = "Status")
 		bool SelectedFirstSlot = true;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Character | Weapons")

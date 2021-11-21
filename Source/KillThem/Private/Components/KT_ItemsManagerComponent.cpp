@@ -20,6 +20,8 @@ void UKT_ItemsManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UKT_ItemsManagerComponent, FirstWeaponSlot);
+	DOREPLIFETIME(UKT_ItemsManagerComponent, SecondWeaponSlot);
+	DOREPLIFETIME(UKT_ItemsManagerComponent, SelectedFirstSlot);
 }
 
 

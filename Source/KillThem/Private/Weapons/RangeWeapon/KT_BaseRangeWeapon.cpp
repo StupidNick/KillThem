@@ -167,17 +167,28 @@ void AKT_BaseRangeWeapon::Reload(const int InAmmo)
 void AKT_BaseRangeWeapon::ToReload()
 {
 	int LCountOfAmmo;
+	int LClipSize = ClipSize;
+	LClipSize++;
 	if (Character->IsScoping)
 	{
 		Character->UnScope_Implementation();
 	}
-	if (AmmoInTheClip < ClipSize ++ && Character->ItemsManagerComponent->FindAndCountAmmo(GetClass(), LCountOfAmmo))
+	if (Character->ItemsManagerComponent->FindAndCountAmmo(GetClass(), LCountOfAmmo) && AmmoInTheClip < LClipSize)
 	{
 		IsReloading = true;
-
-		if (LCountOfAmmo > ClipSize - AmmoInTheClip)
+		if (AmmoInTheClip > 0)
 		{
-			LCountOfAmmo = ClipSize - AmmoInTheClip;
+			if (LCountOfAmmo >= LClipSize - AmmoInTheClip)
+			{
+				LCountOfAmmo = LClipSize - AmmoInTheClip;
+			}
+		}
+		else
+		{
+			if (LCountOfAmmo >= LClipSize - 1 - AmmoInTheClip)
+			{
+				LCountOfAmmo = LClipSize - 1 - AmmoInTheClip;
+			}
 		}
 		ReloadTimerDelegate.BindUFunction(this, "Reload", LCountOfAmmo);
 		GetWorldTimerManager().SetTimer(ReloadTimerHandle, ReloadTimerDelegate, ReloadTime / Character->BerserkBooster, false);

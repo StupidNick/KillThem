@@ -759,8 +759,8 @@ void AKT_PlayerCharacter::AddWeapon_Implementation(TSubclassOf<AKT_BaseWeapon> I
 		ItemsManagerComponent->FirstWeaponSlot = GetWorld()->SpawnActor<AKT_BaseWeapon>(InWeaponClass, LLocation, LRotation, LSpawnInfo);
 		if (IsValid(ItemsManagerComponent->FirstWeaponSlot))
 		{
-			ItemsManagerComponent->FirstWeaponSlot->Initialize(this, AmmoInTheClip);
 			ItemsManagerComponent->FirstWeaponSlot->SetOwner(this);
+			ItemsManagerComponent->FirstWeaponSlot->Initialize(this, AmmoInTheClip);
 			ItemsManagerComponent->FirstWeaponSlot->ToAttachToComponent(FirstPersonMeshComponent, ItemsManagerComponent->InHandsSocketName);
 			ItemsManagerComponent->AddAmmo(InWeaponClass, InAmountOfAmmo);
 		}
@@ -779,8 +779,8 @@ void AKT_PlayerCharacter::AddWeapon_Implementation(TSubclassOf<AKT_BaseWeapon> I
 		}
 		if (IsValid(ItemsManagerComponent->SecondWeaponSlot))
 		{
+			ItemsManagerComponent->SecondWeaponSlot->SetOwner(this);
 			ItemsManagerComponent->SecondWeaponSlot->Initialize(this, AmmoInTheClip);
-			ItemsManagerComponent->FirstWeaponSlot->SetOwner(this);
 			ItemsManagerComponent->SecondWeaponSlot->ToAttachToComponent(LMesh, ItemsManagerComponent->BehindBackSocketName);
 			ItemsManagerComponent->AddAmmo(InWeaponClass, InAmountOfAmmo);
 		}
@@ -798,8 +798,8 @@ void AKT_PlayerCharacter::AddWeapon_Implementation(TSubclassOf<AKT_BaseWeapon> I
 	ItemsManagerComponent->GetSelectedWeaponSlot() = GetWorld()->SpawnActor<AKT_BaseWeapon>(InWeaponClass, LLocation, LRotation, LSpawnInfo);
 	if (IsValid(ItemsManagerComponent->GetSelectedWeaponSlot()))
 	{
+		ItemsManagerComponent->GetSelectedWeaponSlot()->SetOwner(this);
 		ItemsManagerComponent->GetSelectedWeaponSlot()->Initialize(this, AmmoInTheClip);
-		ItemsManagerComponent->FirstWeaponSlot->SetOwner(this);
 		ItemsManagerComponent->GetSelectedWeaponSlot()->ToAttachToComponent(FirstPersonMeshComponent, ItemsManagerComponent->InHandsSocketName);
 		ItemsManagerComponent->AddAmmo(InWeaponClass, InAmountOfAmmo);
 	}
