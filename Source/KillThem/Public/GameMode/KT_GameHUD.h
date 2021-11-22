@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "UI/MenusWD/PauseMenuWD/KT_PauseMenuWD.h"
 #include "KT_GameHUD.generated.h"
 
 
@@ -69,6 +70,11 @@ public:
 		void RemoveMainMenuWD();
 
 	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void CreatePauseMenuWD();
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void RemovePauseMenuWD();
+
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
 		void CreateFindServerWD();
 	UFUNCTION(BlueprintCallable, Category = "MainHUD")
 		void RemoveFindServerWD();
@@ -96,6 +102,11 @@ public:
 		TSubclassOf<UKT_MainMenuWD>  MainMenuClass;
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
 		UKT_MainMenuWD* MainMenu = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+		TSubclassOf<UKT_PauseMenuWD>  PauseMenuClass;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UKT_PauseMenuWD* PauseMenu = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
 		TSubclassOf<UKT_FindServerWD>  FindServerClass;

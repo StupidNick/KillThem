@@ -221,6 +221,8 @@ protected:
 	UFUNCTION()
 		void Interact();
 
+	UFUNCTION(Client, Reliable)
+		void OnEscapeButtonPressed();
 	
 //protected c++ variables
 protected:

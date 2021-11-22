@@ -70,6 +70,30 @@ void AKT_GameHUD::RemoveMainMenuWD()
 }
 
 
+void AKT_GameHUD::CreatePauseMenuWD()
+{
+	if (PauseMenuClass && !PauseMenu)
+	{
+		PauseMenu = CreateWidget<UKT_PauseMenuWD>(GetWorld(), PauseMenuClass);
+		PauseMenu->AddToViewport();
+		PauseMenu->InitializeMainMenu(this);
+	}
+}
+
+
+void AKT_GameHUD::RemovePauseMenuWD()
+{
+	if (PauseMenu)
+	{
+		PauseMenu->RemoveFromParent();
+		PauseMenu = nullptr;
+
+		const FInputModeGameOnly GameOnly;
+		MyController->SetInputMode(GameOnly);
+	}
+}
+
+
 void AKT_GameHUD::CreateFindServerWD()
 {
 	if (FindServerClass && !FindServer)

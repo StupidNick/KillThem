@@ -135,6 +135,8 @@ void AKT_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	PlayerInputComponent->BindAction("Escape", IE_Pressed, this, &AKT_PlayerCharacter::OnEscapeButtonPressed);
+
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AKT_PlayerCharacter::Interact);
 	
 	PlayerInputComponent->BindAction("FirstGrenadeSlot", IE_Pressed, this, &AKT_PlayerCharacter::DropFirstGrenadeOnServer);
@@ -994,4 +996,17 @@ void AKT_PlayerCharacter::UnInteractInfo()
 {
 	InteractiveObject = nullptr;
 	CanInteract = false;
+}
+
+
+void AKT_PlayerCharacter::OnEscapeButtonPressed_Implementation()
+{
+	if (!HUD->PauseMenu)
+	{
+		HUD->CreatePauseMenuWD();
+	}
+	else
+	{
+		HUD->RemovePauseMenuWD();
+	}
 }
