@@ -27,7 +27,7 @@ protected:
 
 	virtual void Interactive(AKT_PlayerCharacter* Player) override;
 	
-	virtual void BoostDown(AKT_PlayerCharacter* Player) const override;
+	virtual void BoostDown(AKT_PlayerCharacter* Player) override;
 
 //protected C++ variables
 protected:

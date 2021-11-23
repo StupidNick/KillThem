@@ -24,6 +24,8 @@ void UKT_MainHUD_WD::InitializeMainHUD_Implementation(AKT_PlayerCharacter* Playe
 		return;
 	}
 
+	Ability->SetVisibility(ESlateVisibility::Hidden);
+	
 	Character->HealthComponent->OnHPChangeBind.AddDynamic(this, &UKT_MainHUD_WD::UpdateHP);
 	UpdateHP(Character->HealthComponent->GetHealth());
 
@@ -34,6 +36,14 @@ void UKT_MainHUD_WD::InitializeMainHUD_Implementation(AKT_PlayerCharacter* Playe
 	Character->ItemsManagerComponent->OnAmmoInTheClipChange.AddDynamic(this, &UKT_MainHUD_WD::UpdateAmmoInTheClip);
 	Character->ItemsManagerComponent->OnWeaponChange.AddDynamic(this, &UKT_MainHUD_WD::UpdateIcon);
 	
+	Character->OnTimeBustedUpdate.AddDynamic(this, &UKT_MainHUD_WD::UpdateBooster);
+}
+
+
+void UKT_MainHUD_WD::UpdateBooster_Implementation(float Timer)
+{
+	Ability->ValueTextBlock->SetText(FText::FromString(FString::FromInt(Timer)));
+	Ability->ValueProgressBar->SetPercent(Timer/Ability->TimerTime);
 }
 
 

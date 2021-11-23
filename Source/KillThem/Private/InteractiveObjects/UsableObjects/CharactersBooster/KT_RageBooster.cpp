@@ -17,10 +17,12 @@ void AKT_RageBooster::Interactive(AKT_PlayerCharacter* Player)
 {
 	Super::Interactive(Player);
 
-	Player->DamageBooster = RageFactor;
+	Player->RageBoostOnServer(RageFactor);
 }
 
-void AKT_RageBooster::BoostDown(AKT_PlayerCharacter* Player) const
+void AKT_RageBooster::BoostDown(AKT_PlayerCharacter* Player)
 {
-	Player->DamageBooster = 1;
+	Super::BoostDown(Player);
+	
+	Player->RageBoostOnServer(1 / RageFactor);
 }

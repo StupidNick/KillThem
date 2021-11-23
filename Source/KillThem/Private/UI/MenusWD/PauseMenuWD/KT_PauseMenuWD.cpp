@@ -67,7 +67,8 @@ void UKT_PauseMenuWD::OnExitToMenuButtonClick()
 
 void UKT_PauseMenuWD::OnExitGameButtonClick()
 {
-	GameHUD->MyController->ConsoleCommand("quit");
+	// GameHUD->MyController->ConsoleCommand("quit");
+	UKismetSystemLibrary::QuitGame(GetWorld(), GameHUD->MyController, EQuitPreference::Quit, true);
 }
 
 

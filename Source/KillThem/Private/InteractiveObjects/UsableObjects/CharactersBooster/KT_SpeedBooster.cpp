@@ -17,13 +17,13 @@ void AKT_SpeedBooster::Interactive(AKT_PlayerCharacter* Player)
 {
 	Super::Interactive(Player);
 
-	Player->ChangeCharacterSpeeds(SpeedFactor);
+	Player->SpeedBoostOnServer(SpeedFactor);
 }
 
 
-void AKT_SpeedBooster::BoostDown(AKT_PlayerCharacter* Player) const
+void AKT_SpeedBooster::BoostDown(AKT_PlayerCharacter* Player)
 {
 	Super::BoostDown(Player);
 
-	Player->ChangeCharacterSpeeds(1 / SpeedFactor);
+	Player->SpeedBoostOnServer(1 / SpeedFactor);
 }

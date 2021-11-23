@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Panels/KT_ProgressBarWithImageAndText.h"
 #include "Panels/KT_ProgressBarWithText.h"
 #include "KT_MainHUD_WD.generated.h"
 
@@ -64,6 +65,8 @@ public:
 	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "MainHUD_WD | Weapon")
 		void UpdateIcon(UTexture2D* InWeaponIcon, UTexture2D* InAimIcon);
 
+	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "MainHUD_WD | SPBar")
+		void UpdateBooster(float Timer);
 
 
 //Blueprint values
@@ -83,4 +86,7 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget), Category = "MainHUD_WD | Widgets")
 		UKT_AimWD* Aim = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget), Category = "MainHUD_WD | Widgets")
+		UKT_ProgressBarWithImageAndText* Ability = nullptr;
 };

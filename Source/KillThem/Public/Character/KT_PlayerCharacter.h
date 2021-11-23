@@ -10,6 +10,7 @@
 #include "KT_PlayerCharacter.generated.h"
 
 
+class UImage;
 class AKT_BaseGrenade;
 class AKT_BaseInteractiveObject;
 class UKT_ItemsManagerComponent;
@@ -21,6 +22,9 @@ class UKT_HealthComponent;
 class AKT_BaseWeapon;
 class AKT_GameHUD;
 
+
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBusterUsed, float, Timer);
 
 
 UCLASS()
@@ -263,6 +267,20 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UFUNCTION(Client, Reliable)
+		void VisibleBooster(UTexture2D* Icon, const float Time);
+	UFUNCTION(Client, Reliable)
+		void DisableBooster();
+
+	UFUNCTION(Server, Reliable)
+		void BerserkBoostOnServer(const float Boost);
+
+	UFUNCTION(Server, Reliable)
+		void RageBoostOnServer(const float Boost);
+
+	UFUNCTION(Server, Reliable)
+		void SpeedBoostOnServer(const float Boost);
+
 //public c++ variables
 public:
 
@@ -407,12 +425,15 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Character | WallRunning")
 		float WallRunningForce;
 
-/////////////////////////////////////WallRunning/////////////////////////////////////////
+/////////////////////////////////////More/////////////////////////////////////////
 	UPROPERTY(EditAnywhere, Category = "Character | Weapons")
 		UCurveFloat* ScopingCameraTilt;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Character | Weapons")
 		bool IsScoping = false;
+
+	UPROPERTY(BlueprintAssignable, Category = "HealthComponent | EventsForBind")
+		FOnBusterUsed OnTimeBustedUpdate;
 };
 
 

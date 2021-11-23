@@ -17,6 +17,8 @@ public:
 //private C++ functions
 private:
 
+	UFUNCTION(NetMulticast, Reliable)
+		void TimerTimeLineFloatReturn(float Value);
 
 //protected C++ functions
 protected:
@@ -26,7 +28,7 @@ protected:
 	virtual void Interactive(AKT_PlayerCharacter* Player) override;
 
 	UFUNCTION()
-		virtual void BoostDown(AKT_PlayerCharacter* Player) const;
+		virtual void BoostDown(AKT_PlayerCharacter* Player);
 
 
 //protected C++ variables
@@ -35,13 +37,25 @@ protected:
 	FTimerHandle BoostDownTimerHandle;
 	FTimerDelegate BoostDownTimerDelegate;
 
+	UTimelineComponent* TimerTimeLine;
+
+	FOnTimelineFloat TimerInterpFunction{};
 	
 //public BP variables
 public:
+
+	UPROPERTY()
+		AKT_PlayerCharacter* Character = nullptr;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Boosts")
 		float BoostDownTimer;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Boosts")
 		bool IsABooster;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Boosts")
+		UTexture2D* BoosterIcon;
+
+	UPROPERTY(EditAnywhere, Category = "Curve")
+		UCurveFloat* TimerCurveFloat;
 };

@@ -14,6 +14,7 @@
 #include "InteractiveObjects/KT_BaseInteractiveObject.h"
 
 #include "Components/KT_ItemsManagerComponent.h"
+#include "Components/ProgressBar.h"
 #include "Editor/EditorEngine.h"
 #include "GameMode/KT_GameHUD.h"
 #include "UI/MainHUD_WD/KT_MainHUD_WD.h"
@@ -167,6 +168,49 @@ void AKT_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 }
+
+
+void AKT_PlayerCharacter::VisibleBooster_Implementation(UTexture2D* Icon, const float Time)
+{
+	if (IsValid(HUD))
+	{
+		HUD->MainHUD->Ability->BackgroundImage->SetBrushFromTexture(Icon);
+		HUD->MainHUD->Ability->TimerTime = Time;
+		HUD->MainHUD->Ability->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+
+void AKT_PlayerCharacter::DisableBooster_Implementation()
+{
+	if (IsValid(HUD))
+	{
+		HUD->MainHUD->Ability->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+
+
+void AKT_PlayerCharacter::BerserkBoostOnServer_Implementation(const float Boost)
+{
+	BerserkBooster *= Boost;
+}
+
+
+void AKT_PlayerCharacter::RageBoostOnServer_Implementation(const float Boost)
+{
+	SpeedOfWalk *= Boost;
+	SpeedOfRun *= Boost;
+	SpeedOfCrouch *= Boost;
+	SpeedOfSliding *= Boost;
+	SpeedOfDash *= Boost;
+}
+
+
+void AKT_PlayerCharacter::SpeedBoostOnServer_Implementation(const float Boost)
+{
+	BerserkBooster *= Boost;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
