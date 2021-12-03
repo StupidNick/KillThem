@@ -85,6 +85,19 @@ bool UKT_ItemsManagerComponent::FindAndCountAmmo(const TSubclassOf<AKT_BaseWeapo
 }
 
 
+FAmmo UKT_ItemsManagerComponent::FindStructOfAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass)
+{
+	for (auto i : AmmoArray)
+	{
+		if (i.TypeOfAmmo == InAmmoClass)
+		{
+			return i;
+		}
+	}
+	return AmmoArray.Top();
+}
+
+
 bool UKT_ItemsManagerComponent::RemoveAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmo)
 {
 	for (int i = 0; i < AmmoArray.Num(); i++)

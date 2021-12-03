@@ -9,7 +9,7 @@
 #include "KT_ItemsManagerComponent.generated.h"
 
 
-
+class AKT_BaseAmmo;
 class AKT_PlayerCharacter;
 
 
@@ -28,7 +28,9 @@ struct FAmmo
 		TSubclassOf<AKT_BaseWeapon> TypeOfAmmo;
 
 	int CountOfAmmo;
-	
+
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<AKT_BaseAmmo> AmmoActorClass;
 };
 
 
@@ -69,6 +71,9 @@ public:
 
 	UFUNCTION()
 		bool FindAndCountAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, int &InNumberOfAmmo);
+
+	UFUNCTION()
+		FAmmo FindStructOfAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass);
 
 	UFUNCTION()
 		bool RemoveAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmo);

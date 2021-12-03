@@ -281,6 +281,15 @@ public:
 	UFUNCTION(Server, Reliable)
 		void SpeedBoostOnServer(const float Boost);
 
+	UFUNCTION(Server, Reliable)
+		void DieOnServer();
+
+	UFUNCTION(NetMulticast, Reliable)
+		void Die();
+
+	UFUNCTION(NetMulticast, Reliable)
+		void DieOnClient(bool IsDead);
+
 //public c++ variables
 public:
 

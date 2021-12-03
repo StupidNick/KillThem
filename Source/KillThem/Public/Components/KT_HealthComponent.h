@@ -10,6 +10,7 @@ class AKT_PlayerCharacter;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHPChange, float, HPStat);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSPChange, float, SPStat);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDead, bool, IsDead);
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -34,8 +35,6 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Transient, ReplicatedUsing = OnRep_Shield, Category = "Stats")
 		float Shield;
-
-	bool IsDead = false;
 
 protected:
 
@@ -75,6 +74,9 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable)
 		void OnRep_Health();
+
+	UFUNCTION(NetMulticast, Reliable)
+		void OnRep_IsDead();
 	
 	UFUNCTION(BlueprintCallable, Category = "HealthComponent | Health")
 		void ChangeHealth(const float InHealth);
@@ -82,7 +84,7 @@ public:
 	UFUNCTION(Server, Reliable)
 		void ChangeHealthOnServer(const float InHealth);
 
-	UFUNCTION(BlueprintCallable, Category = "HealthComponent | Health")
+	UFUNCTION(NetMulticast, Reliable)
 		void Death();
 
 	UFUNCTION(Server, Reliable)
@@ -110,6 +112,9 @@ public:
 
 	UFUNCTION()
 		void Initialize(AKT_PlayerCharacter* InCharacter);
+
+	UPROPERTY(VisibleAnywhere, Transient, ReplicatedUsing = OnRep_IsDead, Category = "Stats")
+		bool IsDead = false;
 	
 //public BP variables
 public:
@@ -134,4 +139,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "HealthComponent | Shield")
 		float ShieldSafeFactor;
+
+	UPROPERTY(BlueprintAssignable, Category = "HealthComponent | EventsForBind")
+		FDead OnDead;
 };

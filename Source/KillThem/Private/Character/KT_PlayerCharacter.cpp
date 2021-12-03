@@ -17,6 +17,7 @@
 #include "Components/ProgressBar.h"
 #include "Editor/EditorEngine.h"
 #include "GameMode/KT_GameHUD.h"
+#include "InteractiveObjects/Ammo/KT_BaseAmmo.h"
 #include "UI/MainHUD_WD/KT_MainHUD_WD.h"
 #include "Weapons/RangeWeapon/KT_BaseRangeWeapon.h"
 
@@ -64,6 +65,7 @@ AKT_PlayerCharacter::AKT_PlayerCharacter()
 	ScopingInterpFunction.BindUFunction(this, FName("ScopingTimeLineFloatReturn"));
 
 	ItemsManagerComponent->Initialize(this);
+	HealthComponent->Initialize(this);
 	
 	ItemsManagerComponent->SetIsReplicated(true);
 	HealthComponent->SetIsReplicated(true);
@@ -74,6 +76,8 @@ void AKT_PlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	HealthComponent->OnDead.AddDynamic(this, &AKT_PlayerCharacter::DieOnClient);
+	
 	if (!HasAuthority() && IsValid(HUD))
 	{
 		HUD->CreateMainHUD_WD();
@@ -94,6 +98,9 @@ void AKT_PlayerCharacter::BeginPlay()
 
 	SprintTimerDelegate.BindUFunction(this, "SlidingReload");
 
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Block);
+	
 	GetMovementComponent()->SetPlaneConstraintEnabled(true);
 
 	GetCharacterMovement()->MaxWalkSpeed = SpeedOfWalk;
@@ -870,7 +877,7 @@ void AKT_PlayerCharacter::FireOnServer_Implementation()
 	}
 
 	
-	if (CanShoot)
+	if (CanShoot && IsValid(ItemsManagerComponent->GetSelectedWeaponSlot()))
 	{
 		ItemsManagerComponent->GetSelectedWeaponSlot()->ToUseWeapon(false);
 	}
@@ -895,27 +902,33 @@ void AKT_PlayerCharacter::ReloadOnServer_Implementation()
 
 void AKT_PlayerCharacter::RightClick()
 {
-	if (ItemsManagerComponent->GetSelectedWeaponSlot()->CanScope)
+	if (IsValid(ItemsManagerComponent->GetSelectedWeaponSlot()))
 	{
-		Scope();
-		ScopeOnServer();
-	}
-	else
-	{
-		AlterFireOnServer();
+		if (ItemsManagerComponent->GetSelectedWeaponSlot()->CanScope)
+		{
+			Scope();
+			ScopeOnServer();
+		}
+		else
+		{
+			AlterFireOnServer();
+		}
 	}
 }
 
 void AKT_PlayerCharacter::RightUnClick_Implementation()
 {
-	if (ItemsManagerComponent->GetSelectedWeaponSlot()->CanScope)
+	if (IsValid(ItemsManagerComponent->GetSelectedWeaponSlot()))
 	{
-		UnScope();
-		UnScopeOnServer();
-	}
-	else
-	{
-		CanShoot = false;
+		if (ItemsManagerComponent->GetSelectedWeaponSlot()->CanScope)
+		{
+			UnScope();
+			UnScopeOnServer();
+		}
+		else
+		{
+			CanShoot = false;
+		}
 	}
 }
 
@@ -1052,5 +1065,58 @@ void AKT_PlayerCharacter::OnEscapeButtonPressed_Implementation()
 	else
 	{
 		HUD->RemovePauseMenuWD();
+	}
+}
+
+void AKT_PlayerCharacter::DieOnClient_Implementation(bool IsDead)
+{
+	if (!HasAuthority())
+	{
+		DieOnServer();
+		FirstPersonMeshComponent->DestroyComponent();
+		if (IsValid(HUD))
+		{
+			HUD->RemoveMainHUD_WD();
+		}
+		
+	}
+}
+
+
+void AKT_PlayerCharacter::DieOnServer_Implementation()
+{
+	Die();
+}
+
+
+void AKT_PlayerCharacter::Die_Implementation()
+{
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
+	GetCharacterMovement()->DisableMovement();
+	
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	GetMesh()->SetCollisionProfileName("PhysicsActor");
+	GetMesh()->SetAllBodiesSimulatePhysics(true);
+
+	const FVector LLocation = GetActorLocation() + FVector(0, 0, -80);
+	const FRotator LRotation = GetActorRotation();
+	const FActorSpawnParameters LSpawnInfo;
+
+	if (IsValid(ItemsManagerComponent->GetSelectedWeaponSlot()))
+	{
+		int LAmmo;//Bad data // Fix this!
+		ItemsManagerComponent->FindAndCountAmmo(ItemsManagerComponent->GetSelectedWeaponSlot()->GetClass(), LAmmo);
+		AKT_BaseAmmo* LDroppedAmmo = GetWorld()->SpawnActor<AKT_BaseAmmo>(ItemsManagerComponent->FindStructOfAmmo(ItemsManagerComponent->GetSelectedWeaponSlot()->GetClass()).AmmoActorClass, LLocation, LRotation, LSpawnInfo);
+		LDroppedAmmo->Initialize(LAmmo);
+		
+		ItemsManagerComponent->GetSelectedWeaponSlot()->ToDetachFromActor();
+		ItemsManagerComponent->GetSelectedWeaponSlot() = nullptr;
+	}
+
+	
+	if (IsLocallyControlled())
+	{
+		GetController()->UnPossess();
 	}
 }

@@ -15,7 +15,11 @@ public:
 	
 	AKT_BaseAmmo();
 
+//public C++ functions
+public:
 
+	void Initialize(int InAmountAmmo);
+	
 //protected C++ functions
 protected:
 

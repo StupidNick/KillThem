@@ -42,6 +42,11 @@ void UKT_HealthComponent::TakeDamage(AActor* DamagedActor, const float Damage, c
 	{
 		ChangeHealthOnServer(-Damage);
 	}
+	if (Health <= 0)
+	{
+		OnDead.Broadcast(true);
+		IsDead = true;
+	}
 }
 
 
@@ -51,6 +56,13 @@ void UKT_HealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
  
 	DOREPLIFETIME(UKT_HealthComponent, Health);
 	DOREPLIFETIME(UKT_HealthComponent, Shield);
+	DOREPLIFETIME(UKT_HealthComponent, IsDead);
+}
+
+
+void UKT_HealthComponent::OnRep_IsDead_Implementation()
+{
+	PlayerCharacter->DieOnServer();
 }
 
 
@@ -115,9 +127,14 @@ void UKT_HealthComponent::ChangeShieldOnServer_Implementation(const float InShie
 }
 
 
-void UKT_HealthComponent::Death()
+void UKT_HealthComponent::Death_Implementation()
 {
-	//TODO
+	IsDead = true;
+	if (!IsValid(PlayerCharacter))
+	{
+		return;
+	}
+	PlayerCharacter->DieOnServer();
 }
 
 
