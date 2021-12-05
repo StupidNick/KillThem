@@ -16,8 +16,10 @@
 #include "Components/KT_ItemsManagerComponent.h"
 #include "Components/ProgressBar.h"
 #include "Editor/EditorEngine.h"
+#include "GameMode/KT_BaseGameMode.h"
 #include "GameMode/KT_GameHUD.h"
 #include "InteractiveObjects/Ammo/KT_BaseAmmo.h"
+#include "Net/UnrealNetwork.h"
 #include "UI/MainHUD_WD/KT_MainHUD_WD.h"
 #include "Weapons/RangeWeapon/KT_BaseRangeWeapon.h"
 
@@ -174,6 +176,19 @@ void AKT_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
 	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+}
+
+
+void AKT_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME(AKT_PlayerCharacter, ControllerOfPlayer);
+}
+
+
+void AKT_PlayerCharacter::OnRep_PlayerController_Implementation()
+{
 }
 
 
@@ -1068,7 +1083,7 @@ void AKT_PlayerCharacter::OnEscapeButtonPressed_Implementation()
 	}
 }
 
-void AKT_PlayerCharacter::DieOnClient_Implementation(bool IsDead)
+void AKT_PlayerCharacter::DieOnClient_Implementation(AController* Player)
 {
 	if (!HasAuthority())
 	{
@@ -1113,7 +1128,6 @@ void AKT_PlayerCharacter::Die_Implementation()
 		ItemsManagerComponent->GetSelectedWeaponSlot()->ToDetachFromActor();
 		ItemsManagerComponent->GetSelectedWeaponSlot() = nullptr;
 	}
-
 	
 	if (IsLocallyControlled())
 	{

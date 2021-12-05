@@ -1,6 +1,7 @@
 #include "GameMode/KT_BaseGameMode.h"
 
 #include "Character/KT_PlayerCharacter.h"
+#include "Components/KT_HealthComponent.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -24,6 +25,7 @@ AActor* AKT_BaseGameMode::ChoosePlayerStart_Implementation_Implementation(AContr
 						Player->Possess(LPawn);
 						Players.AddUnique(LPawn);
 					}
+					LPawn->HealthComponent->OnDead.AddDynamic(this, &AKT_BaseGameMode::RespawnPlayer);
 				}
 			}
 		}
@@ -34,16 +36,11 @@ AActor* AKT_BaseGameMode::ChoosePlayerStart_Implementation_Implementation(AContr
 void AKT_BaseGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-
-	GetPlayerStartPoints();
-	// SpawnPlayers();
-}
-
-
-void AKT_BaseGameMode::SpawnPlayers()
-{
 	
+	GetPlayerStartPoints();
 }
+
+
 // const TSubclassOf<APlayerStart> LPlayerStartClass;
 // TArray<AActor*> LPlayerStarts;
 //
@@ -56,6 +53,38 @@ void AKT_BaseGameMode::SpawnPlayers()
 // const FActorSpawnParameters LSpawnInfo;
 //
 // GetWorld()->SpawnActor<AKT_PlayerCharacter>(GetDefaultPawnClassForController(Player), LLocation, LRotation, LSpawnInfo);
+
+void AKT_BaseGameMode::RespawnPlayer(AController* Player)
+{
+	FTimerHandle LTimerHandle;
+	FTimerDelegate LTimerDelegate;
+
+	LTimerDelegate.BindUFunction(this, "Respawn", Player);
+	GetWorldTimerManager().SetTimer(LTimerHandle, LTimerDelegate, TimerForRespawnPlayers, false);
+}
+
+
+void AKT_BaseGameMode::Respawn(AController* Player)
+{
+	const int LRandPoint = FMath::RandRange(0, MaxPlayerCount);
+	for (const auto LPayerStart : PlayerStartArray)
+	{
+		if(LPayerStart->PlayerStartTag == FName(FString::FromInt(LRandPoint)))
+		{
+			const FTransform LSpawnTransform = LPayerStart->GetActorTransform();
+			const FActorSpawnParameters LSpawnInfo;
+				
+			AKT_PlayerCharacter* LPawn = GetWorld()->SpawnActor<AKT_PlayerCharacter>(DefaultCharacterClass, LSpawnTransform.GetLocation(), LSpawnTransform.GetRotation().Rotator(), LSpawnInfo);
+				
+			if (IsValid(LPawn) && IsValid(Player))
+			{
+				Player->Possess(LPawn);
+			}
+			LPawn->HealthComponent->OnDead.AddDynamic(this, &AKT_BaseGameMode::RespawnPlayer);
+		}
+	}
+}
+
 
 void AKT_BaseGameMode::GetPlayerStartPoints()
 {

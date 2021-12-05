@@ -16,7 +16,10 @@ class KILLTHEM_API AKT_BaseGameMode : public AGameModeBase
 public:
 
 	UFUNCTION()
-		void SpawnPlayers();
+		void RespawnPlayer(AController* Player);
+
+	UFUNCTION()
+		void Respawn(AController* Player);
 
 	UFUNCTION()
 		void GetPlayerStartPoints();
@@ -43,6 +46,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Players")
 		int MaxPlayerCount;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Players")
+		float TimerForRespawnPlayers;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Players")
 		TSubclassOf<AActor> PlayerStartClassForFind;

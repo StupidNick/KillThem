@@ -10,7 +10,7 @@ class AKT_PlayerCharacter;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHPChange, float, HPStat);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSPChange, float, SPStat);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDead, bool, IsDead);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDead, AController*, Player);
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )

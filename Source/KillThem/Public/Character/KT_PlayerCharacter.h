@@ -288,7 +288,12 @@ public:
 		void Die();
 
 	UFUNCTION(NetMulticast, Reliable)
-		void DieOnClient(bool IsDead);
+		void DieOnClient(AController* Player);
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION(NetMulticast, Reliable)
+		void OnRep_PlayerController();
 
 //public c++ variables
 public:
@@ -310,6 +315,11 @@ public:
 	
 	UPROPERTY()
 		bool NeedShoot = false;
+
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_PlayerController, Category = "Stats")
+		AController* ControllerOfPlayer;
+
+	
 
 	
 ////////////////////////////////////PersonParams//////////////////////////////////////

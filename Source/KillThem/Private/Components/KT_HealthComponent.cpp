@@ -1,6 +1,7 @@
 #include "Components/KT_HealthComponent.h"
 
 #include "Character/KT_PlayerCharacter.h"
+#include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
 #include "UI/MainHUD_WD/KT_MainHUD_WD.h"
 
@@ -44,7 +45,7 @@ void UKT_HealthComponent::TakeDamage(AActor* DamagedActor, const float Damage, c
 	}
 	if (Health <= 0)
 	{
-		OnDead.Broadcast(true);
+		OnDead.Broadcast(PlayerCharacter->ControllerOfPlayer);
 		IsDead = true;
 	}
 }
