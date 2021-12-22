@@ -6,7 +6,7 @@
 
 AKT_BaseInteractiveWeapon::AKT_BaseInteractiveWeapon()
 {
-	
+	bReplicates = true;
 }
 
 

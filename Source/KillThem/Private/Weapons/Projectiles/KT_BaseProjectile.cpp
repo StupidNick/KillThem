@@ -20,6 +20,8 @@ AKT_BaseProjectile::AKT_BaseProjectile()
 
 	CollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &AKT_BaseProjectile::OnOverlap);
 	// PlayerOwner = Cast<AKT_PlayerCharacter>(GetInstigator());
+
+	bReplicates = true;
 }
 
 
