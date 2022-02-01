@@ -12,14 +12,23 @@ AKT_BaseInteractiveObject::AKT_BaseInteractiveObject()
 	
 	SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>("SkeletalMesh");
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>("StaticMesh");
-		
-	RootComponent = SkeletalMesh;
-	BoxCollision->SetupAttachment(SkeletalMesh);
-	InteractSphereCollision->SetupAttachment(SkeletalMesh);
-	StaticMesh->SetupAttachment(SkeletalMesh);
+	StandStaticMesh = CreateDefaultSubobject<UStaticMeshComponent>("StandStaticMesh");
+	SceneComponent = CreateDefaultSubobject<UBoxComponent>("SceneComponent");
+	RotationTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("RotationTimeline"));
+
+	RootComponent = SceneComponent;
+	BoxCollision->SetupAttachment(SceneComponent);
+	SkeletalMesh->SetupAttachment(SceneComponent);
+	InteractSphereCollision->SetupAttachment(SceneComponent);
+	StaticMesh->SetupAttachment(SceneComponent);
+	StandStaticMesh->SetupAttachment(SceneComponent);
+
+	RotationInterpFunction.BindUFunction(this, FName("RotationTimeLineFloatReturn"));
 	
 	SkeletalMesh->SetCollisionProfileName(FName("IgnoreAll"));
 	StaticMesh->SetCollisionProfileName(FName("IgnoreAll"));
+	StandStaticMesh->SetCollisionProfileName(FName("IgnoreAll"));
+	SceneComponent->SetCollisionProfileName(FName("IgnoreAll"));
 
 	BoxCollision->SetCollisionProfileName(FName("InteractiveObject"));
 	InteractSphereCollision->SetCollisionProfileName(FName("InteractiveObject"));
@@ -51,21 +60,21 @@ void AKT_BaseInteractiveObject::BeginPlay()
 		InteractSphereCollision->OnComponentBeginOverlap.AddDynamic(this, &AKT_BaseInteractiveObject::OnSphereComponentBeginOverlap);
 		InteractSphereCollision->OnComponentEndOverlap.AddDynamic(this, &AKT_BaseInteractiveObject::OnSphereComponentEndOverlap);
 	}
-	if (RotateObject)
-	{
 		if (!HasAuthority())
 		{
-			RotationTimerDelegate.BindUFunction(this, "RotationObject");
-			RotationObject();
+			if (RotationCurve)
+			{
+				RotationTimeLine->AddInterpFloat(RotationCurve, RotationInterpFunction, FName("Alpha"));
+				RotationTimeLine->SetLooping(true);
+				RotationTimeLine->PlayFromStart();
+			}
 		}
-	}
 }
 
 
-void AKT_BaseInteractiveObject::RotationObject()
+void AKT_BaseInteractiveObject::RotationTimeLineFloatReturn(float Value)
 {
-	SetActorRotation(FRotator(GetActorRotation().Pitch, GetActorRotation().Yaw + 0.5, GetActorRotation().Roll));
-	GetWorldTimerManager().SetTimer(RotationTimerHandle, RotationTimerDelegate, RotationTime, false);
+	StaticMesh->SetRelativeRotation(FRotator(SkeletalMesh->GetRelativeRotation().Pitch, SkeletalMesh->GetRelativeRotation().Yaw + 0.5, SkeletalMesh->GetRelativeRotation().Roll));
 }
 
 

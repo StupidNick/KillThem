@@ -80,11 +80,11 @@ void AKT_PlayerCharacter::BeginPlay()
 
 	HealthComponent->OnDead.AddDynamic(this, &AKT_PlayerCharacter::DieOnClient);
 	
-	if (!HasAuthority() && IsValid(HUD))
-	{
-		HUD->CreateMainHUD_WD();
-		ItemsManagerComponent->AmountOfAmmoChanged(ItemsManagerComponent->AmmoForFirstWeapon);
-	}
+	// if (!HasAuthority() && IsValid(HUD))
+	// {
+	// 	HUD->CreateMainHUD_WD();
+	// 	ItemsManagerComponent->AmountOfAmmoChanged(ItemsManagerComponent->AmmoForFirstWeapon);
+	// }
 	
 	SprintSpeed = WalkSpeed * 1.5; //Fix this
 	

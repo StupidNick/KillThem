@@ -27,7 +27,10 @@ public:
 //private C++ functions
 private:
 
-	
+	UTimelineComponent* RotationTimeLine;
+
+	UFUNCTION()
+		void RotationTimeLineFloatReturn(float Value);
 
 	
 	
@@ -35,9 +38,6 @@ private:
 protected:
 
 	virtual void BeginPlay() override;
-
-	UFUNCTION()
-		void RotationObject();
 
 	UFUNCTION()
 		void OnBoxComponentBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -74,6 +74,8 @@ protected:
 //public C++ functions
 public:
 
+	FOnTimelineFloat RotationInterpFunction{};
+
 	UFUNCTION()
 		void ToInteractive(AKT_PlayerCharacter* Player);
 	
@@ -89,6 +91,12 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
 		UStaticMeshComponent* StaticMesh = nullptr;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+		UStaticMeshComponent* StandStaticMesh = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+		UBoxComponent* SceneComponent = nullptr;
+
 	UPROPERTY(EditAnywhere, Category = "Components")
 		USkeletalMeshComponent* SkeletalMesh = nullptr;
 
@@ -103,4 +111,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "WorkInfo")
 		float RotationTime;
+
+	UPROPERTY(EditAnywhere, Category = "WorkInfo")
+		UCurveFloat* RotationCurve;
 };
