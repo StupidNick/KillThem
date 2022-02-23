@@ -1,6 +1,7 @@
 #include "Character/KT_PlayerCharacter.h"
 
 #include "Camera/CameraComponent.h"
+#include "Character/Controllers/KT_PlayerController.h"
 #include "Components/KT_HealthComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -14,11 +15,8 @@
 #include "InteractiveObjects/KT_BaseInteractiveObject.h"
 
 #include "Components/KT_ItemsManagerComponent.h"
-#include "Components/ProgressBar.h"
 #include "Editor/EditorEngine.h"
-#include "GameMode/KT_BaseGameMode.h"
 #include "GameMode/KT_GameHUD.h"
-#include "InteractiveObjects/Ammo/KT_BaseAmmo.h"
 #include "Net/UnrealNetwork.h"
 #include "UI/MainHUD_WD/KT_MainHUD_WD.h"
 #include "Weapons/RangeWeapon/KT_BaseRangeWeapon.h"
@@ -74,19 +72,24 @@ AKT_PlayerCharacter::AKT_PlayerCharacter()
 }
 
 
+void AKT_PlayerCharacter::CreateHUD_Implementation()
+{
+	if (!HasAuthority() && IsValid(HUD))
+	{
+		HUD->MyController = Cast<AKT_PlayerController>(PlayerController);
+		HUD->CreateMainHUD_WD();
+		ItemsManagerComponent->AmountOfAmmoChanged(ItemsManagerComponent->AmmoForFirstWeapon);
+	}
+}
+
+
 void AKT_PlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	HealthComponent->OnDead.AddDynamic(this, &AKT_PlayerCharacter::DieOnClient);
+	HealthComponent->OnDead.AddDynamic(this, &AKT_PlayerCharacter::Die);
 	
-	// if (!HasAuthority() && IsValid(HUD))
-	// {
-	// 	HUD->CreateMainHUD_WD();
-	// 	ItemsManagerComponent->AmountOfAmmoChanged(ItemsManagerComponent->AmmoForFirstWeapon);
-	// }
-	
-	SprintSpeed = WalkSpeed * 1.5; //Fix this
+	SprintSpeed = WalkSpeed * 1.5; //TODO
 	
 	SpeedOfWalk = WalkSpeed;
 	SpeedOfRun = SprintSpeed;
@@ -144,7 +147,7 @@ void AKT_PlayerCharacter::BeginPlay()
 void AKT_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
+	
 	PlayerInputComponent->BindAction("Escape", IE_Pressed, this, &AKT_PlayerCharacter::OnEscapeButtonPressed);
 
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AKT_PlayerCharacter::Interact);
@@ -1083,54 +1086,83 @@ void AKT_PlayerCharacter::OnEscapeButtonPressed_Implementation()
 	}
 }
 
-void AKT_PlayerCharacter::DieOnClient_Implementation(AController* Player)
+
+void AKT_PlayerCharacter::DieOnClient_Implementation()
 {
-	if (!HasAuthority())
+	if (IsValid(GetController()))
 	{
-		DieOnServer();
-		FirstPersonMeshComponent->DestroyComponent();
-		if (IsValid(HUD))
-		{
-			HUD->RemoveMainHUD_WD();
-		}
-		
+		Cast<AKT_PlayerController>(GetController())->RespawnPlayer();
+		Cast<AKT_PlayerController>(GetController())->UnPossess();
+	}
+	if (IsValid(HUD))
+	{
+		HUD->RemoveMainHUD_WD();
 	}
 }
 
 
-void AKT_PlayerCharacter::DieOnServer_Implementation()
+void AKT_PlayerCharacter::Die(AController* Player)
 {
-	Die();
-}
+	FirstPersonMeshComponent->DestroyComponent();
 
-
-void AKT_PlayerCharacter::Die_Implementation()
-{
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
-	GetCharacterMovement()->DisableMovement();
-	
-	GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-	GetMesh()->SetCollisionProfileName("PhysicsActor");
-	GetMesh()->SetAllBodiesSimulatePhysics(true);
-
-	const FVector LLocation = GetActorLocation() + FVector(0, 0, -80);
+	const FVector LLocation = GetActorLocation() + FVector(0, 0, -60);
 	const FRotator LRotation = GetActorRotation();
 	const FActorSpawnParameters LSpawnInfo;
 
 	if (IsValid(ItemsManagerComponent->GetSelectedWeaponSlot()))
 	{
-		int LAmmo;//Bad data // Fix this!
-		ItemsManagerComponent->FindAndCountAmmo(ItemsManagerComponent->GetSelectedWeaponSlot()->GetClass(), LAmmo);
-		AKT_BaseAmmo* LDroppedAmmo = GetWorld()->SpawnActor<AKT_BaseAmmo>(ItemsManagerComponent->FindStructOfAmmo(ItemsManagerComponent->GetSelectedWeaponSlot()->GetClass()).AmmoActorClass, LLocation, LRotation, LSpawnInfo);
-		LDroppedAmmo->Initialize(LAmmo);
+		// int LAmmo = 0;
+		// ItemsManagerComponent->FindAndCountAmmo(ItemsManagerComponent->GetSelectedWeaponSlot()->GetClass(), LAmmo);
+		// AKT_BaseAmmo* LDroppedAmmo = GetWorld()->SpawnActor<AKT_BaseAmmo>(ItemsManagerComponent->FindStructOfAmmo(ItemsManagerComponent->GetSelectedWeaponSlot()->GetClass()).AmmoActorClass, LLocation, LRotation, LSpawnInfo);
+		// LDroppedAmmo->Initialize(LAmmo);
 		
 		ItemsManagerComponent->GetSelectedWeaponSlot()->ToDetachFromActor();
 		ItemsManagerComponent->GetSelectedWeaponSlot() = nullptr;
 	}
 	
-	if (IsLocallyControlled())
+	if (HasAuthority())
 	{
-		GetController()->UnPossess();
+		FTimerHandle LDestroyTimerHandle;
+		FTimerDelegate LDestroyTimerDelegate;
+
+		DieOnClient();
+		DieMulticast();
+		
+		LDestroyTimerDelegate.BindUFunction(this, "Destruction");
+		GetWorldTimerManager().SetTimer(LDestroyTimerHandle, LDestroyTimerDelegate, 5, false);
 	}
+
+	PlayerController = nullptr;
+}
+
+void AKT_PlayerCharacter::DieMulticast_Implementation()
+{
+	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
+	if (IsValid(CapsuleComp))
+	{
+		CapsuleComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		CapsuleComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+		CapsuleComp->SetCollisionProfileName("IgnoreAll");
+		CapsuleComp->SetGenerateOverlapEvents(false);
+		CapsuleComp->SetNotifyRigidBodyCollision(false);
+	}
+	
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	GetMesh()->SetCollisionProfileName("PhysicsActor");
+	GetMesh()->SetSimulatePhysics(true);
+
+
+	UCharacterMovementComponent* CharacterComp = Cast<UCharacterMovementComponent>(GetMovementComponent());
+	if (CharacterComp)
+	{
+		CharacterComp->StopMovementImmediately();
+		CharacterComp->DisableMovement();
+		CharacterComp->SetComponentTickEnabled(false);
+	}
+}
+
+
+void AKT_PlayerCharacter::Destruction()
+{
+	Destroy();
 }

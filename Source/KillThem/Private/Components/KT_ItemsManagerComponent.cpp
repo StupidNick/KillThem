@@ -45,13 +45,16 @@ void UKT_ItemsManagerComponent::AmountOfAmmoChanged_Implementation(const int Amm
 
 void UKT_ItemsManagerComponent::OnRep_WeaponChanged_Implementation()
 {
-	int LAmountAmmo;
-	OnAmmoInTheClipChange.Broadcast(GetSelectedWeaponSlot()->GetAmmoInTheClip());
-	if (FindAndCountAmmo(GetSelectedWeaponSlot()->GetClass(), LAmountAmmo))
+	if (IsValid(GetSelectedWeaponSlot()))
 	{
-		OnAmmoChangeBind.Broadcast(LAmountAmmo);
+		int LAmountAmmo;
+		OnAmmoInTheClipChange.Broadcast(GetSelectedWeaponSlot()->GetAmmoInTheClip());
+		if (FindAndCountAmmo(GetSelectedWeaponSlot()->GetClass(), LAmountAmmo))
+		{
+			OnAmmoChangeBind.Broadcast(LAmountAmmo);
+		}
+		OnWeaponChange.Broadcast(GetSelectedWeaponSlot()->WeaponIcon, GetSelectedWeaponSlot()->AimIcon);
 	}
-	OnWeaponChange.Broadcast(GetSelectedWeaponSlot()->WeaponIcon, GetSelectedWeaponSlot()->AimIcon);
 }
 
 

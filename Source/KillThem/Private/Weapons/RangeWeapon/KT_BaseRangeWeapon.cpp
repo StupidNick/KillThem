@@ -103,8 +103,6 @@ void AKT_BaseRangeWeapon::ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> 
 	{
 		LProjectile->Initialize(InDamage * Character->DamageBooster, Character, this);
 		AmmoInTheClip -= InSpentAmmo;
-	
-		UE_LOG(LogTemp, Error, TEXT("%i"), AmmoInTheClip);
 	}
 	DrawDebugBox(GetWorld(), LHitResult.ImpactPoint, FVector(5,5,5), FColor::Emerald, false, 2);
 }
@@ -125,7 +123,7 @@ void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile> In
 	LParams.AddIgnoredActor(this);
 	LParams.AddIgnoredActor(Character);
 	
-	bool LbHit = GetWorld()->LineTraceSingleByChannel(LHitResult, LStartLocation, LEndLocation, ECollisionChannel::ECC_GameTraceChannel1, LParams);
+	bool LbHit = GetWorld()->LineTraceSingleByChannel(LHitResult, LStartLocation, LEndLocation, ECollisionChannel::ECC_Visibility, LParams);
 	if (LbHit)
 	{
 		LStartRotation = UKismetMathLibrary::FindLookAtRotation(Mesh->GetSocketTransform(FireSocketName).GetLocation(), LHitResult.Location);
@@ -151,8 +149,6 @@ void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile> In
 		UGameplayStatics::ApplyDamage(LHitResult.GetActor(), InDamage * Character->DamageBooster, LHitResult.GetActor()->GetInstigatorController(), Character, DamageTypeClass);
 	}
 	AmmoInTheClip -= InSpentAmmo;
-	
-	UE_LOG(LogTemp, Error, TEXT("%i"), AmmoInTheClip);
 }
 
 

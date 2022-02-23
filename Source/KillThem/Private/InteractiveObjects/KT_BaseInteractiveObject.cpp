@@ -74,7 +74,7 @@ void AKT_BaseInteractiveObject::BeginPlay()
 
 void AKT_BaseInteractiveObject::RotationTimeLineFloatReturn(float Value)
 {
-	StaticMesh->SetRelativeRotation(FRotator(SkeletalMesh->GetRelativeRotation().Pitch, SkeletalMesh->GetRelativeRotation().Yaw + 0.5, SkeletalMesh->GetRelativeRotation().Roll));
+	// StaticMesh->SetRelativeRotation(FRotator(SkeletalMesh->GetRelativeRotation().Pitch, SkeletalMesh->GetRelativeRotation().Yaw + 0.5, SkeletalMesh->GetRelativeRotation().Roll));
 }
 
 

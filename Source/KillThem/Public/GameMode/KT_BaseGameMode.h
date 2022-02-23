@@ -15,14 +15,11 @@ class KILLTHEM_API AKT_BaseGameMode : public AGameModeBase
 //public C++ methods
 public:
 
-	UFUNCTION()
+	UFUNCTION(Reliable, Server)
 		void RespawnPlayer(AController* Player);
 
 	UFUNCTION()
 		void Respawn(AController* Player);
-
-	UFUNCTION()
-		void GetPlayerStartPoints();
 
 //public C++ variables
 public:
@@ -35,9 +32,6 @@ public:
 
 //protected C++ functions
 protected:
-
-	UFUNCTION(BlueprintNativeEvent, Category = "Game")
-		AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 	
 	virtual void BeginPlay() override;
 	

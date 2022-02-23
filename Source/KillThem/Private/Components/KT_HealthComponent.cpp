@@ -45,7 +45,7 @@ void UKT_HealthComponent::TakeDamage(AActor* DamagedActor, const float Damage, c
 	}
 	if (Health <= 0)
 	{
-		OnDead.Broadcast(PlayerCharacter->ControllerOfPlayer);
+		OnDead.Broadcast(PlayerCharacter->GetController());
 		IsDead = true;
 	}
 }
@@ -63,7 +63,7 @@ void UKT_HealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 void UKT_HealthComponent::OnRep_IsDead_Implementation()
 {
-	PlayerCharacter->DieOnServer();
+	// PlayerCharacter->DieOnServer();
 }
 
 
@@ -82,11 +82,6 @@ void UKT_HealthComponent::OnRep_Shield_Implementation()
 void UKT_HealthComponent::ChangeHealth(const float InHealth)
 {
 	Health = FMath::Min<float>(MaxHealth, Health + InHealth);
-	if (Health <= 0)
-	{
-		Death();
-	}
-	UE_LOG(LogTemp, Error, TEXT("%s: %f(Health), %f(Shield)"), *GetOwner()->GetName(), Health, Shield);
 }
 
 
@@ -125,21 +120,4 @@ void UKT_HealthComponent::ChangeShield(const float InShield)
 void UKT_HealthComponent::ChangeShieldOnServer_Implementation(const float InShield)
 {
 	ChangeShield(InShield);
-}
-
-
-void UKT_HealthComponent::Death_Implementation()
-{
-	IsDead = true;
-	if (!IsValid(PlayerCharacter))
-	{
-		return;
-	}
-	PlayerCharacter->DieOnServer();
-}
-
-
-void UKT_HealthComponent::DeathOnServer_Implementation()
-{
-	Death();
 }

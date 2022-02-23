@@ -15,10 +15,27 @@ class KILLTHEM_API AKT_PlayerController : public APlayerController
 	AKT_PlayerController();
 
 
+//private c++ functions
+private:
+
+
 //protected c++ functions
 protected:
 	
 	virtual void BeginPlay() override;
+
+	UFUNCTION(NetMulticast, Reliable)
+		virtual void OnPossess(APawn* InPawn) override;
+
+
+//public c++ functions
+public:
+
+	UFUNCTION(Reliable, Server)
+		void RespawnPlayer();
+
+	UFUNCTION()
+		void PlayerInitialize();
 
 	
 //Blueprint Values

@@ -4,12 +4,13 @@
 #include "Components/ActorComponent.h"
 #include "Weapons/KT_BaseWeapon.h"
 #include "Engine/Texture2D.h"
+#include "InteractiveObjects/Ammo/KT_BaseAmmo.h"
 #include "Weapons/Grenades/KT_BaseGrenade.h"
 
 #include "KT_ItemsManagerComponent.generated.h"
 
 
-class AKT_BaseAmmo;
+
 class AKT_PlayerCharacter;
 
 

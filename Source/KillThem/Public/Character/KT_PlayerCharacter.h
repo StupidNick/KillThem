@@ -25,6 +25,7 @@ class AKT_GameHUD;
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBusterUsed, float, Timer);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDead, AController*, Controller);
 
 
 UCLASS()
@@ -57,6 +58,9 @@ private:
 
 	UFUNCTION()
 		FTransform CalculateADSTransform();
+
+	UFUNCTION()
+		void Destruction();
 
 	
 
@@ -247,6 +251,9 @@ protected:
 //public c++ functions
 public:
 
+	UFUNCTION(Client, Reliable)
+		void CreateHUD();
+
 	UFUNCTION(Server, Reliable)
 		void AddWeapon(TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int InAmountOfAmmo, const int AmmoInTheClip = -1);
 
@@ -281,14 +288,14 @@ public:
 	UFUNCTION(Server, Reliable)
 		void SpeedBoostOnServer(const float Boost);
 
-	UFUNCTION(Server, Reliable)
-		void DieOnServer();
+	UFUNCTION()
+		void Die(AController* Player);
 
 	UFUNCTION(NetMulticast, Reliable)
-		void Die();
+		void DieMulticast();
 
-	UFUNCTION(NetMulticast, Reliable)
-		void DieOnClient(AController* Player);
+	UFUNCTION(Client, Reliable)
+		void DieOnClient();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -453,6 +460,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "HealthComponent | EventsForBind")
 		FOnBusterUsed OnTimeBustedUpdate;
+
+	UPROPERTY(BlueprintAssignable, Category = "HealthComponent | EventsForBind")
+		FOnDead OnDead;
 };
 
 

@@ -84,12 +84,6 @@ public:
 	UFUNCTION(Server, Reliable)
 		void ChangeHealthOnServer(const float InHealth);
 
-	UFUNCTION(NetMulticast, Reliable)
-		void Death();
-
-	UFUNCTION(Server, Reliable)
-		void DeathOnServer();
-
 /////////////////////////////////////////////////////////////////////////////////////
 
 
