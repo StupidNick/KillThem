@@ -65,7 +65,10 @@ void UKT_ItemsManagerComponent::AddAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmo
 		if (AmmoArray[i].TypeOfAmmo == InAmmoClass)
 		{
 			AmmoArray[i].CountOfAmmo += InNumberOfAmmoFound;
-			UE_LOG(LogTemp, Error, TEXT("%s: %i"), *GetSelectedWeaponSlot()->GetName(), AmmoArray[i].CountOfAmmo);
+			if (AmmoArray[i].CountOfAmmo > AmmoArray[i].MaxAmmo)
+			{
+				AmmoArray[i].CountOfAmmo = AmmoArray[i].MaxAmmo;
+			}
 			AmountOfAmmoChanged(AmmoArray[i].CountOfAmmo);
 			return;
 		}

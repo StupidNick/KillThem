@@ -13,6 +13,7 @@ AKT_PlayerController::AKT_PlayerController()
 
 void AKT_PlayerController::BeginPlay()
 {
+	GameHUD = Cast<AKT_GameHUD>(GetHUD());
 	PlayerInitialize();
 	if (!HasAuthority())
 	{
@@ -35,7 +36,6 @@ void AKT_PlayerController::OnPossess_Implementation(APawn* InPawn)
 
 void AKT_PlayerController::PlayerInitialize()
 {
-	GameHUD = Cast<AKT_GameHUD>(GetHUD());
 	if (IsValid(Cast<AKT_PlayerCharacter>(GetPawn())))
 	{
 		PlayerCharacter = Cast<AKT_PlayerCharacter>(GetPawn());

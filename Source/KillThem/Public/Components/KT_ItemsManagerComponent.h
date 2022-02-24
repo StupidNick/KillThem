@@ -28,6 +28,9 @@ struct FAmmo
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<AKT_BaseWeapon> TypeOfAmmo;
 
+	UPROPERTY(EditAnywhere)
+		int MaxAmmo;
+
 	int CountOfAmmo;
 
 	UPROPERTY(EditAnywhere)
@@ -109,11 +112,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Character | Weapons")
 		TSubclassOf<AKT_BaseWeapon> FirstWeaponSlotClass = nullptr;
 
-	UPROPERTY(EditAnywhere, Category = "Character | Weapons")
-		int AmmoForFirstWeapon;
-	
 	UPROPERTY(BlueprintReadWrite, ReplicatedUsing = OnRep_WeaponChanged, Category = "Character | Weapons")
 		AKT_BaseWeapon* SecondWeaponSlot = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Character | Weapons")
+		int AmmoForFirstWeapon;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Character | Grenade")
 		AKT_BaseGrenade* FirstGrenadeSlot = nullptr;

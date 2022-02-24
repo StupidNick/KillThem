@@ -44,6 +44,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Players")
 		float TimerForRespawnPlayers;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Items")
+		float ItemsDestructionTimer;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Players")
 		TSubclassOf<AActor> PlayerStartClassForFind;
 

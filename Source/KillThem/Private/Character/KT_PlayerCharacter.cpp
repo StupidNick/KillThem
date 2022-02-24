@@ -1164,5 +1164,14 @@ void AKT_PlayerCharacter::DieMulticast_Implementation()
 
 void AKT_PlayerCharacter::Destruction()
 {
+	if (IsValid(ItemsManagerComponent->FirstWeaponSlot))
+	{
+		ItemsManagerComponent->FirstWeaponSlot->Destroy();
+	}
+	else if (IsValid(ItemsManagerComponent->SecondWeaponSlot))
+	{
+		ItemsManagerComponent->SecondWeaponSlot->Destroy();
+	}
+	
 	Destroy();
 }

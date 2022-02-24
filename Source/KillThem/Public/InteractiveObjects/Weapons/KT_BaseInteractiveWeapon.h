@@ -24,6 +24,12 @@ public:
 //private C++ functions
 private:
 
+	UFUNCTION()
+		void Destruction();
+
+//private C++ functions
+private:
+
 	UPROPERTY()
 		int AmmoInTheClip;
 	
