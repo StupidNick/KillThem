@@ -141,6 +141,11 @@ void AKT_PlayerCharacter::BeginPlay()
 	{
 		AddWeapon(ItemsManagerComponent->FirstWeaponSlotClass, ItemsManagerComponent->AmmoForFirstWeapon);
 	}
+	if (IsValid(ItemsManagerComponent->FirstWeaponSlot) && !HasAuthority())
+	{
+		ItemsManagerComponent->ChangeAmmoInTheClip(ItemsManagerComponent->FirstWeaponSlot->GetAmmoInTheClip());
+		ItemsManagerComponent->ChangeIcon();
+	}
 }
 
 

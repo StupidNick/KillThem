@@ -2,6 +2,7 @@
 #include "GameMode/KT_GameHUD.h"
 
 #include "Character/KT_PlayerCharacter.h"
+#include "Components/KT_ItemsManagerComponent.h"
 #include "GameMode/KT_BaseGameMode.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -30,6 +31,11 @@ void AKT_PlayerController::OnPossess_Implementation(APawn* InPawn)
 	if (!HasAuthority())
 	{
 		PlayerCharacter->CreateHUD();
+		if (IsValid(PlayerCharacter->ItemsManagerComponent->FirstWeaponSlot) && !HasAuthority())
+		{
+			PlayerCharacter->ItemsManagerComponent->ChangeAmmoInTheClip(PlayerCharacter->ItemsManagerComponent->FirstWeaponSlot->GetAmmoInTheClip());
+			PlayerCharacter->ItemsManagerComponent->ChangeIcon();
+		}
 	}
 }
 
