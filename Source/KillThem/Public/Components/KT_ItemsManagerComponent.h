@@ -77,17 +77,27 @@ public:
 		bool FindAndCountAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, int &InNumberOfAmmo);
 
 	UFUNCTION()
-		FAmmo FindStructOfAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass);
-
-	UFUNCTION()
 		bool RemoveAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmo);
 
-	UFUNCTION()
+	UFUNCTION(Server, Reliable)
 		void ChangeWeapon();
 
 	UFUNCTION()
 		void Initialize(AKT_PlayerCharacter* InCharacter);
 
+	
+	FORCEINLINE FAmmo* FindStructOfAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass)
+	{
+		for (int i = 0; i < AmmoArray.Num(); i++)
+		{
+			if (AmmoArray[i].TypeOfAmmo == InAmmoClass)
+			{
+				return& AmmoArray[i];
+			}
+		}
+		return nullptr;
+	}
+	
 	UFUNCTION()
 		FORCEINLINE AKT_BaseWeapon*& GetSelectedWeaponSlot()
 	{
@@ -107,12 +117,12 @@ public:
 		AKT_PlayerCharacter* PlayerCharacter = nullptr;
 
 	
-	UPROPERTY(ReplicatedUsing = OnRep_WeaponChanged)
+	UPROPERTY(Replicated)
 		AKT_BaseWeapon* FirstWeaponSlot = nullptr;
 	UPROPERTY(EditAnywhere, Category = "Character | Weapons")
 		TSubclassOf<AKT_BaseWeapon> FirstWeaponSlotClass = nullptr;
 
-	UPROPERTY(BlueprintReadWrite, ReplicatedUsing = OnRep_WeaponChanged, Category = "Character | Weapons")
+	UPROPERTY(BlueprintReadWrite, Replicated, Category = "Character | Weapons")
 		AKT_BaseWeapon* SecondWeaponSlot = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Character | Weapons")

@@ -1,6 +1,7 @@
 #include "GameMode/KT_GameHUD.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Character/KT_PlayerCharacter.h"
 #include "Character/Controllers/KT_PlayerController.h"
 #include "UI/MainHUD_WD/KT_MainHUD_WD.h"
 #include "UI/menusWD/MainMenuWD/KT_MainMenuWD.h"
@@ -18,6 +19,9 @@ void AKT_GameHUD::BeginPlay()
 	Super::BeginPlay();
 
 	MyController = Cast<AKT_PlayerController>(GetOwningPlayerController());
+	MyCharacter = Cast<AKT_PlayerCharacter>(GetOwningPawn());
+	CreateMainHUD_WD();
+	MyCharacter->HUD = this;
 	// GameInstance = Cast<UPZ_GameInstance>(GetGameInstance());
 }
 
@@ -34,7 +38,7 @@ void AKT_GameHUD::CreateMainHUD_WD()
 	{
 		MainHUD = CreateWidget<UKT_MainHUD_WD>(GetWorld(), MainHUDClass);
 		MainHUD->AddToViewport();
-		MainHUD->InitializeMainHUD(MyController->PlayerCharacter);
+		MainHUD->InitializeMainHUD(MyCharacter);
 	}
 }
 

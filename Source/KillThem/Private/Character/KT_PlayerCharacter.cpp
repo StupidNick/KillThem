@@ -72,17 +72,6 @@ AKT_PlayerCharacter::AKT_PlayerCharacter()
 }
 
 
-void AKT_PlayerCharacter::CreateHUD_Implementation()
-{
-	if (!HasAuthority() && IsValid(HUD))
-	{
-		HUD->MyController = Cast<AKT_PlayerController>(PlayerController);
-		HUD->CreateMainHUD_WD();
-		ItemsManagerComponent->AmountOfAmmoChanged(ItemsManagerComponent->AmmoForFirstWeapon);
-	}
-}
-
-
 void AKT_PlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -140,11 +129,6 @@ void AKT_PlayerCharacter::BeginPlay()
 	if (IsValid(ItemsManagerComponent->FirstWeaponSlotClass) && HasAuthority())
 	{
 		AddWeapon(ItemsManagerComponent->FirstWeaponSlotClass, ItemsManagerComponent->AmmoForFirstWeapon);
-	}
-	if (IsValid(ItemsManagerComponent->FirstWeaponSlot) && !HasAuthority())
-	{
-		ItemsManagerComponent->ChangeAmmoInTheClip(ItemsManagerComponent->FirstWeaponSlot->GetAmmoInTheClip());
-		ItemsManagerComponent->ChangeIcon();
 	}
 }
 
@@ -829,7 +813,7 @@ void AKT_PlayerCharacter::AddWeapon_Implementation(TSubclassOf<AKT_BaseWeapon> I
 	if (!IsValid(ItemsManagerComponent->FirstWeaponSlot))
 	{
 		FVector LLocation = FirstPersonMeshComponent->GetSocketLocation(ItemsManagerComponent->InHandsSocketName);
-		FRotator LRotation = GetControlRotation();
+		FRotator LRotation = FirstPersonMeshComponent->GetSocketRotation(ItemsManagerComponent->InHandsSocketName);
 		FActorSpawnParameters LSpawnInfo;
 	
 		ItemsManagerComponent->FirstWeaponSlot = GetWorld()->SpawnActor<AKT_BaseWeapon>(InWeaponClass, LLocation, LRotation, LSpawnInfo);

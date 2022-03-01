@@ -60,17 +60,16 @@ void UKT_ItemsManagerComponent::OnRep_WeaponChanged_Implementation()
 
 void UKT_ItemsManagerComponent::AddAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmoFound)
 {
-	for (int i = 0; i < AmmoArray.Num(); i++)
+	if (FAmmo* LAmmoStruct = FindStructOfAmmo(InAmmoClass))
 	{
-		if (AmmoArray[i].TypeOfAmmo == InAmmoClass)
+		LAmmoStruct->CountOfAmmo += InNumberOfAmmoFound;
+		if (LAmmoStruct->CountOfAmmo > LAmmoStruct->MaxAmmo)
 		{
-			AmmoArray[i].CountOfAmmo += InNumberOfAmmoFound;
-			if (AmmoArray[i].CountOfAmmo > AmmoArray[i].MaxAmmo)
-			{
-				AmmoArray[i].CountOfAmmo = AmmoArray[i].MaxAmmo;
-			}
-			AmountOfAmmoChanged(AmmoArray[i].CountOfAmmo);
-			return;
+			LAmmoStruct->CountOfAmmo = LAmmoStruct->MaxAmmo;
+		}
+		if (GetSelectedWeaponSlot()->GetClass() == LAmmoStruct->TypeOfAmmo)
+		{
+			AmountOfAmmoChanged(LAmmoStruct->CountOfAmmo);
 		}
 	}
 }
@@ -79,39 +78,23 @@ void UKT_ItemsManagerComponent::AddAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmo
 bool UKT_ItemsManagerComponent::FindAndCountAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass,
                                                  int& InNumberOfAmmo)
 {
-	for (auto i : AmmoArray)
+	if (const FAmmo* LAmmoStruct = FindStructOfAmmo(InAmmoClass))
 	{
-		if (i.TypeOfAmmo == InAmmoClass && i.CountOfAmmo > 0)
-		{
-			InNumberOfAmmo = i.CountOfAmmo;
-			return true;
-		}
+		InNumberOfAmmo = LAmmoStruct->CountOfAmmo;
+		return true;
 	}
 	return false;
 }
 
 
-FAmmo UKT_ItemsManagerComponent::FindStructOfAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass)
-{
-	for (auto i : AmmoArray)
-	{
-		if (i.TypeOfAmmo == InAmmoClass)
-		{
-			return i;
-		}
-	}
-	return AmmoArray.Top();
-}
-
-
 bool UKT_ItemsManagerComponent::RemoveAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmo)
 {
-	for (int i = 0; i < AmmoArray.Num(); i++)
+	if (FAmmo* LAmmoStruct = FindStructOfAmmo(InAmmoClass))
 	{
-		if (AmmoArray[i].TypeOfAmmo == InAmmoClass && AmmoArray[i].CountOfAmmo >= InNumberOfAmmo)
+		if (LAmmoStruct->CountOfAmmo >= InNumberOfAmmo)
 		{
-			AmmoArray[i].CountOfAmmo -= InNumberOfAmmo;
-			AmountOfAmmoChanged(AmmoArray[i].CountOfAmmo);
+			LAmmoStruct->CountOfAmmo -= InNumberOfAmmo;
+			AmountOfAmmoChanged(LAmmoStruct->CountOfAmmo);
 			return true;
 		}
 	}
@@ -125,21 +108,20 @@ void UKT_ItemsManagerComponent::Initialize(AKT_PlayerCharacter* InCharacter)
 }
 
 
-void UKT_ItemsManagerComponent::ChangeWeapon()
+void UKT_ItemsManagerComponent::ChangeWeapon_Implementation()
 {
 	if (GetSelectedWeaponSlot() == FirstWeaponSlot && IsValid(SecondWeaponSlot))
 	{
-		SelectedFirstSlot = false;
 		FirstWeaponSlot->CanShoot = false;
 		GetWorld()->GetTimerManager().ClearAllTimersForObject(FirstWeaponSlot);
 		SecondWeaponSlot->CanShoot = true;
+		SelectedFirstSlot = false;
 	}
 	else if (GetSelectedWeaponSlot() == SecondWeaponSlot && IsValid(FirstWeaponSlot))
 	{
-		SelectedFirstSlot = true;
 		SecondWeaponSlot->CanShoot = false;
 		GetWorld()->GetTimerManager().ClearAllTimersForObject(SecondWeaponSlot);
 		FirstWeaponSlot->CanShoot = true;
+		SelectedFirstSlot = true;
 	}
-	ChangeIcon();
 }

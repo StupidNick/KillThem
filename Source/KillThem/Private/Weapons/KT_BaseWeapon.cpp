@@ -77,7 +77,7 @@ void AKT_BaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 void AKT_BaseWeapon::OnRep_AmmoInTheClip_Implementation()
 {
-	if (IsValid(GetOwner()) && !HasAuthority())
+	if (IsValid(GetOwner()) && !HasAuthority() && Character->ItemsManagerComponent->GetSelectedWeaponSlot() == this)
 	{
 		Cast<AKT_PlayerCharacter>(GetOwner())->ItemsManagerComponent->OnAmmoInTheClipChange.Broadcast(AmmoInTheClip);
 	}
@@ -123,7 +123,7 @@ void AKT_BaseWeapon::Initialize_Implementation(AKT_PlayerCharacter* InCharacter,
 
 void AKT_BaseWeapon::ToAttachToComponent_Implementation(USkeletalMeshComponent* InComponent, const FName InSocketName)
 {
-	const FAttachmentTransformRules LRules(EAttachmentRule::KeepWorld, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false);
+	const FAttachmentTransformRules LRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, false);
 	
 	Mesh->AttachToComponent(InComponent, LRules, InSocketName);
 }

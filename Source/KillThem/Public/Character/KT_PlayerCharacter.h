@@ -251,9 +251,6 @@ protected:
 //public c++ functions
 public:
 
-	UFUNCTION(Client, Reliable)
-		void CreateHUD();
-
 	UFUNCTION(Server, Reliable)
 		void AddWeapon(TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int InAmountOfAmmo, const int AmmoInTheClip = -1);
 

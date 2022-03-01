@@ -16,10 +16,6 @@ void AKT_PlayerController::BeginPlay()
 {
 	GameHUD = Cast<AKT_GameHUD>(GetHUD());
 	PlayerInitialize();
-	if (!HasAuthority())
-	{
-		PlayerCharacter->CreateHUD();
-	}
 }
 
 
@@ -28,15 +24,6 @@ void AKT_PlayerController::OnPossess_Implementation(APawn* InPawn)
 	Super::OnPossess(InPawn);
 	
 	PlayerInitialize();
-	if (!HasAuthority())
-	{
-		PlayerCharacter->CreateHUD();
-		if (IsValid(PlayerCharacter->ItemsManagerComponent->FirstWeaponSlot) && !HasAuthority())
-		{
-			PlayerCharacter->ItemsManagerComponent->ChangeAmmoInTheClip(PlayerCharacter->ItemsManagerComponent->FirstWeaponSlot->GetAmmoInTheClip());
-			PlayerCharacter->ItemsManagerComponent->ChangeIcon();
-		}
-	}
 }
 
 

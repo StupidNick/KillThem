@@ -125,6 +125,8 @@ public:
 	
 	UPROPERTY(BlueprintReadOnly)
 		class AKT_PlayerController* MyController = nullptr;
+	UPROPERTY(BlueprintReadOnly)
+		class AKT_PlayerCharacter* MyCharacter = nullptr;
 	// UPROPERTY(BlueprintReadOnly)
 	// 	class UKT_GameInstance* GameInstance = nullptr;
 };
