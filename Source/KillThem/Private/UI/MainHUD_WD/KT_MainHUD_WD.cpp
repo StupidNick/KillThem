@@ -32,7 +32,7 @@ void UKT_MainHUD_WD::InitializeMainHUD_Implementation(AKT_PlayerCharacter* Playe
 	Character->HealthComponent->OnSPChangeBind.AddDynamic(this, &UKT_MainHUD_WD::UpdateSP);
 	UpdateSP(Character->HealthComponent->GetShield());
 
-	Character->ItemsManagerComponent->OnAmmoChangeBind.AddDynamic(this, &UKT_MainHUD_WD::UpdateAmmo);
+	Character->ItemsManagerComponent->OnHandWeaponAmmoChangeBind.AddDynamic(this, &UKT_MainHUD_WD::UpdateAmmo);
 	Character->ItemsManagerComponent->OnAmmoInTheClipChange.AddDynamic(this, &UKT_MainHUD_WD::UpdateAmmoInTheClip);
 	Character->ItemsManagerComponent->OnWeaponChange.AddDynamic(this, &UKT_MainHUD_WD::UpdateIcon);
 	

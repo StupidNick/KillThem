@@ -822,7 +822,7 @@ void AKT_PlayerCharacter::AddWeapon_Implementation(TSubclassOf<AKT_BaseWeapon> I
 			ItemsManagerComponent->FirstWeaponSlot->SetOwner(this);
 			ItemsManagerComponent->FirstWeaponSlot->Initialize(this, AmmoInTheClip);
 			ItemsManagerComponent->FirstWeaponSlot->ToAttachToComponent(FirstPersonMeshComponent, ItemsManagerComponent->InHandsSocketName);
-			ItemsManagerComponent->AddAmmo(InWeaponClass, InAmountOfAmmo);
+			ItemsManagerComponent->AddAmmoOnServer(InWeaponClass, InAmountOfAmmo);
 		}
 		return;
 	}
@@ -842,7 +842,7 @@ void AKT_PlayerCharacter::AddWeapon_Implementation(TSubclassOf<AKT_BaseWeapon> I
 			ItemsManagerComponent->SecondWeaponSlot->SetOwner(this);
 			ItemsManagerComponent->SecondWeaponSlot->Initialize(this, AmmoInTheClip);
 			ItemsManagerComponent->SecondWeaponSlot->ToAttachToComponent(LMesh, ItemsManagerComponent->BehindBackSocketName);
-			ItemsManagerComponent->AddAmmo(InWeaponClass, InAmountOfAmmo);
+			ItemsManagerComponent->AddAmmoOnServer(InWeaponClass, InAmountOfAmmo);
 		}
 		
 		return;
@@ -861,7 +861,7 @@ void AKT_PlayerCharacter::AddWeapon_Implementation(TSubclassOf<AKT_BaseWeapon> I
 		ItemsManagerComponent->GetSelectedWeaponSlot()->SetOwner(this);
 		ItemsManagerComponent->GetSelectedWeaponSlot()->Initialize(this, AmmoInTheClip);
 		ItemsManagerComponent->GetSelectedWeaponSlot()->ToAttachToComponent(FirstPersonMeshComponent, ItemsManagerComponent->InHandsSocketName);
-		ItemsManagerComponent->AddAmmo(InWeaponClass, InAmountOfAmmo);
+		ItemsManagerComponent->AddAmmoOnServer(InWeaponClass, InAmountOfAmmo);
 	}
 }
 

@@ -160,7 +160,7 @@ void AKT_BaseRangeWeapon::Reload(const int InAmmo)
 }
 
 
-void AKT_BaseRangeWeapon::ToReload()
+void AKT_BaseRangeWeapon::ToReload_Implementation()
 {
 	int LCountOfAmmo;
 	int LClipSize = ClipSize;

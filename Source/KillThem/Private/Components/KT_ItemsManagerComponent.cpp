@@ -12,6 +12,8 @@ UKT_ItemsManagerComponent::UKT_ItemsManagerComponent()
 void UKT_ItemsManagerComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	OnAmmoChangeBind.AddDynamic(this, &UKT_ItemsManagerComponent::ChangeAmmoOnClient);
 }
 
 
@@ -22,6 +24,21 @@ void UKT_ItemsManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME(UKT_ItemsManagerComponent, FirstWeaponSlot);
 	DOREPLIFETIME(UKT_ItemsManagerComponent, SecondWeaponSlot);
 	DOREPLIFETIME(UKT_ItemsManagerComponent, SelectedFirstSlot);
+}
+
+
+void UKT_ItemsManagerComponent::AmountOfAmmoChanged_Implementation(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int Ammo)
+{
+	OnAmmoChangeBind.Broadcast(InAmmoClass, Ammo);
+}
+
+
+void UKT_ItemsManagerComponent::ChangeAmmoOnClient_Implementation(TSubclassOf<AKT_BaseWeapon> InAmmoClass, int InAmmo)
+{
+	if (FAmmo* LAmmoStruct = FindStructOfAmmo(InAmmoClass))
+	{
+		LAmmoStruct->CountOfAmmo = InAmmo;
+	}
 }
 
 
@@ -37,9 +54,9 @@ void UKT_ItemsManagerComponent::ChangeAmmoInTheClip_Implementation(int Ammo)
 }
 
 
-void UKT_ItemsManagerComponent::AmountOfAmmoChanged_Implementation(const int Ammo)
+void UKT_ItemsManagerComponent::AmountOfAmmoHandWeaponChanged_Implementation(const int Ammo)
 {
-	OnAmmoChangeBind.Broadcast(Ammo);
+	OnHandWeaponAmmoChangeBind.Broadcast(Ammo);
 }
 
 
@@ -51,14 +68,14 @@ void UKT_ItemsManagerComponent::OnRep_WeaponChanged_Implementation()
 		OnAmmoInTheClipChange.Broadcast(GetSelectedWeaponSlot()->GetAmmoInTheClip());
 		if (FindAndCountAmmo(GetSelectedWeaponSlot()->GetClass(), LAmountAmmo))
 		{
-			OnAmmoChangeBind.Broadcast(LAmountAmmo);
+			OnHandWeaponAmmoChangeBind.Broadcast(LAmountAmmo);
 		}
 		OnWeaponChange.Broadcast(GetSelectedWeaponSlot()->WeaponIcon, GetSelectedWeaponSlot()->AimIcon);
 	}
 }
 
 
-void UKT_ItemsManagerComponent::AddAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmoFound)
+void UKT_ItemsManagerComponent::AddAmmoOnServer_Implementation(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmoFound)
 {
 	if (FAmmo* LAmmoStruct = FindStructOfAmmo(InAmmoClass))
 	{
@@ -69,7 +86,12 @@ void UKT_ItemsManagerComponent::AddAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmo
 		}
 		if (GetSelectedWeaponSlot()->GetClass() == LAmmoStruct->TypeOfAmmo)
 		{
-			AmountOfAmmoChanged(LAmmoStruct->CountOfAmmo);
+			AmountOfAmmoHandWeaponChanged(LAmmoStruct->CountOfAmmo);
+			AmountOfAmmoChanged(InAmmoClass, LAmmoStruct->CountOfAmmo);
+		}
+		else if(GetSelectedWeaponSlot()->GetClass() != LAmmoStruct->TypeOfAmmo)
+		{
+			AmountOfAmmoChanged(InAmmoClass, LAmmoStruct->CountOfAmmo);
 		}
 	}
 }
@@ -81,7 +103,10 @@ bool UKT_ItemsManagerComponent::FindAndCountAmmo(const TSubclassOf<AKT_BaseWeapo
 	if (const FAmmo* LAmmoStruct = FindStructOfAmmo(InAmmoClass))
 	{
 		InNumberOfAmmo = LAmmoStruct->CountOfAmmo;
-		return true;
+		if (InNumberOfAmmo > 0)
+		{
+			return true;
+		}
 	}
 	return false;
 }
@@ -94,7 +119,7 @@ bool UKT_ItemsManagerComponent::RemoveAmmo(const TSubclassOf<AKT_BaseWeapon> InA
 		if (LAmmoStruct->CountOfAmmo >= InNumberOfAmmo)
 		{
 			LAmmoStruct->CountOfAmmo -= InNumberOfAmmo;
-			AmountOfAmmoChanged(LAmmoStruct->CountOfAmmo);
+			AmountOfAmmoHandWeaponChanged(LAmmoStruct->CountOfAmmo);
 			return true;
 		}
 	}

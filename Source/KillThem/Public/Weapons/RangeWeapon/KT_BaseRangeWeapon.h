@@ -39,7 +39,7 @@ public:
 	
 	virtual void UseWeapon() override;
 
-	UFUNCTION()
+	UFUNCTION(Server, Reliable)
 		void ToReload();
 
 	

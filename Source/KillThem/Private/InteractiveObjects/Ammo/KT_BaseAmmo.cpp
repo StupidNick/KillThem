@@ -25,5 +25,8 @@ void AKT_BaseAmmo::Interactive(AKT_PlayerCharacter* Player)
 {
 	Super::Interactive(Player);
 
-	Player->ItemsManagerComponent->AddAmmo(ClassOfAmmo, CountOfAmmo);
+	if (HasAuthority())
+	{
+		Player->ItemsManagerComponent->AddAmmoOnServer(ClassOfAmmo, CountOfAmmo);
+	}
 }

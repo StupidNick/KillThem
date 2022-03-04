@@ -14,7 +14,8 @@
 class AKT_PlayerCharacter;
 
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAmmoChange, int, AmmoStat);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHandWeaponAmmoChange, int, AmmoStat);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAmmoChange, TSubclassOf<AKT_BaseWeapon>, AmmoClass, int, AmmoStat);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAmmoInTheClipChange, int, AmmoStat);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWeaponChange, UTexture2D*, WeaponIcon, UTexture2D*, AimIcon);
 
@@ -59,7 +60,10 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	UFUNCTION(NetMulticast, Reliable)
-		void AmountOfAmmoChanged(const int Ammo);
+		void AmountOfAmmoHandWeaponChanged(const int Ammo);
+
+	UFUNCTION(NetMulticast, Reliable)
+		void AmountOfAmmoChanged(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int Ammo);
 
 	UFUNCTION(NetMulticast, Reliable)
 		void ChangeAmmoInTheClip(int Ammo);
@@ -70,14 +74,17 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 		void OnRep_WeaponChanged();
 
-	UFUNCTION()
-    	void AddAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmoFound);
+	UFUNCTION(Server, Reliable)
+    	void AddAmmoOnServer(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmoFound);
+
+	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "MainHUD_WD | Weapon")
+		void ChangeAmmoOnClient(TSubclassOf<AKT_BaseWeapon> InAmmoClass, int InAmmo);
 
 	UFUNCTION()
 		bool FindAndCountAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, int &InNumberOfAmmo);
 
 	UFUNCTION()
-		bool RemoveAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmo);
+		bool RemoveAmmo(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmo);
 
 	UFUNCTION(Server, Reliable)
 		void ChangeWeapon();
@@ -98,8 +105,8 @@ public:
 		return nullptr;
 	}
 	
-	UFUNCTION()
-		FORCEINLINE AKT_BaseWeapon*& GetSelectedWeaponSlot()
+
+	FORCEINLINE AKT_BaseWeapon*& GetSelectedWeaponSlot()
 	{
 		if (SelectedFirstSlot)
 		{
@@ -154,6 +161,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Stats")
 		TArray<FAmmo> AmmoArray;
+
+	UPROPERTY(BlueprintAssignable, Category = "ItemsManager | EventsForBind")
+		FOnHandWeaponAmmoChange OnHandWeaponAmmoChangeBind;
 
 	UPROPERTY(BlueprintAssignable, Category = "ItemsManager | EventsForBind")
 		FOnAmmoChange OnAmmoChangeBind;
