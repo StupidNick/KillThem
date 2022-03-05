@@ -60,13 +60,13 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	UFUNCTION(NetMulticast, Reliable)
-		void AmountOfAmmoHandWeaponChanged(const int Ammo);
+		void AmountOfAmmoHandWeaponChanged(const int InAmmo);
 
 	UFUNCTION(NetMulticast, Reliable)
-		void AmountOfAmmoChanged(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int Ammo);
+		void AmountOfAmmoChanged(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InAmmo);
 
 	UFUNCTION(NetMulticast, Reliable)
-		void ChangeAmmoInTheClip(int Ammo);
+		void ChangeAmmoInTheClip(const int InAmmo);
 
 	UFUNCTION(NetMulticast, Reliable)
 		void ChangeIcon();
@@ -78,13 +78,13 @@ public:
     	void AddAmmoOnServer(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmoFound);
 
 	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "MainHUD_WD | Weapon")
-		void ChangeAmmoOnClient(TSubclassOf<AKT_BaseWeapon> InAmmoClass, int InAmmo);
+		void ChangeAmmoOnClient(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InAmmo);
 
 	UFUNCTION()
 		bool FindAndCountAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, int &InNumberOfAmmo);
 
-	UFUNCTION()
-		bool RemoveAmmo(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmo);
+	UFUNCTION(Server, Reliable)
+		void RemoveAmmoOnServer(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmo);
 
 	UFUNCTION(Server, Reliable)
 		void ChangeWeapon();

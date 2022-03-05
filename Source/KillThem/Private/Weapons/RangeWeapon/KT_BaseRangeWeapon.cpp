@@ -156,7 +156,7 @@ void AKT_BaseRangeWeapon::Reload(const int InAmmo)
 {
 	IsReloading = false;
 	AmmoInTheClip += InAmmo;
-	Character->ItemsManagerComponent->RemoveAmmo(GetClass(), InAmmo);
+	Character->ItemsManagerComponent->RemoveAmmoOnServer(GetClass(), InAmmo);
 }
 
 

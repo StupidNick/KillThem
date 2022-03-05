@@ -25,6 +25,23 @@ void AKT_BaseWeapon::BeginPlay()
 }
 
 
+void AKT_BaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AKT_BaseWeapon, AmmoInTheClip);
+}
+
+
+void AKT_BaseWeapon::OnRep_AmmoInTheClip_Implementation()
+{
+	if (IsValid(Character))
+	{
+		Character->ItemsManagerComponent->OnAmmoInTheClipChange.Broadcast(AmmoInTheClip);
+	}
+}
+
+
 void AKT_BaseWeapon::UseWeapon()
 {
 	CanShoot = false;
@@ -67,23 +84,6 @@ void AKT_BaseWeapon::AutoFireReload()
 }
 
 
-void AKT_BaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AKT_BaseWeapon, AmmoInTheClip);
-}
-
-
-void AKT_BaseWeapon::OnRep_AmmoInTheClip_Implementation()
-{
-	if (IsValid(GetOwner()) && !HasAuthority() && Character->ItemsManagerComponent->GetSelectedWeaponSlot() == this)
-	{
-		Cast<AKT_PlayerCharacter>(GetOwner())->ItemsManagerComponent->OnAmmoInTheClipChange.Broadcast(AmmoInTheClip);
-	}
-}
-
-
 void AKT_BaseWeapon::ToUseWeapon(const bool IsAlterFire)
 {
 	UseAlterFire = IsAlterFire;
@@ -110,12 +110,12 @@ void AKT_BaseWeapon::StopFire()
 
 void AKT_BaseWeapon::Initialize_Implementation(AKT_PlayerCharacter* InCharacter, const int InAmmoInTheClip)
 {
+	Character = InCharacter;
 	AmmoInTheClip = InAmmoInTheClip;
 	if (AmmoInTheClip == -1)
 	{
 		AmmoInTheClip = ClipSize;
 	}
-	Character = InCharacter;
 	AlterFireTimerDelegate.BindUFunction(this, "UseWeapon");
 	AutoFireTimerDelegate.BindUFunction(this, "AutoFireReload");
 }

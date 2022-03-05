@@ -27,13 +27,13 @@ void UKT_ItemsManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 }
 
 
-void UKT_ItemsManagerComponent::AmountOfAmmoChanged_Implementation(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int Ammo)
+void UKT_ItemsManagerComponent::AmountOfAmmoChanged_Implementation(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InAmmo)
 {
-	OnAmmoChangeBind.Broadcast(InAmmoClass, Ammo);
+	OnAmmoChangeBind.Broadcast(InAmmoClass, InAmmo);
 }
 
 
-void UKT_ItemsManagerComponent::ChangeAmmoOnClient_Implementation(TSubclassOf<AKT_BaseWeapon> InAmmoClass, int InAmmo)
+void UKT_ItemsManagerComponent::ChangeAmmoOnClient_Implementation(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InAmmo)
 {
 	if (FAmmo* LAmmoStruct = FindStructOfAmmo(InAmmoClass))
 	{
@@ -48,15 +48,15 @@ void UKT_ItemsManagerComponent::ChangeIcon_Implementation()
 }
 
 
-void UKT_ItemsManagerComponent::ChangeAmmoInTheClip_Implementation(int Ammo)
+void UKT_ItemsManagerComponent::ChangeAmmoInTheClip_Implementation(const int InAmmo)
 {
-	OnAmmoInTheClipChange.Broadcast(Ammo);
+	OnAmmoInTheClipChange.Broadcast(InAmmo);
 }
 
 
-void UKT_ItemsManagerComponent::AmountOfAmmoHandWeaponChanged_Implementation(const int Ammo)
+void UKT_ItemsManagerComponent::AmountOfAmmoHandWeaponChanged_Implementation(const int InAmmo)
 {
-	OnHandWeaponAmmoChangeBind.Broadcast(Ammo);
+	OnHandWeaponAmmoChangeBind.Broadcast(InAmmo);
 }
 
 
@@ -84,7 +84,7 @@ void UKT_ItemsManagerComponent::AddAmmoOnServer_Implementation(const TSubclassOf
 		{
 			LAmmoStruct->CountOfAmmo = LAmmoStruct->MaxAmmo;
 		}
-		if (GetSelectedWeaponSlot()->GetClass() == LAmmoStruct->TypeOfAmmo)
+		if (GetSelectedWeaponSlot()->GetClass() == InAmmoClass)
 		{
 			AmountOfAmmoHandWeaponChanged(LAmmoStruct->CountOfAmmo);
 			AmountOfAmmoChanged(InAmmoClass, LAmmoStruct->CountOfAmmo);
@@ -112,7 +112,7 @@ bool UKT_ItemsManagerComponent::FindAndCountAmmo(const TSubclassOf<AKT_BaseWeapo
 }
 
 
-bool UKT_ItemsManagerComponent::RemoveAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmo)
+void UKT_ItemsManagerComponent::RemoveAmmoOnServer_Implementation(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmo)
 {
 	if (FAmmo* LAmmoStruct = FindStructOfAmmo(InAmmoClass))
 	{
@@ -120,10 +120,9 @@ bool UKT_ItemsManagerComponent::RemoveAmmo(const TSubclassOf<AKT_BaseWeapon> InA
 		{
 			LAmmoStruct->CountOfAmmo -= InNumberOfAmmo;
 			AmountOfAmmoHandWeaponChanged(LAmmoStruct->CountOfAmmo);
-			return true;
+			AmountOfAmmoChanged(InAmmoClass, LAmmoStruct->CountOfAmmo);
 		}
 	}
-	return false;
 }
 
 

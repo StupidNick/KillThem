@@ -33,7 +33,11 @@ void UKT_MainHUD_WD::InitializeMainHUD_Implementation(AKT_PlayerCharacter* Playe
 	UpdateSP(Character->HealthComponent->GetShield());
 
 	Character->ItemsManagerComponent->OnHandWeaponAmmoChangeBind.AddDynamic(this, &UKT_MainHUD_WD::UpdateAmmo);
+	UpdateAmmo(Character->ItemsManagerComponent->AmmoForFirstWeapon);
+	
 	Character->ItemsManagerComponent->OnAmmoInTheClipChange.AddDynamic(this, &UKT_MainHUD_WD::UpdateAmmoInTheClip);
+	// UpdateAmmoInTheClip(Character->ItemsManagerComponent->GetSelectedWeaponSlot()->GetAmmoInTheClip());
+	
 	Character->ItemsManagerComponent->OnWeaponChange.AddDynamic(this, &UKT_MainHUD_WD::UpdateIcon);
 	
 	Character->OnTimeBustedUpdate.AddDynamic(this, &UKT_MainHUD_WD::UpdateBooster);
