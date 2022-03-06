@@ -49,6 +49,15 @@ public:
 
 	UKT_ItemsManagerComponent();
 
+//Private C++ variables
+private:
+
+	UPROPERTY(ReplicatedUsing = OnRep_WeaponChanged)
+		TArray<AKT_BaseWeapon*> WeaponsArray;
+
+	UPROPERTY(ReplicatedUsing = OnRep_WeaponChanged)
+		int32 CurrentWeaponIndex = 0;
+
 //Protected C++ functions
 protected:
 
@@ -61,6 +70,9 @@ public:
 	
 	UFUNCTION(NetMulticast, Reliable)
 		void AmountOfAmmoHandWeaponChanged(const int InAmmo);
+
+	UFUNCTION(Server, Reliable)
+		void AddWeapon(TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int InAmountOfAmmo, int InAmmoInTheClip = -1);
 
 	UFUNCTION(NetMulticast, Reliable)
 		void AmountOfAmmoChanged(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InAmmo);
@@ -81,7 +93,7 @@ public:
 		void ChangeAmmoOnClient(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InAmmo);
 
 	UFUNCTION()
-		bool FindAndCountAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, int &InNumberOfAmmo);
+		bool CountAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, int &InNumberOfAmmo);
 
 	UFUNCTION(Server, Reliable)
 		void RemoveAmmoOnServer(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmo);
@@ -89,8 +101,23 @@ public:
 	UFUNCTION(Server, Reliable)
 		void ChangeWeapon();
 
+	UFUNCTION(Server, Reliable)
+		void Reload();
+
+	UFUNCTION(Server, Reliable)
+		void Fire();
+
+	UFUNCTION(Server, Reliable)
+		void StopFire();
+
 	UFUNCTION()
 		void Initialize(AKT_PlayerCharacter* InCharacter);
+
+	UFUNCTION(Server, Reliable)
+		void AttachWeaponToSocket(AKT_BaseWeapon* InWeapon, USceneComponent* InSceneComponent, const FName& InSocketName);
+
+	UFUNCTION(Server, Reliable)
+		void DetachWeaponFromActor(AKT_BaseWeapon* InWeapon);
 
 	
 	FORCEINLINE FAmmo* FindStructOfAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass)
@@ -108,14 +135,15 @@ public:
 
 	FORCEINLINE AKT_BaseWeapon*& GetSelectedWeaponSlot()
 	{
-		if (SelectedFirstSlot)
-		{
-			return FirstWeaponSlot;
-		}
-		return SecondWeaponSlot;
+		return WeaponsArray[CurrentWeaponIndex];
 	}
 
-	
+
+//Public C++ variables
+public:
+
+	UPROPERTY()
+		bool CanShoot = true;
 
 //Public BP variables
 public:
@@ -123,15 +151,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Character | Weapons")
 		AKT_PlayerCharacter* PlayerCharacter = nullptr;
 
+/////////////////////////////////Weapons///////////////////////////////////////////////////
 	
-	UPROPERTY(Replicated)
-		AKT_BaseWeapon* FirstWeaponSlot = nullptr;
 	UPROPERTY(EditAnywhere, Category = "Character | Weapons")
 		TSubclassOf<AKT_BaseWeapon> FirstWeaponSlotClass = nullptr;
-
-	UPROPERTY(BlueprintReadWrite, Replicated, Category = "Character | Weapons")
-		AKT_BaseWeapon* SecondWeaponSlot = nullptr;
-
+	
 	UPROPERTY(EditAnywhere, Category = "Character | Weapons")
 		int AmmoForFirstWeapon;
 
@@ -145,11 +169,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Character | Grenade")
 		TSubclassOf<AKT_BaseGrenade> SecondGrenadeSlotClass;
 
-	UPROPERTY(BlueprintReadWrite, ReplicatedUsing = OnRep_WeaponChanged, Category = "Status")
-		bool SelectedFirstSlot = true;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Character | Weapons")
-		FName InHandsSocketName;
+		FName HandsSocketName;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Character | Weapons")
 		FName BehindBackSocketName;
@@ -158,6 +179,9 @@ public:
 		FName FirstGrenadeSlotSocketName;
 	UPROPERTY(EditDefaultsOnly, Category = "Character | Grenade")
 		FName SecondGrenadeSlotSocketName;
+
+////////////////////////////////////////////////////////////////////////////////////////////
+
 
 	UPROPERTY(EditAnywhere, Category = "Stats")
 		TArray<FAmmo> AmmoArray;

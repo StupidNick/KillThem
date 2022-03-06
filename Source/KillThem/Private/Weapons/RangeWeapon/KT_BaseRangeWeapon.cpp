@@ -169,7 +169,7 @@ void AKT_BaseRangeWeapon::ToReload_Implementation()
 	{
 		Character->UnScope_Implementation();
 	}
-	if (Character->ItemsManagerComponent->FindAndCountAmmo(GetClass(), LCountOfAmmo) && AmmoInTheClip < LClipSize)
+	if (Character->ItemsManagerComponent->CountAmmo(GetClass(), LCountOfAmmo) && AmmoInTheClip < LClipSize)
 	{
 		IsReloading = true;
 		if (AmmoInTheClip > 0)

@@ -2,7 +2,11 @@
 
 #include "Character/KT_PlayerCharacter.h"
 #include "Net/UnrealNetwork.h"
+#include "Weapons/RangeWeapon/KT_BaseRangeWeapon.h"
 
+
+
+/////////////////////////////////////////////Initialize//////////////////////////////////////////////
 
 UKT_ItemsManagerComponent::UKT_ItemsManagerComponent()
 {
@@ -14,6 +18,14 @@ void UKT_ItemsManagerComponent::BeginPlay()
 	Super::BeginPlay();
 
 	OnAmmoChangeBind.AddDynamic(this, &UKT_ItemsManagerComponent::ChangeAmmoOnClient);
+
+	PlayerCharacter = Cast<AKT_PlayerCharacter>(GetOwner());
+	if (!IsValid(FirstWeaponSlotClass) || !IsValid(PlayerCharacter)) return;
+
+	if (PlayerCharacter->HasAuthority())
+	{
+		AddWeapon(FirstWeaponSlotClass, AmmoForFirstWeapon);
+	}
 }
 
 
@@ -21,11 +33,20 @@ void UKT_ItemsManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UKT_ItemsManagerComponent, FirstWeaponSlot);
-	DOREPLIFETIME(UKT_ItemsManagerComponent, SecondWeaponSlot);
-	DOREPLIFETIME(UKT_ItemsManagerComponent, SelectedFirstSlot);
+	DOREPLIFETIME(UKT_ItemsManagerComponent, WeaponsArray);
+	DOREPLIFETIME(UKT_ItemsManagerComponent, CurrentWeaponIndex);
 }
 
+
+void UKT_ItemsManagerComponent::Initialize(AKT_PlayerCharacter* InCharacter)
+{
+	PlayerCharacter = InCharacter;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////Ammo//////////////////////////////////////////////
 
 void UKT_ItemsManagerComponent::AmountOfAmmoChanged_Implementation(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InAmmo)
 {
@@ -66,7 +87,7 @@ void UKT_ItemsManagerComponent::OnRep_WeaponChanged_Implementation()
 	{
 		int LAmountAmmo;
 		OnAmmoInTheClipChange.Broadcast(GetSelectedWeaponSlot()->GetAmmoInTheClip());
-		if (FindAndCountAmmo(GetSelectedWeaponSlot()->GetClass(), LAmountAmmo))
+		if (CountAmmo(GetSelectedWeaponSlot()->GetClass(), LAmountAmmo))
 		{
 			OnHandWeaponAmmoChangeBind.Broadcast(LAmountAmmo);
 		}
@@ -97,7 +118,7 @@ void UKT_ItemsManagerComponent::AddAmmoOnServer_Implementation(const TSubclassOf
 }
 
 
-bool UKT_ItemsManagerComponent::FindAndCountAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass,
+bool UKT_ItemsManagerComponent::CountAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass,
                                                  int& InNumberOfAmmo)
 {
 	if (const FAmmo* LAmmoStruct = FindStructOfAmmo(InAmmoClass))
@@ -125,27 +146,141 @@ void UKT_ItemsManagerComponent::RemoveAmmoOnServer_Implementation(const TSubclas
 	}
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void UKT_ItemsManagerComponent::Initialize(AKT_PlayerCharacter* InCharacter)
+/////////////////////////////////////////////Weapon//////////////////////////////////////////////
+
+void UKT_ItemsManagerComponent::AddWeapon_Implementation(TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int InAmountOfAmmo, int InAmmoInTheClip)
 {
-	PlayerCharacter = InCharacter;
+	if (WeaponsArray.Num() == 0)
+	{
+		const auto LWeapon = GetWorld()->SpawnActor<AKT_BaseWeapon>(InWeaponClass);
+		if (IsValid(LWeapon))
+		{
+			LWeapon->SetOwner(PlayerCharacter);
+			LWeapon->Initialize(PlayerCharacter, InAmmoInTheClip);
+			WeaponsArray.Add(LWeapon);
+			AddAmmoOnServer(InWeaponClass, InAmountOfAmmo);
+			
+
+			AttachWeaponToSocket(LWeapon, PlayerCharacter->GetMesh(), HandsSocketName);
+		}
+		return;
+	}
+	if (WeaponsArray.Num() == 1)
+	{
+		const auto LWeapon = GetWorld()->SpawnActor<AKT_BaseWeapon>(InWeaponClass);
+		if (IsValid(LWeapon))
+		{
+			LWeapon->SetOwner(PlayerCharacter);
+			LWeapon->Initialize(PlayerCharacter, InAmmoInTheClip);
+			WeaponsArray.Add(LWeapon);
+			AddAmmoOnServer(InWeaponClass, InAmountOfAmmo);
+			
+			AttachWeaponToSocket(LWeapon, PlayerCharacter->GetMesh(), BehindBackSocketName);
+		}
+		return;
+	}
+	DetachWeaponFromActor(GetSelectedWeaponSlot());
+	GetSelectedWeaponSlot() = nullptr;
+	GetSelectedWeaponSlot() = GetWorld()->SpawnActor<AKT_BaseWeapon>(InWeaponClass);
+	if (IsValid(GetSelectedWeaponSlot()))
+	{
+		GetSelectedWeaponSlot()->SetOwner(PlayerCharacter);
+		GetSelectedWeaponSlot()->Initialize(PlayerCharacter, InAmmoInTheClip);
+		AddAmmoOnServer(InWeaponClass, InAmountOfAmmo);
+			
+		AttachWeaponToSocket(GetSelectedWeaponSlot(), PlayerCharacter->GetMesh(), BehindBackSocketName);
+	}
+}
+
+
+void UKT_ItemsManagerComponent::DetachWeaponFromActor_Implementation(AKT_BaseWeapon* InWeapon)
+{
+	if (!IsValid(InWeapon) || !IsValid(PlayerCharacter)) return;
+	
+	InWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	const FVector LLocation = InWeapon->GetActorLocation() + FVector(100, 0, 0);
+	const FRotator LRotation = InWeapon->GetActorRotation();
+	const FActorSpawnParameters LSpawnInfo;
+
+	if (PlayerCharacter->HasAuthority())
+	{
+		AKT_BaseInteractiveWeapon* LDroppedWeapon = GetWorld()->SpawnActor<AKT_BaseInteractiveWeapon>(InWeapon->InteractiveWeaponClass, LLocation, LRotation, LSpawnInfo);
+		if (IsValid(LDroppedWeapon))
+		{
+			LDroppedWeapon->Initialize(InWeapon->GetAmmoInTheClip());
+			LDroppedWeapon->SkeletalMesh->SetCollisionProfileName(FName("BlockAll"));
+			LDroppedWeapon->SkeletalMesh->SetSimulatePhysics(true);
+		}
+	}
+	InWeapon->Destroy();
+}
+
+
+void UKT_ItemsManagerComponent::AttachWeaponToSocket_Implementation(AKT_BaseWeapon* InWeapon, USceneComponent* InSceneComponent,
+                                                                    const FName& InSocketName)
+{
+	if (!IsValid(InWeapon) || !IsValid(InSceneComponent)) return;
+
+	const FAttachmentTransformRules LAttachmentRules(EAttachmentRule::SnapToTarget, false);
+	InWeapon->AttachToComponent(InSceneComponent, LAttachmentRules, InSocketName);
 }
 
 
 void UKT_ItemsManagerComponent::ChangeWeapon_Implementation()
 {
-	if (GetSelectedWeaponSlot() == FirstWeaponSlot && IsValid(SecondWeaponSlot))
+	if (!PlayerCharacter) return;
+	
+	if (IsValid(GetSelectedWeaponSlot()))
 	{
-		FirstWeaponSlot->CanShoot = false;
-		GetWorld()->GetTimerManager().ClearAllTimersForObject(FirstWeaponSlot);
-		SecondWeaponSlot->CanShoot = true;
-		SelectedFirstSlot = false;
+		AttachWeaponToSocket(GetSelectedWeaponSlot(), PlayerCharacter->GetMesh(), BehindBackSocketName);
 	}
-	else if (GetSelectedWeaponSlot() == SecondWeaponSlot && IsValid(FirstWeaponSlot))
+	
+	CurrentWeaponIndex = (CurrentWeaponIndex + 1) % WeaponsArray.Num();
+
+	if (IsValid(GetSelectedWeaponSlot()))
 	{
-		SecondWeaponSlot->CanShoot = false;
-		GetWorld()->GetTimerManager().ClearAllTimersForObject(SecondWeaponSlot);
-		FirstWeaponSlot->CanShoot = true;
-		SelectedFirstSlot = true;
+		AttachWeaponToSocket(GetSelectedWeaponSlot(), PlayerCharacter->GetMesh(), HandsSocketName);
 	}
 }
+
+
+void UKT_ItemsManagerComponent::Reload_Implementation()
+{
+	if (!IsValid(PlayerCharacter)) return;
+	
+	if (PlayerCharacter->IsSprinted)
+	{
+		PlayerCharacter->BreakSprint();
+	}
+	Cast<AKT_BaseRangeWeapon>(GetSelectedWeaponSlot())->ToReload();
+}
+
+
+void UKT_ItemsManagerComponent::Fire_Implementation()
+{
+	if (!IsValid(PlayerCharacter)) return;
+	
+	if (PlayerCharacter->IsSprinted)
+	{
+		PlayerCharacter->BreakSprint();
+	}
+	else
+	{
+		CanShoot = true;
+	}
+	
+	if (CanShoot && IsValid(GetSelectedWeaponSlot()))
+	{
+		GetSelectedWeaponSlot()->ToUseWeapon(false);
+	}
+}
+
+
+void UKT_ItemsManagerComponent::StopFire_Implementation()
+{
+	CanShoot = false;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////

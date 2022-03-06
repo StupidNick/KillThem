@@ -7,14 +7,11 @@
 
 AKT_BaseWeapon::AKT_BaseWeapon()
 {
-	// BoxCollision = CreateDefaultSubobject<UBoxComponent>("BoxCollision");
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>("Mesh");
 	
 	RootComponent = Mesh;
-	// BoxCollision->SetupAttachment(Mesh);
 
 	Mesh->SetCollisionProfileName(FName("IgnoreAll"));
-	// BoxCollision->SetCollisionProfileName(FName("IgnoreAll"));
 	bReplicates = true;
 }
 
@@ -60,7 +57,7 @@ void AKT_BaseWeapon::AutoFireReload()
 {
 	CanShoot = true;
 	
-	if (HasAuthority() && Character->CanShoot)
+	if (HasAuthority() && Character->ItemsManagerComponent->CanShoot)
 	{
 		if (AutoFire)
 		{
@@ -118,38 +115,4 @@ void AKT_BaseWeapon::Initialize_Implementation(AKT_PlayerCharacter* InCharacter,
 	}
 	AlterFireTimerDelegate.BindUFunction(this, "UseWeapon");
 	AutoFireTimerDelegate.BindUFunction(this, "AutoFireReload");
-}
-
-
-void AKT_BaseWeapon::ToAttachToComponent_Implementation(USkeletalMeshComponent* InComponent, const FName InSocketName)
-{
-	const FAttachmentTransformRules LRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, false);
-	
-	Mesh->AttachToComponent(InComponent, LRules, InSocketName);
-}
-
-
-void AKT_BaseWeapon::Detach_Implementation()
-{
-	Mesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-}
-
-
-void AKT_BaseWeapon::ToDetachFromActor_Implementation()
-{
-	const FVector LLocation = GetActorLocation() + FVector(100, 0, 0);
-	const FRotator LRotation = GetActorRotation();
-	const FActorSpawnParameters LSpawnInfo;
-
-	if (HasAuthority())
-	{
-		AKT_BaseInteractiveWeapon* LDroppedWeapon = GetWorld()->SpawnActor<AKT_BaseInteractiveWeapon>(InteractiveWeaponClass, LLocation, LRotation, LSpawnInfo);
-		if (IsValid(LDroppedWeapon))
-		{
-			LDroppedWeapon->Initialize(AmmoInTheClip);
-			LDroppedWeapon->SkeletalMesh->SetCollisionProfileName(FName("BlockAll"));
-			LDroppedWeapon->SkeletalMesh->SetSimulatePhysics(true);
-		}
-	}
-	Destroy();
 }

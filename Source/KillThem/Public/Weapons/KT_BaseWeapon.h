@@ -75,15 +75,6 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 		void Initialize(AKT_PlayerCharacter* InCharacter, const int InAmmoInTheClip = -1);
 
-	UFUNCTION(NetMulticast, Reliable)
-		void ToAttachToComponent(USkeletalMeshComponent* InComponent, const FName InSocketName);
-
-	UFUNCTION(NetMulticast, Reliable)
-		void ToDetachFromActor();
-
-	UFUNCTION(NetMulticast, Reliable)
-		void Detach();
-
 	UFUNCTION()
 	FORCEINLINE int GetAmmoInTheClip() const
 	{

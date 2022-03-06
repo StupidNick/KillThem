@@ -1,6 +1,7 @@
 #include "InteractiveObjects/Weapons/KT_BaseBoxWithWeapon.h"
 
 #include "Character/KT_PlayerCharacter.h"
+#include "Components/KT_ItemsManagerComponent.h"
 #include "Components/SphereComponent.h"
 
 
@@ -24,7 +25,7 @@ void AKT_BaseBoxWithWeapon::Interactive(AKT_PlayerCharacter* Player)
 	
 	if (HasAuthority())
 	{
-		Player->AddWeapon(WeaponClass, AmountOfAmmo);
+		Player->ItemsManagerComponent->AddWeapon(WeaponClass, AmountOfAmmo);
 		OnSphereComponentEndOverlap(InteractSphereCollision, Player, InteractSphereCollision, 0);
 	}
 }

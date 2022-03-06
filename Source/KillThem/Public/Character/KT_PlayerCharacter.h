@@ -112,8 +112,6 @@ protected:
 		void Sprint();
 	UFUNCTION()
 		void UnSprint();
-	UFUNCTION()
-		void BreakSprint();
 	UFUNCTION(Server, Reliable)
 		void SetCharacterSpeedOnServer(const float InSpeed);
 	UFUNCTION(Server, Reliable)
@@ -181,27 +179,12 @@ protected:
 		void EndTiltOnWallRunning(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 /////////////////////////////////////Weapon////////////////////////////////////////
-	
-	UFUNCTION()
-		void OnChangeWeaponPressed();
-	
-	UFUNCTION(Server, Reliable)
-		void ChangeWeaponOnServer();
-	
-	UFUNCTION(Server, Reliable)
-		void FireOnServer();
 
 	UFUNCTION(Server, Reliable)
 		void DropFirstGrenadeOnServer();
 
 	UFUNCTION(Server, Reliable)
 		void DropSecondGrenadeOnServer();
-
-	UFUNCTION(Server, Reliable)
-		void StopFireOnServer();
-
-	UFUNCTION(Server, Reliable)
-		void ReloadOnServer();
 
 	UFUNCTION()
 		void RightClick();
@@ -251,8 +234,8 @@ protected:
 //public c++ functions
 public:
 
-	UFUNCTION(Server, Reliable)
-		void AddWeapon(TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int InAmountOfAmmo, const int AmmoInTheClip = -1);
+	UFUNCTION()
+		void BreakSprint();
 
 	UFUNCTION(Server, Reliable)
     	void AddGrenade(TSubclassOf<AKT_BaseGrenade> InGrenadeClass, const bool InToFirstSlot);
@@ -313,9 +296,6 @@ public:
 
 	FOnTimelineFloat ScopingInterpFunction{};
 //////////////////////////////////////////////////////////////////////////////////////
-
-	UPROPERTY()
-		bool CanShoot = true;
 	
 	UPROPERTY()
 		bool NeedShoot = false;
