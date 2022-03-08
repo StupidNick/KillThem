@@ -110,9 +110,6 @@ public:
 	UFUNCTION(Server, Reliable)
 		void StopFire();
 
-	UFUNCTION()
-		void Initialize(AKT_PlayerCharacter* InCharacter);
-
 	UFUNCTION(Server, Reliable)
 		void AttachWeaponToSocket(AKT_BaseWeapon* InWeapon, USceneComponent* InSceneComponent, const FName& InSocketName);
 

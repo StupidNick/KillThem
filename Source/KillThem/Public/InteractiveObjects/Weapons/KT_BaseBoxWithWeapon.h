@@ -23,8 +23,7 @@ public:
 //Protected C++ functions
 protected:
 
-	UFUNCTION()
-		virtual void Interactive(AKT_PlayerCharacter* Player) override;
+	virtual void Interactive(AKT_PlayerCharacter* Player) override;
 	
 
 //Protected C++ variables

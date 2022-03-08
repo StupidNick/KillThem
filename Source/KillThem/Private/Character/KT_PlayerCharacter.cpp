@@ -63,9 +63,6 @@ AKT_PlayerCharacter::AKT_PlayerCharacter()
 	WallRunningInterpFunction.BindUFunction(this, FName("WallRunningTimeLineFloatReturn"));
 	TiltCameraOnWallRunningInterpFunction.BindUFunction(this, FName("TiltCameraOnWallRunningTimeLineFloatReturn"));
 	ScopingInterpFunction.BindUFunction(this, FName("ScopingTimeLineFloatReturn"));
-
-	ItemsManagerComponent->Initialize(this);
-	HealthComponent->Initialize(this);
 	
 	ItemsManagerComponent->SetIsReplicated(true);
 	HealthComponent->SetIsReplicated(true);
@@ -172,32 +169,8 @@ void AKT_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
-	DOREPLIFETIME(AKT_PlayerCharacter, ControllerOfPlayer);
-}
-
-
-void AKT_PlayerCharacter::OnRep_PlayerController_Implementation()
-{
-}
-
-
-void AKT_PlayerCharacter::VisibleBooster_Implementation(UTexture2D* Icon, const float Time)
-{
-	if (IsValid(HUD))
-	{
-		HUD->MainHUD->Ability->BackgroundImage->SetBrushFromTexture(Icon);
-		HUD->MainHUD->Ability->TimerTime = Time;
-		HUD->MainHUD->Ability->SetVisibility(ESlateVisibility::Visible);
-	}
-}
-
-
-void AKT_PlayerCharacter::DisableBooster_Implementation()
-{
-	if (IsValid(HUD))
-	{
-		HUD->MainHUD->Ability->SetVisibility(ESlateVisibility::Hidden);
-	}
+	DOREPLIFETIME(AKT_PlayerCharacter, CanInteract);
+	DOREPLIFETIME(AKT_PlayerCharacter, InteractiveObject);
 }
 
 
@@ -919,20 +892,11 @@ void AKT_PlayerCharacter::CheckCanFireOnServer_Implementation()
 
 ///////////////////////////////////////////////////Interaction//////////////////////////////////////////////////////////
 
-void AKT_PlayerCharacter::InteractOnServer_Implementation(AKT_BaseInteractiveObject* InInteractiveObject)
-{
-	InteractiveObject = InInteractiveObject;
-	InteractiveObject->ToInteractive(this);
-}
-
-
 void AKT_PlayerCharacter::Interact()
 {
-	if (IsValid(InteractiveObject) && CanInteract)
-	{
-		InteractiveObject->ToInteractive(this);
-		InteractOnServer(InteractiveObject);
-	}
+	if (!IsValid(InteractiveObject) || !CanInteract) return;
+	
+	InteractiveObject->ToInteractive(this);
 }
 
 

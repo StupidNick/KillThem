@@ -67,6 +67,11 @@ public:
 
 	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "MainHUD_WD | SPBar")
 		void UpdateBooster(float Timer);
+	
+	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "MainHUD_WD | SPBar")
+		void ActivateBooster(UTexture2D* Icon, float Time);
+	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "MainHUD_WD | SPBar")
+		void DeactivatedBooster(bool Deactivated);
 
 
 //Blueprint values

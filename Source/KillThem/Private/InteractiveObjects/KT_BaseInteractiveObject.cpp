@@ -7,93 +7,81 @@
 
 AKT_BaseInteractiveObject::AKT_BaseInteractiveObject()
 {
+	PrimaryActorTick.bCanEverTick = false;
+	
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>("BoxCollision");
 	InteractSphereCollision = CreateDefaultSubobject<USphereComponent>("InteractSphereCollision");
 	
-	SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>("SkeletalMesh");
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>("StaticMesh");
 	StandStaticMesh = CreateDefaultSubobject<UStaticMeshComponent>("StandStaticMesh");
-	SceneComponent = CreateDefaultSubobject<UBoxComponent>("SceneComponent");
+	SceneComponent = CreateDefaultSubobject<USceneComponent>("SceneComponent");
 	RotationTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("RotationTimeline"));
 
 	RootComponent = SceneComponent;
 	BoxCollision->SetupAttachment(SceneComponent);
-	SkeletalMesh->SetupAttachment(SceneComponent);
 	InteractSphereCollision->SetupAttachment(SceneComponent);
 	StaticMesh->SetupAttachment(SceneComponent);
 	StandStaticMesh->SetupAttachment(SceneComponent);
 
+	StaticMesh->SetIsReplicated(true);
+	
 	RotationInterpFunction.BindUFunction(this, FName("RotationTimeLineFloatReturn"));
 	
-	SkeletalMesh->SetCollisionProfileName(FName("IgnoreAll"));
 	StaticMesh->SetCollisionProfileName(FName("IgnoreAll"));
 	StandStaticMesh->SetCollisionProfileName(FName("IgnoreAll"));
-	SceneComponent->SetCollisionProfileName(FName("IgnoreAll"));
 
 	BoxCollision->SetCollisionProfileName(FName("InteractiveObject"));
 	InteractSphereCollision->SetCollisionProfileName(FName("InteractiveObject"));
 }
 
 
-
-
 void AKT_BaseInteractiveObject::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (!IsValid(StaticMesh->GetStaticMesh()))
+	if (HasAuthority())
 	{
-		StaticMesh->DestroyComponent();
-	}
-	else if (!IsValid(SkeletalMesh->SkeletalMesh))
-	{
-		SkeletalMesh->DestroyComponent();
-		RootComponent = StaticMesh;
-	}
-
-	if (!InteractOnPressButton)
-	{
-		BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &AKT_BaseInteractiveObject::OnBoxComponentBeginOverlap);
-	}
-	else
-	{
-		InteractSphereCollision->OnComponentBeginOverlap.AddDynamic(this, &AKT_BaseInteractiveObject::OnSphereComponentBeginOverlap);
-		InteractSphereCollision->OnComponentEndOverlap.AddDynamic(this, &AKT_BaseInteractiveObject::OnSphereComponentEndOverlap);
-	}
-		if (!HasAuthority())
+		if (!InteractOnPressButton)
 		{
-			if (RotationCurve)
-			{
-				RotationTimeLine->AddInterpFloat(RotationCurve, RotationInterpFunction, FName("Alpha"));
-				RotationTimeLine->SetLooping(true);
-				RotationTimeLine->PlayFromStart();
-			}
+			BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &AKT_BaseInteractiveObject::OnBoxComponentBeginOverlap);
 		}
+		else
+		{
+			InteractSphereCollision->OnComponentBeginOverlap.AddDynamic(this, &AKT_BaseInteractiveObject::OnSphereComponentBeginOverlap);
+			InteractSphereCollision->OnComponentEndOverlap.AddDynamic(this, &AKT_BaseInteractiveObject::OnSphereComponentEndOverlap);
+		}
+	}
+	
+	if (!HasAuthority())
+	{
+		if (RotationCurve)
+		{
+			RotationTimeLine->AddInterpFloat(RotationCurve, RotationInterpFunction, FName("Alpha"));
+			RotationTimeLine->SetLooping(true);
+			RotationTimeLine->PlayFromStart();
+		}
+	}
 }
 
 
 void AKT_BaseInteractiveObject::RotationTimeLineFloatReturn(float Value)
 {
-	// StaticMesh->SetRelativeRotation(FRotator(SkeletalMesh->GetRelativeRotation().Pitch, SkeletalMesh->GetRelativeRotation().Yaw + 0.5, SkeletalMesh->GetRelativeRotation().Roll));
+	StaticMesh->SetRelativeRotation(FRotator(StaticMesh->GetRelativeRotation().Pitch,
+		StaticMesh->GetRelativeRotation().Yaw + SpeedRotation, StaticMesh->GetRelativeRotation().Roll));
 }
 
 
-void AKT_BaseInteractiveObject::OnBoxComponentBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-                                                           UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AKT_BaseInteractiveObject::OnBoxComponentBeginOverlap_Implementation(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (const auto LCharacter = Cast<AKT_PlayerCharacter>(OtherActor))
 	{
 		ToInteractive(LCharacter);
-		if (RecoverTime > 0)
-		{
-			EnableTimerDelegate.BindUFunction(this, "EnableObject");
-			GetWorldTimerManager().SetTimer(EnableTimerHandle, EnableTimerDelegate, RecoverTime, false);
-		}
 	}
 }
 
 
-void AKT_BaseInteractiveObject::OnSphereComponentBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+void AKT_BaseInteractiveObject::OnSphereComponentBeginOverlap_Implementation(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (AKT_PlayerCharacter* LCharacter = Cast<AKT_PlayerCharacter>(OtherActor))
@@ -103,7 +91,8 @@ void AKT_BaseInteractiveObject::OnSphereComponentBeginOverlap(UPrimitiveComponen
 }
 
 
-void AKT_BaseInteractiveObject::OnSphereComponentEndOverlap(UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void AKT_BaseInteractiveObject::OnSphereComponentEndOverlap_Implementation(UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+	class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (AKT_PlayerCharacter* LCharacter = Cast<AKT_PlayerCharacter>(OtherActor))
 	{
@@ -112,61 +101,52 @@ void AKT_BaseInteractiveObject::OnSphereComponentEndOverlap(UPrimitiveComponent*
 }
 
 
+void AKT_BaseInteractiveObject::ToEnableObject_Implementation()
+{
+	EnableObject();
+}
 
-void AKT_BaseInteractiveObject::EnableObject()
+
+void AKT_BaseInteractiveObject::EnableObject_Implementation()
 {
 	InteractSphereCollision->SetGenerateOverlapEvents(true);
 	BoxCollision->SetGenerateOverlapEvents(true);
 	if (IsValid(StaticMesh))
 	{
-		StaticMesh->SetVisibility(true);
-	}
-	else if (IsValid(SkeletalMesh))
-	{
-		SkeletalMesh->SetVisibility(true);
+		StaticMesh->SetVisibility(true, true);
 	}
 	CanTake = true;
 }
 
 
-void AKT_BaseInteractiveObject::DisableObject()
+void AKT_BaseInteractiveObject::DisableObject_Implementation()
 {
 	InteractSphereCollision->SetGenerateOverlapEvents(false);
 	BoxCollision->SetGenerateOverlapEvents(false);
 	if (IsValid(StaticMesh))
 	{
-		StaticMesh->SetVisibility(false);
-	}
-	else if (IsValid(SkeletalMesh))
-	{
-		SkeletalMesh->SetVisibility(false);
+		StaticMesh->SetVisibility(false, true);
 	}
 	CanTake = false;
+	if (RecoverTime > 0)
+	{
+		EnableTimerDelegate.BindUFunction(this, "ToEnableObject");
+		GetWorldTimerManager().SetTimer(EnableTimerHandle, EnableTimerDelegate, RecoverTime, false);
+	}
 }
 
 
-void AKT_BaseInteractiveObject::ToInteractive(AKT_PlayerCharacter* Player)
+void AKT_BaseInteractiveObject::ToInteractive_Implementation(AKT_PlayerCharacter* Player)
 {
 	if (CanTake)
 	{
-		if (InteractOnPressButton)
-		{
-			Interactive(Player);
-		}
-		else
-		{
-			Interactive(Player);
-		}
+		Interactive(Player);
 	}
 }
 
 
-void AKT_BaseInteractiveObject::Interactive(AKT_PlayerCharacter* Player)
+void AKT_BaseInteractiveObject::Interactive_Implementation(AKT_PlayerCharacter* Player)
 {
-}
-
-
-void AKT_BaseInteractiveObject::InteractiveOnServer_Implementation(AKT_PlayerCharacter* Player)
-{
-	Interactive(Player);
+	PlayerCharacter = Player;
+	DisableObject();
 }

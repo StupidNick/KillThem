@@ -15,6 +15,7 @@ void UKT_HealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	PlayerCharacter = Cast<AKT_PlayerCharacter>(GetOwner());
 	AActor* LOwner = GetOwner();
 	if (IsValid(LOwner))
 	{
@@ -23,12 +24,6 @@ void UKT_HealthComponent::BeginPlay()
 
 	Health = DefaultHealth;
 	Shield = DefaultShield;
-}
-
-
-void UKT_HealthComponent::Initialize(AKT_PlayerCharacter* InCharacter)
-{
-	PlayerCharacter = InCharacter;
 }
 
 

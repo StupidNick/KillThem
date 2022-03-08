@@ -37,12 +37,6 @@ void UKT_ItemsManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME(UKT_ItemsManagerComponent, CurrentWeaponIndex);
 }
 
-
-void UKT_ItemsManagerComponent::Initialize(AKT_PlayerCharacter* InCharacter)
-{
-	PlayerCharacter = InCharacter;
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -161,7 +155,6 @@ void UKT_ItemsManagerComponent::AddWeapon_Implementation(TSubclassOf<AKT_BaseWea
 			LWeapon->Initialize(PlayerCharacter, InAmmoInTheClip);
 			WeaponsArray.Add(LWeapon);
 			AddAmmoOnServer(InWeaponClass, InAmountOfAmmo);
-			
 
 			AttachWeaponToSocket(LWeapon, PlayerCharacter->GetMesh(), HandsSocketName);
 		}
@@ -182,7 +175,6 @@ void UKT_ItemsManagerComponent::AddWeapon_Implementation(TSubclassOf<AKT_BaseWea
 		return;
 	}
 	DetachWeaponFromActor(GetSelectedWeaponSlot());
-	GetSelectedWeaponSlot() = nullptr;
 	GetSelectedWeaponSlot() = GetWorld()->SpawnActor<AKT_BaseWeapon>(InWeaponClass);
 	if (IsValid(GetSelectedWeaponSlot()))
 	{
@@ -190,7 +182,7 @@ void UKT_ItemsManagerComponent::AddWeapon_Implementation(TSubclassOf<AKT_BaseWea
 		GetSelectedWeaponSlot()->Initialize(PlayerCharacter, InAmmoInTheClip);
 		AddAmmoOnServer(InWeaponClass, InAmountOfAmmo);
 			
-		AttachWeaponToSocket(GetSelectedWeaponSlot(), PlayerCharacter->GetMesh(), BehindBackSocketName);
+		AttachWeaponToSocket(GetSelectedWeaponSlot(), PlayerCharacter->GetMesh(), HandsSocketName);
 	}
 }
 
@@ -210,8 +202,8 @@ void UKT_ItemsManagerComponent::DetachWeaponFromActor_Implementation(AKT_BaseWea
 		if (IsValid(LDroppedWeapon))
 		{
 			LDroppedWeapon->Initialize(InWeapon->GetAmmoInTheClip());
-			LDroppedWeapon->SkeletalMesh->SetCollisionProfileName(FName("BlockAll"));
-			LDroppedWeapon->SkeletalMesh->SetSimulatePhysics(true);
+			LDroppedWeapon->StaticMesh->SetCollisionProfileName(FName("BlockAll"));
+			LDroppedWeapon->StaticMesh->SetSimulatePhysics(true);
 		}
 	}
 	InWeapon->Destroy();

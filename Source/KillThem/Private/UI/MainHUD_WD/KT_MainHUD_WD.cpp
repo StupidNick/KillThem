@@ -19,10 +19,7 @@ void UKT_MainHUD_WD::InitializeMainHUD_Implementation(AKT_PlayerCharacter* Playe
 {
 	Character = PlayerCharacter;
 
-	if (!Character)
-	{
-		return;
-	}
+	if (!IsValid(Character)) return;
 
 	Ability->SetVisibility(ESlateVisibility::Hidden);
 	
@@ -36,18 +33,34 @@ void UKT_MainHUD_WD::InitializeMainHUD_Implementation(AKT_PlayerCharacter* Playe
 	UpdateAmmo(Character->ItemsManagerComponent->AmmoForFirstWeapon);
 	
 	Character->ItemsManagerComponent->OnAmmoInTheClipChange.AddDynamic(this, &UKT_MainHUD_WD::UpdateAmmoInTheClip);
-	// UpdateAmmoInTheClip(Character->ItemsManagerComponent->GetSelectedWeaponSlot()->GetAmmoInTheClip());
 	
 	Character->ItemsManagerComponent->OnWeaponChange.AddDynamic(this, &UKT_MainHUD_WD::UpdateIcon);
 	
-	Character->OnTimeBustedUpdate.AddDynamic(this, &UKT_MainHUD_WD::UpdateBooster);
+	Character->OnBoosterActivated.AddDynamic(this, &UKT_MainHUD_WD::ActivateBooster);
+	Character->OnBoosterDeactivated.AddDynamic(this, &UKT_MainHUD_WD::DeactivatedBooster);
+	Character->OnBoosterUpdates.AddDynamic(this, &UKT_MainHUD_WD::UpdateBooster);
 }
 
 
 void UKT_MainHUD_WD::UpdateBooster_Implementation(float Timer)
 {
 	Ability->ValueTextBlock->SetText(FText::FromString(FString::FromInt(Timer)));
-	Ability->ValueProgressBar->SetPercent(Timer/Ability->TimerTime);
+	Ability->ValueProgressBar->SetPercent(Timer/Ability->TimerValue);
+}
+
+
+void UKT_MainHUD_WD::ActivateBooster_Implementation(UTexture2D* Icon, float Time)
+{
+	Ability->BackgroundImage->SetBrushFromTexture(Icon);
+	Ability->ValueTextBlock->SetText(FText::FromString(FString::FromInt(Time)));
+	Ability->TimerValue = Time;
+	Ability->SetVisibility(ESlateVisibility::Visible);
+}
+
+
+void UKT_MainHUD_WD::DeactivatedBooster_Implementation(bool Deactivated)
+{
+	Ability->SetVisibility(ESlateVisibility::Hidden);
 }
 
 

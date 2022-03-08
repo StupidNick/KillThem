@@ -104,9 +104,6 @@ public:
 //public C++ variables
 public:
 
-	UFUNCTION()
-		void Initialize(AKT_PlayerCharacter* InCharacter);
-
 	UPROPERTY(VisibleAnywhere, Transient, ReplicatedUsing = OnRep_IsDead, Category = "Stats")
 		bool IsDead = false;
 	

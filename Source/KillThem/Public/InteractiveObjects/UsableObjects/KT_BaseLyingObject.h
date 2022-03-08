@@ -6,6 +6,7 @@
 #include "KT_BaseLyingObject.generated.h"
 
 
+
 UCLASS()
 class KILLTHEM_API AKT_BaseLyingObject : public AKT_BaseInteractiveObject
 {
@@ -17,9 +18,16 @@ public:
 //private C++ functions
 private:
 
-	UFUNCTION(NetMulticast, Reliable)
-		void TimerTimeLineFloatReturn(float Value);
+	UFUNCTION(Client, Unreliable)
+		void TimeLineProgress(float Value);
 
+	
+//private C++ variables
+private:
+
+	UPROPERTY()
+		UTimelineComponent* BoosterTimeLineComponent;
+	
 //protected C++ functions
 protected:
 
@@ -27,8 +35,18 @@ protected:
 
 	virtual void Interactive(AKT_PlayerCharacter* Player) override;
 
+	UFUNCTION(NetMulticast, Unreliable)
+		void BoosterActivated(AKT_PlayerCharacter* Player, UTexture2D* Icon, float Time);
+
+	UFUNCTION(NetMulticast, Unreliable)
+		void BoosterDeactivated();
+
 	UFUNCTION()
 		virtual void BoostDown(AKT_PlayerCharacter* Player);
+
+	virtual void EnableObject() override;
+
+	virtual void DisableObject() override;
 
 
 //protected C++ variables
@@ -37,18 +55,21 @@ protected:
 	FTimerHandle BoostDownTimerHandle;
 	FTimerDelegate BoostDownTimerDelegate;
 
-	UTimelineComponent* TimerTimeLine;
+//public C++ functions
+public:
 
-	FOnTimelineFloat TimerInterpFunction{};
+	FOnTimelineFloat BoosterInterpFunction{};
+	
+	virtual void RotationTimeLineFloatReturn(float Value) override;
 	
 //public BP variables
 public:
 
-	UPROPERTY()
-		AKT_PlayerCharacter* Character = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+		USkeletalMeshComponent* SkeletalMesh = nullptr;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Boosts")
-		float BoostDownTimer;
+		float BoosterCoolingTime;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Boosts")
 		bool IsABooster;
@@ -57,5 +78,5 @@ public:
 		UTexture2D* BoosterIcon;
 
 	UPROPERTY(EditAnywhere, Category = "Curve")
-		UCurveFloat* TimerCurveFloat;
+		UCurveFloat* BoosterIndicateCurveFloat;
 };

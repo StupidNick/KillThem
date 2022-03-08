@@ -21,24 +21,18 @@ void AKT_BaseInteractiveWeapon::Destruction()
 
 void AKT_BaseInteractiveWeapon::Interactive(AKT_PlayerCharacter* Player)
 {
-	if (HasAuthority())
-	{
-		Player->ItemsManagerComponent->AddWeapon(WeaponClass, 0, AmmoInTheClip);
-		Destroy();
-	}
+	Player->ItemsManagerComponent->AddWeapon(WeaponClass, 0, AmmoInTheClip);
+	Destroy();
 }
 
 
 void AKT_BaseInteractiveWeapon::Initialize(int InAmountOfAmmo)
 {
-	if (HasAuthority())
-	{
-		AmmoInTheClip = InAmountOfAmmo;
-
-		FTimerHandle LTimerHandle;
-		FTimerDelegate LTimerDelegate;
-
-		LTimerDelegate.BindUFunction(this, "Destruction");
-		GetWorldTimerManager().SetTimer(LTimerHandle, LTimerDelegate, Cast<AKT_BaseGameMode>(UGameplayStatics::GetGameMode(this))->ItemsDestructionTimer, false);
-	}
+	AmmoInTheClip = InAmountOfAmmo;
+	
+	FTimerHandle LTimerHandle;
+	FTimerDelegate LTimerDelegate;
+	
+	LTimerDelegate.BindUFunction(this, "Destruction");
+	GetWorldTimerManager().SetTimer(LTimerHandle, LTimerDelegate, Cast<AKT_BaseGameMode>(UGameplayStatics::GetGameMode(this))->ItemsDestructionTimer, false);
 }

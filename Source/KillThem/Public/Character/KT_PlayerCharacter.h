@@ -24,7 +24,9 @@ class AKT_GameHUD;
 
 
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBusterUsed, float, Timer);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBusterActivated, UTexture2D*, Icon, float, Time);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBusterUpdates, float, Time);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBusterDeactivated, bool, Deactivated);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDead, AController*, Controller);
 
 
@@ -67,15 +69,20 @@ private:
 //private с++ variables
 private:
 
-	UTimelineComponent* SlidingTimeLine;
+	UPROPERTY()
+		UTimelineComponent* SlidingTimeLine;
 
-	UTimelineComponent* CrouchingTimeLine;
+	UPROPERTY()
+		UTimelineComponent* CrouchingTimeLine;
 
-	UTimelineComponent* WallRunningTimeLine;
+	UPROPERTY()
+		UTimelineComponent* WallRunningTimeLine;
 
-	UTimelineComponent* TiltCameraOnWallRunningTimeLine;
+	UPROPERTY()
+		UTimelineComponent* TiltCameraOnWallRunningTimeLine;
 
-	UTimelineComponent* ScopingTimeLine;
+	UPROPERTY()
+		UTimelineComponent* ScopingTimeLine;
 
 	UPROPERTY()
 		FVector CrouchingStartLocation;
@@ -207,8 +214,6 @@ protected:
 
 /////////////////////////////////////Interact//////////////////////////////////////
 
-	UFUNCTION(Server, Reliable)
-		void InteractOnServer(AKT_BaseInteractiveObject* InInteractiveObject);
 	UFUNCTION()
 		void Interact();
 
@@ -224,10 +229,10 @@ protected:
 	UPROPERTY()
 		FVector PlayerDirectionForWallRunning;
 
-	UPROPERTY()
+	UPROPERTY(Replicated)
 		bool CanInteract;
 
-	UPROPERTY()
+	UPROPERTY(Replicated)
 		AKT_BaseInteractiveObject* InteractiveObject = nullptr;
 	
 
@@ -254,11 +259,6 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	UFUNCTION(Client, Reliable)
-		void VisibleBooster(UTexture2D* Icon, const float Time);
-	UFUNCTION(Client, Reliable)
-		void DisableBooster();
-
 	UFUNCTION(Server, Reliable)
 		void BerserkBoostOnServer(const float Boost);
 
@@ -279,9 +279,6 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	UFUNCTION(NetMulticast, Reliable)
-		void OnRep_PlayerController();
-
 //public c++ variables
 public:
 
@@ -297,14 +294,6 @@ public:
 	FOnTimelineFloat ScopingInterpFunction{};
 //////////////////////////////////////////////////////////////////////////////////////
 	
-	UPROPERTY()
-		bool NeedShoot = false;
-
-	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_PlayerController, Category = "Stats")
-		AController* ControllerOfPlayer;
-
-	
-
 	
 ////////////////////////////////////PersonParams//////////////////////////////////////
 
@@ -436,7 +425,13 @@ public:
 		bool IsScoping = false;
 
 	UPROPERTY(BlueprintAssignable, Category = "HealthComponent | EventsForBind")
-		FOnBusterUsed OnTimeBustedUpdate;
+		FOnBusterActivated OnBoosterActivated;
+
+	UPROPERTY(BlueprintAssignable, Category = "HealthComponent | EventsForBind")
+		FOnBusterUpdates OnBoosterUpdates;
+
+	UPROPERTY(BlueprintAssignable, Category = "HealthComponent | EventsForBind")
+		FOnBusterDeactivated OnBoosterDeactivated;
 
 	UPROPERTY(BlueprintAssignable, Category = "HealthComponent | EventsForBind")
 		FOnDead OnDead;

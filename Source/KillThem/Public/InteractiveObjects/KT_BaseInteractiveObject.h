@@ -23,41 +23,38 @@ class KILLTHEM_API AKT_BaseInteractiveObject : public AActor
 public:	
 
 	AKT_BaseInteractiveObject();
-
+	
+	
 //private C++ functions
 private:
-
+	
 	UTimelineComponent* RotationTimeLine;
 
-	UFUNCTION()
-		void RotationTimeLineFloatReturn(float Value);
-
-	
-	
 //protected C++ functions
 protected:
 
 	virtual void BeginPlay() override;
 
-	UFUNCTION()
+	UFUNCTION(Server, Unreliable)
 		void OnBoxComponentBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	UFUNCTION()
+	UFUNCTION(Server, Unreliable)
 		void OnSphereComponentBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	UFUNCTION()
+	UFUNCTION(Server, Unreliable)
 		void OnSphereComponentEndOverlap(UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	virtual void Interactive(AKT_PlayerCharacter* Player);
+	UFUNCTION(NetMulticast, Unreliable)
+		virtual void Interactive(AKT_PlayerCharacter* Player);
 
 	UFUNCTION(Server, Reliable)
-		void InteractiveOnServer(AKT_PlayerCharacter* OtherActor);
+		virtual void ToEnableObject();
 
-	UFUNCTION()
-		void EnableObject();
+	UFUNCTION(NetMulticast, Reliable)
+		virtual void EnableObject();
 
-	UFUNCTION()
-		void DisableObject();
+	UFUNCTION(NetMulticast, Reliable)
+		virtual void DisableObject();
 
 
 	FTimerHandle EnableTimerHandle;
@@ -65,6 +62,9 @@ protected:
 
 //protected C++ variables
 protected:
+
+	UPROPERTY()
+		AKT_PlayerCharacter* PlayerCharacter = nullptr;
 
 	bool CanTake = true;
 
@@ -76,8 +76,11 @@ public:
 
 	FOnTimelineFloat RotationInterpFunction{};
 
-	UFUNCTION()
+	UFUNCTION(Server, Unreliable)
 		void ToInteractive(AKT_PlayerCharacter* Player);
+
+	UFUNCTION()
+		virtual void RotationTimeLineFloatReturn(float Value);
 	
 //public BP variables
 public:
@@ -95,10 +98,7 @@ public:
 		UStaticMeshComponent* StandStaticMesh = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
-		UBoxComponent* SceneComponent = nullptr;
-
-	UPROPERTY(EditAnywhere, Category = "Components")
-		USkeletalMeshComponent* SkeletalMesh = nullptr;
+		USceneComponent* SceneComponent = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "WorkInfo")
 		float RecoverTime;
@@ -110,7 +110,7 @@ public:
 		bool RotateObject = false;
 
 	UPROPERTY(EditDefaultsOnly, Category = "WorkInfo")
-		float RotationTime;
+		float SpeedRotation;
 
 	UPROPERTY(EditAnywhere, Category = "WorkInfo")
 		UCurveFloat* RotationCurve;
