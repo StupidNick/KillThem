@@ -14,9 +14,9 @@ void AKT_HealthBox::BeginPlay()
 }
 
 
-void AKT_HealthBox::Interactive(AKT_PlayerCharacter* Player)
+void AKT_HealthBox::InteractiveOnServer(AKT_PlayerCharacter* Player)
 {
-	Super::Interactive(Player);
+	Super::InteractiveOnServer(Player);
 
 	Player->HealthComponent->ChangeHealth(RecoveryHealth);
 }

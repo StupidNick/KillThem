@@ -13,9 +13,9 @@ void AKT_SpeedBooster::BeginPlay()
 }
 
 
-void AKT_SpeedBooster::Interactive(AKT_PlayerCharacter* Player)
+void AKT_SpeedBooster::InteractiveOnServer(AKT_PlayerCharacter* Player)
 {
-	Super::Interactive(Player);
+	Super::InteractiveOnServer(Player);
 
 	Player->SpeedBoostOnServer(SpeedFactor);
 }

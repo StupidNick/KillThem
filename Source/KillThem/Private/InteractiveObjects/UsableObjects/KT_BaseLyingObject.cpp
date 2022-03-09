@@ -46,10 +46,11 @@ void AKT_BaseLyingObject::RotationTimeLineFloatReturn(float Value)
 }
 
 
-void AKT_BaseLyingObject::Interactive(AKT_PlayerCharacter* Player)
+void AKT_BaseLyingObject::InteractiveOnServer(AKT_PlayerCharacter* Player)
 {
-	Super::Interactive(Player);
+	Super::InteractiveOnServer(Player);
 	
+	DisableObject();
 	if (IsABooster)
 	{
 		BoosterActivated(Player, BoosterIcon, BoosterCoolingTime);
@@ -62,21 +63,20 @@ void AKT_BaseLyingObject::Interactive(AKT_PlayerCharacter* Player)
 
 void AKT_BaseLyingObject::BoosterActivated_Implementation(AKT_PlayerCharacter* Player, UTexture2D* Icon, float Time)
 {
-	PlayerCharacter = Player;
-	if (!IsValid(PlayerCharacter) || HasAuthority()) return;
+	if (!IsValid(Player) || HasAuthority()) return;
 
 	BoosterTimeLineComponent->SetPlaybackPosition(Time, true);
 	BoosterTimeLineComponent->Reverse();
 	
-	PlayerCharacter->OnBoosterActivated.Broadcast(Icon, Time);
+	Player->OnBoosterActivated.Broadcast(Icon, Time);
 }
 
 
-void AKT_BaseLyingObject::BoosterDeactivated_Implementation()
+void AKT_BaseLyingObject::BoosterDeactivated_Implementation(AKT_PlayerCharacter* Player)
 {
-	if (!IsValid(PlayerCharacter)) return;
+	if (!IsValid(Player) || HasAuthority()) return;
 	
-	PlayerCharacter->OnBoosterDeactivated.Broadcast(true);
+	Player->OnBoosterDeactivated.Broadcast(true);
 }
 
 
@@ -93,7 +93,7 @@ void AKT_BaseLyingObject::DisableObject()
 
 void AKT_BaseLyingObject::BoostDown(AKT_PlayerCharacter* Player) 
 {
-	BoosterDeactivated();
+	BoosterDeactivated(Player);
 	PlayerCharacter = nullptr;
 }
 

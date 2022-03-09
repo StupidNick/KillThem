@@ -13,9 +13,9 @@ void AKT_RageBooster::BeginPlay()
 }
 
 
-void AKT_RageBooster::Interactive(AKT_PlayerCharacter* Player)
+void AKT_RageBooster::InteractiveOnServer(AKT_PlayerCharacter* Player)
 {
-	Super::Interactive(Player);
+	Super::InteractiveOnServer(Player);
 
 	Player->RageBoostOnServer(RageFactor);
 }

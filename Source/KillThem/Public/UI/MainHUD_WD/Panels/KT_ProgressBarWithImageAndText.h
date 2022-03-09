@@ -46,7 +46,7 @@ protected:
 public:
 
 	UPROPERTY()
-		float TimerTime;
+		float TimerValue;
 	
 
 //Blueprint values

@@ -5,21 +5,24 @@
 #include "Components/SphereComponent.h"
 
 
-
 AKT_BaseBoxWithWeapon::AKT_BaseBoxWithWeapon()
 {
-	bReplicates = false;
+	bReplicates = true;
 }
 
 
-void AKT_BaseBoxWithWeapon::Interactive(AKT_PlayerCharacter* Player)
+void AKT_BaseBoxWithWeapon::InteractiveOnServer(AKT_PlayerCharacter* Player)
 {
-	DisableObject();
-	if (RecoverTime > 0)
-	{
-		EnableTimerDelegate.BindUFunction(this, "EnableObject");
-		GetWorldTimerManager().SetTimer(EnableTimerHandle, EnableTimerDelegate, RecoverTime, false);
-	}
+	Super::InteractiveOnServer(Player);
+
 	Player->ItemsManagerComponent->AddWeapon(WeaponClass, AmountOfAmmo);
 	OnSphereComponentEndOverlap(InteractSphereCollision, Player, InteractSphereCollision, 0);
+}
+
+
+void AKT_BaseBoxWithWeapon::InteractiveOnClient()
+{
+	Super::InteractiveOnClient();
+
+	DisableObject();
 }

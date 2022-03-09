@@ -3,6 +3,7 @@
 #include "Components/SphereComponent.h"
 
 #include "Character/KT_PlayerCharacter.h"
+#include "Net/UnrealNetwork.h"
 
 
 AKT_BaseInteractiveObject::AKT_BaseInteractiveObject()
@@ -64,6 +65,15 @@ void AKT_BaseInteractiveObject::BeginPlay()
 }
 
 
+void AKT_BaseInteractiveObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AKT_BaseInteractiveObject, PlayerCharacter);
+	DOREPLIFETIME(AKT_BaseInteractiveObject, CanTake);
+}
+
+
 void AKT_BaseInteractiveObject::RotationTimeLineFloatReturn(float Value)
 {
 	StaticMesh->SetRelativeRotation(FRotator(StaticMesh->GetRelativeRotation().Pitch,
@@ -86,6 +96,7 @@ void AKT_BaseInteractiveObject::OnSphereComponentBeginOverlap_Implementation(UPr
 {
 	if (AKT_PlayerCharacter* LCharacter = Cast<AKT_PlayerCharacter>(OtherActor))
 	{
+		PlayerCharacter = LCharacter;
 		LCharacter->InteractInfo(this);
 	}
 }
@@ -96,18 +107,19 @@ void AKT_BaseInteractiveObject::OnSphereComponentEndOverlap_Implementation(UPrim
 {
 	if (AKT_PlayerCharacter* LCharacter = Cast<AKT_PlayerCharacter>(OtherActor))
 	{
+		PlayerCharacter = nullptr;
 		LCharacter->UnInteractInfo();
 	}
 }
 
 
-void AKT_BaseInteractiveObject::ToEnableObject_Implementation()
+void AKT_BaseInteractiveObject::ToEnableObject()
 {
 	EnableObject();
 }
 
 
-void AKT_BaseInteractiveObject::EnableObject_Implementation()
+void AKT_BaseInteractiveObject::EnableObject()
 {
 	InteractSphereCollision->SetGenerateOverlapEvents(true);
 	BoxCollision->SetGenerateOverlapEvents(true);
@@ -119,7 +131,7 @@ void AKT_BaseInteractiveObject::EnableObject_Implementation()
 }
 
 
-void AKT_BaseInteractiveObject::DisableObject_Implementation()
+void AKT_BaseInteractiveObject::DisableObject()
 {
 	InteractSphereCollision->SetGenerateOverlapEvents(false);
 	BoxCollision->SetGenerateOverlapEvents(false);
@@ -136,17 +148,22 @@ void AKT_BaseInteractiveObject::DisableObject_Implementation()
 }
 
 
-void AKT_BaseInteractiveObject::ToInteractive_Implementation(AKT_PlayerCharacter* Player)
+void AKT_BaseInteractiveObject::ToInteractive(AKT_PlayerCharacter* Player)
 {
 	if (CanTake)
 	{
-		Interactive(Player);
+		InteractiveOnServer(Player);
+		InteractiveOnClient();
 	}
 }
 
 
-void AKT_BaseInteractiveObject::Interactive_Implementation(AKT_PlayerCharacter* Player)
+void AKT_BaseInteractiveObject::InteractiveOnServer_Implementation(AKT_PlayerCharacter* Player)
 {
 	PlayerCharacter = Player;
-	DisableObject();
+}
+
+
+void AKT_BaseInteractiveObject::InteractiveOnClient_Implementation()
+{
 }

@@ -44,16 +44,18 @@ protected:
 	UFUNCTION(Server, Unreliable)
 		void OnSphereComponentEndOverlap(UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	UFUNCTION(NetMulticast, Unreliable)
-		virtual void Interactive(AKT_PlayerCharacter* Player);
+	UFUNCTION(Server, Unreliable)
+		virtual void InteractiveOnServer(AKT_PlayerCharacter* Player);
+	UFUNCTION(Client, Unreliable)
+		virtual void InteractiveOnClient();
 
-	UFUNCTION(Server, Reliable)
+	UFUNCTION()
 		virtual void ToEnableObject();
 
-	UFUNCTION(NetMulticast, Reliable)
+	UFUNCTION()
 		virtual void EnableObject();
 
-	UFUNCTION(NetMulticast, Reliable)
+	UFUNCTION()
 		virtual void DisableObject();
 
 
@@ -63,10 +65,11 @@ protected:
 //protected C++ variables
 protected:
 
-	UPROPERTY()
+	UPROPERTY(Replicated)
 		AKT_PlayerCharacter* PlayerCharacter = nullptr;
 
-	bool CanTake = true;
+	UPROPERTY(Replicated)
+		bool CanTake = true;
 
 	FTimerHandle RotationTimerHandle;
 	FTimerDelegate RotationTimerDelegate;
@@ -74,9 +77,11 @@ protected:
 //public C++ functions
 public:
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	FOnTimelineFloat RotationInterpFunction{};
 
-	UFUNCTION(Server, Unreliable)
+	UFUNCTION()
 		void ToInteractive(AKT_PlayerCharacter* Player);
 
 	UFUNCTION()

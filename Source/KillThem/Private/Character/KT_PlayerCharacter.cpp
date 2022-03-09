@@ -900,7 +900,7 @@ void AKT_PlayerCharacter::Interact()
 }
 
 
-void AKT_PlayerCharacter::InteractInfo(AKT_BaseInteractiveObject* InInteractiveObject)
+void AKT_PlayerCharacter::InteractInfo_Implementation(AKT_BaseInteractiveObject* InInteractiveObject)
 {
 	if (IsValid(InInteractiveObject))
 	{
@@ -910,7 +910,7 @@ void AKT_PlayerCharacter::InteractInfo(AKT_BaseInteractiveObject* InInteractiveO
 }
 
 
-void AKT_PlayerCharacter::UnInteractInfo()
+void AKT_PlayerCharacter::UnInteractInfo_Implementation()
 {
 	InteractiveObject = nullptr;
 	CanInteract = false;

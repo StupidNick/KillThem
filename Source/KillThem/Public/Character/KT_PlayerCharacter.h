@@ -245,10 +245,10 @@ public:
 	UFUNCTION(Server, Reliable)
     	void AddGrenade(TSubclassOf<AKT_BaseGrenade> InGrenadeClass, const bool InToFirstSlot);
 
-	UFUNCTION()
+	UFUNCTION(Server, Unreliable)
 		void InteractInfo(AKT_BaseInteractiveObject* InInteractiveObject);
 
-	UFUNCTION()
+	UFUNCTION(Server, Unreliable)
 		void UnInteractInfo();
 
 	UFUNCTION()

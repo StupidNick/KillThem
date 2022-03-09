@@ -21,9 +21,9 @@ void AKT_BaseAmmo::Initialize(int InAmountAmmo)
 }
 
 
-void AKT_BaseAmmo::Interactive(AKT_PlayerCharacter* Player)
+void AKT_BaseAmmo::InteractiveOnServer(AKT_PlayerCharacter* Player)
 {
-	Super::Interactive(Player);
+	Super::InteractiveOnServer(Player);
 
 	if (HasAuthority())
 	{

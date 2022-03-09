@@ -14,9 +14,9 @@ void AKT_ShieldBox::BeginPlay()
 }
 
 
-void AKT_ShieldBox::Interactive(AKT_PlayerCharacter* Player)
+void AKT_ShieldBox::InteractiveOnServer(AKT_PlayerCharacter* Player)
 {
-	Super::Interactive(Player);
+	Super::InteractiveOnServer(Player);
 
 	Player->HealthComponent->ChangeShield(ShieldValue);
 }

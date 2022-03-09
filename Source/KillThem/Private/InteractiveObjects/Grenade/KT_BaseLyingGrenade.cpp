@@ -8,9 +8,9 @@ AKT_BaseLyingGrenade::AKT_BaseLyingGrenade()
 }
 
 
-void AKT_BaseLyingGrenade::Interactive(AKT_PlayerCharacter* Player)
+void AKT_BaseLyingGrenade::InteractiveOnServer(AKT_PlayerCharacter* Player)
 {
-	Super::Interactive(Player);
+	Super::InteractiveOnServer(Player);
 
 	if (HasAuthority())
 	{

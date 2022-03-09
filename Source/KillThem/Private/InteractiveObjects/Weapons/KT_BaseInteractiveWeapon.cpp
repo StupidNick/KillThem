@@ -19,14 +19,14 @@ void AKT_BaseInteractiveWeapon::Destruction()
 }
 
 
-void AKT_BaseInteractiveWeapon::Interactive(AKT_PlayerCharacter* Player)
+void AKT_BaseInteractiveWeapon::InteractiveOnServer(AKT_PlayerCharacter* Player)
 {
 	Player->ItemsManagerComponent->AddWeapon(WeaponClass, 0, AmmoInTheClip);
 	Destroy();
 }
 
 
-void AKT_BaseInteractiveWeapon::Initialize(int InAmountOfAmmo)
+void AKT_BaseInteractiveWeapon::Initialize_Implementation(int InAmountOfAmmo)
 {
 	AmmoInTheClip = InAmountOfAmmo;
 	

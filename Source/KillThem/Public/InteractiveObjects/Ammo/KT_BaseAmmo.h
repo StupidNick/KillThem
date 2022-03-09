@@ -23,7 +23,7 @@ public:
 //protected C++ functions
 protected:
 
-	virtual void Interactive(AKT_PlayerCharacter* Player) override;
+	virtual void InteractiveOnServer(AKT_PlayerCharacter* Player) override;
 
 
 //protected C++ variables

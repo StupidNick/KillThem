@@ -9,9 +9,9 @@ void AKT_BerserkBooster::BeginPlay()
 	Super::BeginPlay();
 }
 
-void AKT_BerserkBooster::Interactive(AKT_PlayerCharacter* Player)
+void AKT_BerserkBooster::InteractiveOnServer(AKT_PlayerCharacter* Player)
 {
-	Super::Interactive(Player);
+	Super::InteractiveOnServer(Player);
 
 	Player->BerserkBoostOnServer(BerserkFactor);
 }

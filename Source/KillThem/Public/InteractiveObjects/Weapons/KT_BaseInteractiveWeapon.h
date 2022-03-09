@@ -36,12 +36,12 @@ private:
 //protected C++ functions
 protected:
 	
-	virtual void Interactive(AKT_PlayerCharacter* Player) override;
+	virtual void InteractiveOnServer(AKT_PlayerCharacter* Player) override;
 
 //public C++ functions
 public:
 
-	UFUNCTION()
+	UFUNCTION(Server, Reliable)
 		void Initialize(int InAmountOfAmmo);
 
 //public BP variables

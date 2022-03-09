@@ -33,13 +33,13 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	virtual void Interactive(AKT_PlayerCharacter* Player) override;
+	virtual void InteractiveOnServer(AKT_PlayerCharacter* Player) override;
 
 	UFUNCTION(NetMulticast, Unreliable)
 		void BoosterActivated(AKT_PlayerCharacter* Player, UTexture2D* Icon, float Time);
 
 	UFUNCTION(NetMulticast, Unreliable)
-		void BoosterDeactivated();
+		void BoosterDeactivated(AKT_PlayerCharacter* Player);
 
 	UFUNCTION()
 		virtual void BoostDown(AKT_PlayerCharacter* Player);

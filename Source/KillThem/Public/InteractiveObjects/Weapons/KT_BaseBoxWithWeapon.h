@@ -20,16 +20,24 @@ public:
 	
 	AKT_BaseBoxWithWeapon();
 	
+//private C++ functions
+private:
+
+
+//private C++ variables
+private:
+	
+
 //Protected C++ functions
 protected:
 
-	virtual void Interactive(AKT_PlayerCharacter* Player) override;
+	virtual void InteractiveOnServer(AKT_PlayerCharacter* Player) override;
+	
+	virtual void InteractiveOnClient() override;
 	
 
-//Protected C++ variables
-protected:
-	
-	
+//Public C++ variables
+public:
 	
 //public BP variables
 public:
@@ -38,4 +46,5 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "WeaponInfo")
 		int AmountOfAmmo = 0;
+	
 };
