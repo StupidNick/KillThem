@@ -72,7 +72,7 @@ public:
 	UFUNCTION()
 		void StopFire();
 
-	UFUNCTION(NetMulticast, Reliable)
+	UFUNCTION(Server, Reliable)
 		void Initialize(AKT_PlayerCharacter* InCharacter, const int InAmmoInTheClip = -1);
 
 	UFUNCTION()

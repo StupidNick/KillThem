@@ -25,6 +25,7 @@ void UKT_ItemsManagerComponent::BeginPlay()
 	if (PlayerCharacter->HasAuthority())
 	{
 		AddWeapon(FirstWeaponSlotClass, AmmoForFirstWeapon);
+		PlayerCharacter->OnDead.AddDynamic(this, &UKT_ItemsManagerComponent::PlayerDead);
 	}
 }
 
@@ -35,6 +36,18 @@ void UKT_ItemsManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 
 	DOREPLIFETIME(UKT_ItemsManagerComponent, WeaponsArray);
 	DOREPLIFETIME(UKT_ItemsManagerComponent, CurrentWeaponIndex);
+}
+
+
+void UKT_ItemsManagerComponent::PlayerDead_Implementation(APawn* InPlayer)
+{
+	int LAmmo;
+	
+	if (CountAmmo(GetSelectedWeaponSlot()->GetClass(), LAmmo))
+	{
+		DropAmmoOnServer(GetSelectedWeaponSlot()->GetClass(), LAmmo / PercentOfDroppedAmmo, PlayerCharacter->GetTransform());
+	}
+	DetachWeaponFromActor(GetSelectedWeaponSlot());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -90,7 +103,7 @@ void UKT_ItemsManagerComponent::OnRep_WeaponChanged_Implementation()
 }
 
 
-void UKT_ItemsManagerComponent::AddAmmoOnServer_Implementation(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmoFound)
+void UKT_ItemsManagerComponent::AddAmmoOnServer_Implementation(const TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int16& InNumberOfAmmoFound)
 {
 	if (FAmmo* LAmmoStruct = FindStructOfAmmo(InAmmoClass))
 	{
@@ -112,8 +125,21 @@ void UKT_ItemsManagerComponent::AddAmmoOnServer_Implementation(const TSubclassOf
 }
 
 
+void UKT_ItemsManagerComponent::DropAmmoOnServer_Implementation(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int16& InNumberOfAmmo, const FTransform& InAmmoTransform)
+{
+	if (const FAmmo* LAmmoStruct = FindStructOfAmmo(InAmmoClass))
+	{
+		AKT_BaseAmmo* LDroppedAmmo = GetWorld()->SpawnActor<AKT_BaseAmmo>(LAmmoStruct->AmmoActorClass, InAmmoTransform);
+		if (IsValid(LDroppedAmmo))
+		{
+			LDroppedAmmo->Initialize(InNumberOfAmmo, true);
+		}
+	}
+}
+
+
 bool UKT_ItemsManagerComponent::CountAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass,
-                                                 int& InNumberOfAmmo)
+                                          int& InNumberOfAmmo)
 {
 	if (const FAmmo* LAmmoStruct = FindStructOfAmmo(InAmmoClass))
 	{
@@ -144,7 +170,7 @@ void UKT_ItemsManagerComponent::RemoveAmmoOnServer_Implementation(const TSubclas
 
 /////////////////////////////////////////////Weapon//////////////////////////////////////////////
 
-void UKT_ItemsManagerComponent::AddWeapon_Implementation(TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int InAmountOfAmmo, int InAmmoInTheClip)
+void UKT_ItemsManagerComponent::AddWeapon_Implementation(TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int16& InAmountOfAmmo, const int16& InAmmoInTheClip)
 {
 	if (WeaponsArray.Num() == 0)
 	{
@@ -227,6 +253,7 @@ void UKT_ItemsManagerComponent::ChangeWeapon_Implementation()
 	if (IsValid(GetSelectedWeaponSlot()))
 	{
 		AttachWeaponToSocket(GetSelectedWeaponSlot(), PlayerCharacter->GetMesh(), BehindBackSocketName);
+		GetWorld()->GetTimerManager().ClearAllTimersForObject(GetSelectedWeaponSlot());
 	}
 	
 	CurrentWeaponIndex = (CurrentWeaponIndex + 1) % WeaponsArray.Num();

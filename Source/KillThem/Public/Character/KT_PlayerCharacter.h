@@ -27,7 +27,7 @@ class AKT_GameHUD;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBusterActivated, UTexture2D*, Icon, float, Time);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBusterUpdates, float, Time);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBusterDeactivated, bool, Deactivated);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDead, AController*, Controller);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDead, APawn*, Player);
 
 
 UCLASS()
@@ -217,6 +217,9 @@ protected:
 	UFUNCTION()
 		void Interact();
 
+	UFUNCTION(Server, Reliable)
+		void CallInteractOnServer();
+
 	UFUNCTION(Client, Reliable)
 		void OnEscapeButtonPressed();
 	
@@ -245,8 +248,8 @@ public:
 	UFUNCTION(Server, Reliable)
     	void AddGrenade(TSubclassOf<AKT_BaseGrenade> InGrenadeClass, const bool InToFirstSlot);
 
-	UFUNCTION(Server, Unreliable)
-		void InteractInfo(AKT_BaseInteractiveObject* InInteractiveObject);
+	UFUNCTION(Server, Reliable)
+		void InteractInfoOnServer(AKT_BaseInteractiveObject* InInteractiveObject);
 
 	UFUNCTION(Server, Unreliable)
 		void UnInteractInfo();

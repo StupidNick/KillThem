@@ -31,7 +31,7 @@ protected:
 //public c++ functions
 public:
 
-	UFUNCTION(Reliable, Server)
+	UFUNCTION(Server, Reliable)
 		void RespawnPlayer();
 
 	UFUNCTION()

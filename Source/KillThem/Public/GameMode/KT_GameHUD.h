@@ -6,6 +6,8 @@
 #include "KT_GameHUD.generated.h"
 
 
+
+class AKT_PlayerCharacter;
 class UKT_SettingsWD;
 class UKT_FindServerWD;
 class UKT_MainMenuWD;
@@ -32,6 +34,8 @@ public:
 	virtual void BeginPlay() override;
 	virtual void DrawHUD() override;
 
+	UFUNCTION()
+		void RespawnPlayer(AKT_PlayerCharacter* InPlayerCharacter);
 
 //c++ prtotected methods
 protected:
@@ -126,7 +130,7 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 		class AKT_PlayerController* MyController = nullptr;
 	UPROPERTY(BlueprintReadOnly)
-		class AKT_PlayerCharacter* MyCharacter = nullptr;
+		AKT_PlayerCharacter* MyCharacter = nullptr;
 	// UPROPERTY(BlueprintReadOnly)
 	// 	class UKT_GameInstance* GameInstance = nullptr;
 };

@@ -33,8 +33,6 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	virtual void InteractiveOnServer(AKT_PlayerCharacter* Player) override;
-
 	UFUNCTION(NetMulticast, Unreliable)
 		void BoosterActivated(AKT_PlayerCharacter* Player, UTexture2D* Icon, float Time);
 
@@ -44,7 +42,7 @@ protected:
 	UFUNCTION()
 		virtual void BoostDown(AKT_PlayerCharacter* Player);
 
-	virtual void EnableObject() override;
+	virtual void EnableObject(AKT_PlayerCharacter* Player) override;
 
 	virtual void DisableObject() override;
 
@@ -57,6 +55,8 @@ protected:
 
 //public C++ functions
 public:
+
+	virtual void InteractiveOnServer(AKT_PlayerCharacter* Player) override;
 
 	FOnTimelineFloat BoosterInterpFunction{};
 	

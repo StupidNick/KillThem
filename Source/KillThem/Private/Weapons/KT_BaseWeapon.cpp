@@ -27,6 +27,7 @@ void AKT_BaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AKT_BaseWeapon, AmmoInTheClip);
+	DOREPLIFETIME(AKT_BaseWeapon, Character);
 }
 
 

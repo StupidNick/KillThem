@@ -32,9 +32,19 @@ void AKT_GameHUD::DrawHUD()
 }
 
 
+void AKT_GameHUD::RespawnPlayer(AKT_PlayerCharacter* InPlayerCharacter)
+{
+	if (!IsValid(InPlayerCharacter)) return;
+	
+	MyCharacter = Cast<AKT_PlayerCharacter>(InPlayerCharacter);
+	CreateMainHUD_WD();
+	MyCharacter->HUD = this;
+}
+
+
 void AKT_GameHUD::CreateMainHUD_WD()
 {
-	if (MainHUDClass && !MainHUD)
+	if (MainHUDClass && !IsValid(MainHUD))
 	{
 		MainHUD = CreateWidget<UKT_MainHUD_WD>(GetWorld(), MainHUDClass);
 		MainHUD->AddToViewport();

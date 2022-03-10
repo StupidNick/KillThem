@@ -52,6 +52,12 @@ public:
 //Private C++ variables
 private:
 
+	UFUNCTION(Server, Reliable)
+		void PlayerDead(APawn* InPlayer);
+
+//Private C++ variables
+private:
+
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponChanged)
 		TArray<AKT_BaseWeapon*> WeaponsArray;
 
@@ -67,12 +73,11 @@ protected:
 public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+////////////////////////////////////////////////////Ammo////////////////////////////////////////////////////////////////
 	
 	UFUNCTION(NetMulticast, Reliable)
 		void AmountOfAmmoHandWeaponChanged(const int InAmmo);
-
-	UFUNCTION(Server, Reliable)
-		void AddWeapon(TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int InAmountOfAmmo, int InAmmoInTheClip = -1);
 
 	UFUNCTION(NetMulticast, Reliable)
 		void AmountOfAmmoChanged(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InAmmo);
@@ -87,7 +92,10 @@ public:
 		void OnRep_WeaponChanged();
 
 	UFUNCTION(Server, Reliable)
-    	void AddAmmoOnServer(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmoFound);
+    	void AddAmmoOnServer(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int16& InNumberOfAmmoFound);
+
+	UFUNCTION(Server, Reliable)
+    	void DropAmmoOnServer(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int16& InNumberOfAmmo, const FTransform& InAmmoTransform);
 
 	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "MainHUD_WD | Weapon")
 		void ChangeAmmoOnClient(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InAmmo);
@@ -98,6 +106,25 @@ public:
 	UFUNCTION(Server, Reliable)
 		void RemoveAmmoOnServer(TSubclassOf<AKT_BaseWeapon> InAmmoClass, const int InNumberOfAmmo);
 
+	FORCEINLINE FAmmo* FindStructOfAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass)
+	{
+		for (int i = 0; i < AmmoArray.Num(); i++)
+		{
+			if (AmmoArray[i].TypeOfAmmo == InAmmoClass)
+			{
+				return& AmmoArray[i];
+			}
+		}
+		return nullptr;
+	}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////Weapon////////////////////////////////////////////////////////////////
+	
+	UFUNCTION(Server, Reliable)
+		void AddWeapon(TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int16& InAmountOfAmmo, const int16& InAmmoInTheClip = -1);
+	
 	UFUNCTION(Server, Reliable)
 		void ChangeWeapon();
 
@@ -116,24 +143,12 @@ public:
 	UFUNCTION(Server, Reliable)
 		void DetachWeaponFromActor(AKT_BaseWeapon* InWeapon);
 
-	
-	FORCEINLINE FAmmo* FindStructOfAmmo(const TSubclassOf<AKT_BaseWeapon> InAmmoClass)
-	{
-		for (int i = 0; i < AmmoArray.Num(); i++)
-		{
-			if (AmmoArray[i].TypeOfAmmo == InAmmoClass)
-			{
-				return& AmmoArray[i];
-			}
-		}
-		return nullptr;
-	}
-	
-
 	FORCEINLINE AKT_BaseWeapon*& GetSelectedWeaponSlot()
 	{
 		return WeaponsArray[CurrentWeaponIndex];
 	}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 //Public C++ variables
@@ -179,9 +194,13 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
+/////////////////////////////////Ammo///////////////////////////////////////////////////////
 
 	UPROPERTY(EditAnywhere, Category = "Stats")
 		TArray<FAmmo> AmmoArray;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Stats")
+		int8 PercentOfDroppedAmmo;
 
 	UPROPERTY(BlueprintAssignable, Category = "ItemsManager | EventsForBind")
 		FOnHandWeaponAmmoChange OnHandWeaponAmmoChangeBind;

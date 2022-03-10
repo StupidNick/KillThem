@@ -88,6 +88,11 @@ void AKT_BaseLyingObject::DisableObject()
 	{
 		SkeletalMesh->SetVisibility(false, true);
 	}
+	if (RecoverTime > 0)
+	{
+		EnableTimerDelegate.BindUFunction(this, "ToEnableObject", PlayerCharacter);
+		GetWorldTimerManager().SetTimer(EnableTimerHandle, EnableTimerDelegate, RecoverTime, false);
+	}
 }
 
 
@@ -98,9 +103,9 @@ void AKT_BaseLyingObject::BoostDown(AKT_PlayerCharacter* Player)
 }
 
 
-void AKT_BaseLyingObject::EnableObject()
+void AKT_BaseLyingObject::EnableObject(AKT_PlayerCharacter* Player)
 {
-	Super::EnableObject();
+	Super::EnableObject(Player);
 
 	if (IsValid(SkeletalMesh))
 	{

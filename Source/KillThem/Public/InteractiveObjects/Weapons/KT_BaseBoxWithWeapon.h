@@ -26,18 +26,21 @@ private:
 
 //private C++ variables
 private:
-	
+
+	UPROPERTY()
+		TArray<AKT_PlayerCharacter*> BlackList;
 
 //Protected C++ functions
 protected:
 
+	virtual void EnableObject(AKT_PlayerCharacter* Player) override;
+
+//Public C++ functions
+public:
+
 	virtual void InteractiveOnServer(AKT_PlayerCharacter* Player) override;
 	
-	virtual void InteractiveOnClient() override;
-	
-
-//Public C++ variables
-public:
+	virtual void InteractiveOnClient(AKT_PlayerCharacter* Player) override;
 	
 //public BP variables
 public:

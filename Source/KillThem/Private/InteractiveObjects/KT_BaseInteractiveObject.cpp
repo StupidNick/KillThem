@@ -86,7 +86,7 @@ void AKT_BaseInteractiveObject::OnBoxComponentBeginOverlap_Implementation(UPrimi
 {
 	if (const auto LCharacter = Cast<AKT_PlayerCharacter>(OtherActor))
 	{
-		ToInteractive(LCharacter);
+		InteractiveOnServer(LCharacter);
 	}
 }
 
@@ -96,8 +96,7 @@ void AKT_BaseInteractiveObject::OnSphereComponentBeginOverlap_Implementation(UPr
 {
 	if (AKT_PlayerCharacter* LCharacter = Cast<AKT_PlayerCharacter>(OtherActor))
 	{
-		PlayerCharacter = LCharacter;
-		LCharacter->InteractInfo(this);
+		LCharacter->InteractInfoOnServer(this);
 	}
 }
 
@@ -113,13 +112,13 @@ void AKT_BaseInteractiveObject::OnSphereComponentEndOverlap_Implementation(UPrim
 }
 
 
-void AKT_BaseInteractiveObject::ToEnableObject()
+void AKT_BaseInteractiveObject::ToEnableObject(AKT_PlayerCharacter* Player)
 {
-	EnableObject();
+	EnableObject(Player);
 }
 
 
-void AKT_BaseInteractiveObject::EnableObject()
+void AKT_BaseInteractiveObject::EnableObject(AKT_PlayerCharacter* Player)
 {
 	InteractSphereCollision->SetGenerateOverlapEvents(true);
 	BoxCollision->SetGenerateOverlapEvents(true);
@@ -128,6 +127,20 @@ void AKT_BaseInteractiveObject::EnableObject()
 		StaticMesh->SetVisibility(true, true);
 	}
 	CanTake = true;
+
+	// if (HasAuthority())
+	// {
+	// 	TArray<AActor*> LOverlappingActors;
+	// 	InteractSphereCollision->GetOverlappingActors(LOverlappingActors);
+	//
+	// 	for (auto i : LOverlappingActors)
+	// 	{
+	// 		if (i->IsA(Player->GetClass()))
+	// 		{
+	// 			Cast<AKT_PlayerCharacter>(i)->InteractInfoOnServer(this);
+	// 		}
+	// 	}
+	// }
 }
 
 
@@ -140,21 +153,6 @@ void AKT_BaseInteractiveObject::DisableObject()
 		StaticMesh->SetVisibility(false, true);
 	}
 	CanTake = false;
-	if (RecoverTime > 0)
-	{
-		EnableTimerDelegate.BindUFunction(this, "ToEnableObject");
-		GetWorldTimerManager().SetTimer(EnableTimerHandle, EnableTimerDelegate, RecoverTime, false);
-	}
-}
-
-
-void AKT_BaseInteractiveObject::ToInteractive(AKT_PlayerCharacter* Player)
-{
-	if (CanTake)
-	{
-		InteractiveOnServer(Player);
-		InteractiveOnClient();
-	}
 }
 
 
@@ -164,6 +162,6 @@ void AKT_BaseInteractiveObject::InteractiveOnServer_Implementation(AKT_PlayerCha
 }
 
 
-void AKT_BaseInteractiveObject::InteractiveOnClient_Implementation()
+void AKT_BaseInteractiveObject::InteractiveOnClient_Implementation(AKT_PlayerCharacter* Player)
 {
 }

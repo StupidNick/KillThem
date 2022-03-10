@@ -26,6 +26,8 @@
 
 AKT_PlayerCharacter::AKT_PlayerCharacter()
 {
+	bReplicates = true;
+	
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>("Camera");
 	ParkourCapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>("ParkourCapsuleComponent");
 	WallRunRightCollisionComponent = CreateDefaultSubobject<UBoxComponent>("WallRunRightCollisionComponent");
@@ -895,17 +897,24 @@ void AKT_PlayerCharacter::CheckCanFireOnServer_Implementation()
 void AKT_PlayerCharacter::Interact()
 {
 	if (!IsValid(InteractiveObject) || !CanInteract) return;
+	if (!InteractiveObject->CanTake) return;
 	
-	InteractiveObject->ToInteractive(this);
+	CallInteractOnServer();
+	InteractiveObject->InteractiveOnClient(this);
 }
 
 
-void AKT_PlayerCharacter::InteractInfo_Implementation(AKT_BaseInteractiveObject* InInteractiveObject)
+void AKT_PlayerCharacter::CallInteractOnServer_Implementation()
 {
-	if (IsValid(InInteractiveObject))
-	{
-		InteractiveObject = InInteractiveObject;
-	}
+	if (!IsValid(InteractiveObject) || !CanInteract) return;
+
+	InteractiveObject->InteractiveOnServer(this);
+}
+
+
+void AKT_PlayerCharacter::InteractInfoOnServer_Implementation(AKT_BaseInteractiveObject* InInteractiveObject)
+{
+	InteractiveObject = InInteractiveObject;
 	CanInteract = true;
 }
 
@@ -946,22 +955,16 @@ void AKT_PlayerCharacter::DieOnClient_Implementation()
 
 void AKT_PlayerCharacter::Die(AController* Player)
 {
-	FirstPersonMeshComponent->DestroyComponent();
+	if (IsValid(FirstPersonMeshComponent))
+	{
+		FirstPersonMeshComponent->DestroyComponent();
+	}
 
 	const FVector LLocation = GetActorLocation() + FVector(0, 0, -60);
 	const FRotator LRotation = GetActorRotation();
 	const FActorSpawnParameters LSpawnInfo;
 
-	if (IsValid(ItemsManagerComponent->GetSelectedWeaponSlot()))
-	{
-		// int LAmmo = 0;
-		// ItemsManagerComponent->FindAndCountAmmo(ItemsManagerComponent->GetSelectedWeaponSlot()->GetClass(), LAmmo);
-		// AKT_BaseAmmo* LDroppedAmmo = GetWorld()->SpawnActor<AKT_BaseAmmo>(ItemsManagerComponent->FindStructOfAmmo(ItemsManagerComponent->GetSelectedWeaponSlot()->GetClass()).AmmoActorClass, LLocation, LRotation, LSpawnInfo);
-		// LDroppedAmmo->Initialize(LAmmo);
-		
-		// ItemsManagerComponent->GetSelectedWeaponSlot()->ToDetachFromActor();
-		// ItemsManagerComponent->GetSelectedWeaponSlot() = nullptr;
-	}
+	
 	
 	if (HasAuthority())
 	{
@@ -974,9 +977,10 @@ void AKT_PlayerCharacter::Die(AController* Player)
 		LDestroyTimerDelegate.BindUFunction(this, "Destruction");
 		GetWorldTimerManager().SetTimer(LDestroyTimerHandle, LDestroyTimerDelegate, 5, false);
 	}
-
+	OnDead.Broadcast(this);
 	PlayerController = nullptr;
 }
+
 
 void AKT_PlayerCharacter::DieMulticast_Implementation()
 {

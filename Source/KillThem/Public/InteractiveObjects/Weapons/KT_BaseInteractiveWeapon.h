@@ -24,14 +24,14 @@ public:
 //private C++ functions
 private:
 
-	UFUNCTION()
+	UFUNCTION(NetMulticast, Reliable)
 		void Destruction();
 
-//private C++ functions
+//private C++ variables
 private:
 
-	UPROPERTY()
-		int AmmoInTheClip;
+	UPROPERTY(Replicated)
+		int16 AmmoInTheClip;
 	
 //protected C++ functions
 protected:
@@ -41,8 +41,10 @@ protected:
 //public C++ functions
 public:
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	UFUNCTION(Server, Reliable)
-		void Initialize(int InAmountOfAmmo);
+		void Initialize(const int16& InAmountOfAmmo);
 
 //public BP variables
 public:

@@ -44,16 +44,11 @@ protected:
 	UFUNCTION(Server, Unreliable)
 		void OnSphereComponentEndOverlap(UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	UFUNCTION(Server, Unreliable)
-		virtual void InteractiveOnServer(AKT_PlayerCharacter* Player);
-	UFUNCTION(Client, Unreliable)
-		virtual void InteractiveOnClient();
+	UFUNCTION()
+		virtual void ToEnableObject(AKT_PlayerCharacter* Player);
 
 	UFUNCTION()
-		virtual void ToEnableObject();
-
-	UFUNCTION()
-		virtual void EnableObject();
+		virtual void EnableObject(AKT_PlayerCharacter* Player);
 
 	UFUNCTION()
 		virtual void DisableObject();
@@ -68,24 +63,30 @@ protected:
 	UPROPERTY(Replicated)
 		AKT_PlayerCharacter* PlayerCharacter = nullptr;
 
-	UPROPERTY(Replicated)
-		bool CanTake = true;
-
 	FTimerHandle RotationTimerHandle;
 	FTimerDelegate RotationTimerDelegate;
 	
 //public C++ functions
 public:
 
+	UFUNCTION(Server, Reliable)
+		virtual void InteractiveOnServer(AKT_PlayerCharacter* Player);
+	
+	UFUNCTION(Client, Reliable)
+		virtual void InteractiveOnClient(AKT_PlayerCharacter* Player);
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	FOnTimelineFloat RotationInterpFunction{};
 
 	UFUNCTION()
-		void ToInteractive(AKT_PlayerCharacter* Player);
-
-	UFUNCTION()
 		virtual void RotationTimeLineFloatReturn(float Value);
+
+//public C++ functions
+public:
+
+	UPROPERTY(Replicated)
+		bool CanTake = true;
 	
 //public BP variables
 public:

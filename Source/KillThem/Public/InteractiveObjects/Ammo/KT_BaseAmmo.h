@@ -7,7 +7,7 @@
 
 
 UCLASS()
-class KILLTHEM_API AKT_BaseAmmo : public AKT_BaseLyingObject
+class KILLTHEM_API AKT_BaseAmmo : public AKT_BaseInteractiveObject
 {
 	GENERATED_BODY()
 		
@@ -18,7 +18,19 @@ public:
 //public C++ functions
 public:
 
-	void Initialize(int InAmountAmmo);
+	UPROPERTY()
+		bool IsDroppedAmmo = false;
+
+	//public C++ functions
+public:
+
+	UFUNCTION(NetMulticast, Reliable)
+		void Destruction();
+
+//public C++ functions
+public:
+
+	void Initialize(int16 InAmountAmmo, bool IsDropped = false);
 	
 //protected C++ functions
 protected:
@@ -40,5 +52,5 @@ public:
 		TSubclassOf<AKT_BaseWeapon> ClassOfAmmo;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ammo")
-		int CountOfAmmo;
+		int16 CountOfAmmo;
 };
