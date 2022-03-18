@@ -13,6 +13,8 @@ AKT_BaseWeapon::AKT_BaseWeapon()
 
 	Mesh->SetCollisionProfileName(FName("IgnoreAll"));
 	bReplicates = true;
+
+	PrimaryActorTick.bCanEverTick = false;
 }
 
 
@@ -28,6 +30,7 @@ void AKT_BaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 	DOREPLIFETIME(AKT_BaseWeapon, AmmoInTheClip);
 	DOREPLIFETIME(AKT_BaseWeapon, Character);
+	DOREPLIFETIME(AKT_BaseWeapon, Controller);
 }
 
 
@@ -109,6 +112,10 @@ void AKT_BaseWeapon::StopFire()
 void AKT_BaseWeapon::Initialize_Implementation(AKT_PlayerCharacter* InCharacter, const int InAmmoInTheClip)
 {
 	Character = InCharacter;
+	if (IsValid(Character->GetController()))
+	{
+		Controller = Cast<AKT_PlayerController>(Character->GetController());
+	}
 	AmmoInTheClip = InAmmoInTheClip;
 	if (AmmoInTheClip == -1)
 	{

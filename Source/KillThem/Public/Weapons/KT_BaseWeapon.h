@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Character/Controllers/KT_PlayerController.h"
 
 
 #include "Components/BoxComponent.h"
@@ -92,6 +93,8 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Character")
 		AKT_PlayerCharacter* Character;
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Character")
+		AKT_PlayerController* Controller;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Components")
 		USkeletalMeshComponent* Mesh;

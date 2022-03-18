@@ -35,7 +35,7 @@ public:
 	UFUNCTION(Server, Reliable)
 		void OnRep_Scoping();
 
-	virtual void Initialize_Implementation(AKT_PlayerCharacter* InCharacter, const int InAmmoInTheClip = -1) override;
+	virtual void Initialize_Implementation(AKT_PlayerCharacter* InCharacter, const int InAmmoInTheClip) override;
 	
 	virtual void UseWeapon() override;
 
@@ -49,11 +49,26 @@ public:
 protected:
 
 	UFUNCTION()
-		virtual void ProjectileShoot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage, const FName InShotSocketName, const float InScatterFactor, const int InSpentAmmo = 1);
+		virtual void ProjectileShoot(const TSubclassOf<AKT_BaseProjectile>& InProjectileClass, const int32& InDamage, const FName& InShotSocketName, const float& InScatterFactor, const int32& InSpentAmmo = 1);
 
 	UFUNCTION()
-		virtual void LineTraceShot(const TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int InDamage, const FName InShotSocketName, const float InScatterFactor, const int InSpentAmmo = 1);
+		virtual void LineTraceShot(const TSubclassOf<AKT_BaseProjectile>& InProjectileClass, const int32& InDamage, const FName& InShotSocketName, const float& InScatterFactor, const int32& InSpentAmmo = 1);
 
+	UFUNCTION()
+		bool GetPlayerViewPoint(FVector& ViewLocation, FRotator& ViewRotation) const;
+
+	UFUNCTION()
+		FVector GetMuzzleWorldLocation(const FName& SocketName) const;
+
+	UFUNCTION()
+		bool GetTraceData(FVector& StartLocation, FVector& EndLocation, const float InScatterFactor) const;
+
+	UFUNCTION()
+		void MakeHit(FHitResult& HitResult, const FVector& StartLocation, const FVector& EndLocation) const;
+
+	UFUNCTION()
+		void SpawnProjectile(const FHitResult& HitResult, const FVector& EndLocation, const FName& SocketName, const TSubclassOf<AKT_BaseProjectile>& InProjectileClass, const int32& InDamage = 0);
+	
 	UFUNCTION()
 		void Reload(const int InAmmo);
 

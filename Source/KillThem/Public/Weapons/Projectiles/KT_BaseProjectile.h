@@ -27,6 +27,11 @@ public:
 //protected C++ functions
 protected:
 
+	FVector ShootDirection;
+
+//protected C++ functions
+protected:
+
 	virtual void BeginPlay() override;
 
 //protected C++ functions
@@ -48,6 +53,9 @@ public:
 
 	UFUNCTION()
 		void Initialize(float InDamage, AKT_PlayerCharacter* InPlayerOwner, AKT_BaseRangeWeapon* InWeaponInstigator = nullptr);
+
+	UFUNCTION()
+		void SetShootDirection(const FVector& Direction);
 	
 //public BP variables
 public:
@@ -55,12 +63,15 @@ public:
 	UPROPERTY(VisibleDefaultsOnly, Category = "Projectile")
 		USphereComponent* CollisionComponent = nullptr;
 
-	UPROPERTY(EditAnywhere, Category = "Projectile")
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
 		UStaticMeshComponent* Mesh = nullptr;
 
-	UPROPERTY(EditAnywhere, Category = "Projectile")
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
 		UProjectileMovementComponent* ProjectileMovementComponent = nullptr;
 
-	UPROPERTY(EditAnywhere, Category = "Projectile")
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
 		TSubclassOf<UDamageType> DamageTypeClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+		float ProjectileLifeTime;
 };

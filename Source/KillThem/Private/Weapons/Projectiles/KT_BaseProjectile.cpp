@@ -8,6 +8,8 @@
 
 AKT_BaseProjectile::AKT_BaseProjectile()
 {
+	PrimaryActorTick.bCanEverTick = false;
+	
 	CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	CollisionComponent->InitSphereRadius(15.0f);
 	RootComponent = CollisionComponent;
@@ -16,27 +18,29 @@ AKT_BaseProjectile::AKT_BaseProjectile()
 	Mesh->SetupAttachment(CollisionComponent);
 
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>("ProjectileMovement");
-	ProjectileMovementComponent->SetUpdatedComponent(CollisionComponent);
+	ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
 
 	CollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &AKT_BaseProjectile::OnOverlap);
-	// PlayerOwner = Cast<AKT_PlayerCharacter>(GetInstigator());
 
 	bReplicates = true;
+	SetReplicateMovement(true);
 }
 
 
 void AKT_BaseProjectile::BeginPlay()
 {
 	Super::BeginPlay();
+
+	check(ProjectileMovementComponent);
+	ProjectileMovementComponent->Velocity = ShootDirection * ProjectileMovementComponent->InitialSpeed;
+	SetLifeSpan(ProjectileLifeTime);
 }
 
 
 void AKT_BaseProjectile::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& Hit)
 {
-	if (OtherActor == PlayerOwner || OtherActor == this || OtherActor == GetOwner())
-	{
-		return;
-	}
+	if (OtherActor == PlayerOwner || OtherActor == this || OtherActor == GetOwner()) return;
+	
 	if (OtherComp->IsSimulatingPhysics())
 	{
 		OtherComp->AddImpulseAtLocation(ProjectileMovementComponent->Velocity * 100.0f, Hit.ImpactPoint);
@@ -56,6 +60,12 @@ void AKT_BaseProjectile::Initialize(const float InDamage, AKT_PlayerCharacter* I
 	Damage = InDamage;
 	PlayerOwner = InPlayerOwner;
 	WeaponInstigator = InWeaponInstigator;
+}
+
+
+void AKT_BaseProjectile::SetShootDirection(const FVector& Direction)
+{
+	ShootDirection = Direction;
 }
 
 
