@@ -253,7 +253,7 @@ void UKT_ItemsManagerComponent::ChangeWeapon_Implementation()
 	if (IsValid(GetSelectedWeaponSlot()))
 	{
 		AttachWeaponToSocket(GetSelectedWeaponSlot(), PlayerCharacter->GetMesh(), BehindBackSocketName);
-		GetWorld()->GetTimerManager().ClearAllTimersForObject(GetSelectedWeaponSlot());
+		GetSelectedWeaponSlot()->BreakAllAction();
 	}
 	
 	CurrentWeaponIndex = (CurrentWeaponIndex + 1) % WeaponsArray.Num();

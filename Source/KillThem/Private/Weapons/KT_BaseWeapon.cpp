@@ -47,6 +47,15 @@ void AKT_BaseWeapon::OnRep_AmmoInTheClip_Implementation()
 void AKT_BaseWeapon::UseWeapon(){}
 
 
+void AKT_BaseWeapon::BreakAllAction_Implementation()
+{
+	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+	CanShoot = true;
+	IsReloading = false;
+	IsChangingFireMode = false;
+}
+
+
 void AKT_BaseWeapon::AutoFireReload()
 {
 	CanShoot = true;

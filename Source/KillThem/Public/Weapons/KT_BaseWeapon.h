@@ -87,6 +87,9 @@ public:
 	UFUNCTION(Server, Reliable)
 		void StartChangeFireMode();
 
+	UFUNCTION(Server, Reliable)
+		void BreakAllAction();
+
 	UFUNCTION()
 	FORCEINLINE int GetAmmoInTheClip() const
 	{
