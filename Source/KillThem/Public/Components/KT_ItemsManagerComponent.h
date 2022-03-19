@@ -132,7 +132,7 @@ public:
 		void Reload();
 
 	UFUNCTION(Server, Reliable)
-		void Fire();
+		void StartFire();
 
 	UFUNCTION(Server, Reliable)
 		void StopFire();
@@ -155,7 +155,10 @@ public:
 public:
 
 	UPROPERTY()
-		bool CanShoot = true;
+		bool ToShoot = true;
+
+	UPROPERTY()
+		bool WantShoot = true;
 
 //Public BP variables
 public:

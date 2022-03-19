@@ -24,8 +24,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Scoping)
 		bool IsScoping = false;
 
-	UPROPERTY(BlueprintReadOnly, Replicated)
-		bool IsReloading = false;
 
 //public C++ functions
 public:
@@ -35,7 +33,7 @@ public:
 	UFUNCTION(Server, Reliable)
 		void OnRep_Scoping();
 
-	virtual void Initialize_Implementation(AKT_PlayerCharacter* InCharacter, const int InAmmoInTheClip) override;
+	virtual void Initialize_Implementation(AKT_PlayerCharacter* InCharacter, const int32& InAmmoInTheClip) override;
 	
 	virtual void UseWeapon() override;
 
@@ -87,7 +85,6 @@ protected:
 	
 //public BP variables
 public:
-	
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
 		float ReloadTime;

@@ -26,7 +26,7 @@ private:
 //private C++ functions
 protected:
 
-	virtual void UseWeapon() override;
+	// virtual void UseWeapon() override;
 
 	
 //public BP variables

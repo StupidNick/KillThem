@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InteractiveObjects/UsableObjects/KT_BaseLyingObject.h"
+#include "InteractiveObjects/UsableObjects/KT_BasePickupObject.h"
 #include "KT_BaseAmmo.generated.h"
 
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InteractiveObjects/UsableObjects/KT_BaseLyingObject.h"
+#include "InteractiveObjects/UsableObjects/KT_BasePickupObject.h"
 #include "KT_BaseLyingGrenade.generated.h"
 
 
@@ -11,7 +11,7 @@ class AKT_BaseGrenade;
 
 
 UCLASS()
-class KILLTHEM_API AKT_BaseLyingGrenade : public AKT_BaseLyingObject
+class KILLTHEM_API AKT_BaseLyingGrenade : public AKT_BasePickupObject
 {
 	GENERATED_BODY()
 		

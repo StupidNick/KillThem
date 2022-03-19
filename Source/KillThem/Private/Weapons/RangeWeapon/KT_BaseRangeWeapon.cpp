@@ -14,7 +14,7 @@ AKT_BaseRangeWeapon::AKT_BaseRangeWeapon()
 }
 
 
-void AKT_BaseRangeWeapon::Initialize_Implementation(AKT_PlayerCharacter* InCharacter, const int InAmmoInTheClip)
+void AKT_BaseRangeWeapon::Initialize_Implementation(AKT_PlayerCharacter* InCharacter, const int32& InAmmoInTheClip)
 {
 	Super::Initialize_Implementation(InCharacter, InAmmoInTheClip);
 
@@ -34,12 +34,13 @@ void AKT_BaseRangeWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 void AKT_BaseRangeWeapon::UseWeapon()
 {
-	Super::UseWeapon();
-
+	if (!GetWeaponCanShoot()) return;
 	if (AmmoInTheClip <= 0 || IsReloading) return;
 
 	if (UseAlterFire)
 	{
+		if (AmmoInTheClip < CostAlterShotInAmmo) return;
+
 		if (ProjectileShootingAtAlterFire)
 		{
 			ProjectileShoot(AlterFireProjectileClass, AlterDamage, AlterFireSocketName, AlterFireScatterFactor,
@@ -62,6 +63,7 @@ void AKT_BaseRangeWeapon::UseWeapon()
 			LineTraceShot(ProjectileClass, Damage, FireSocketName, ScatterFactor);
 		}
 	}
+	ActivateTimerBetweenShots();
 }
 
 
@@ -82,7 +84,7 @@ void AKT_BaseRangeWeapon::ProjectileShoot(const TSubclassOf<AKT_BaseProjectile>&
 	MakeHit(LHitResult, LStartLocation, LEndLocation);
 
 	SpawnProjectile(LHitResult, LEndLocation, InShotSocketName, InProjectileClass, InDamage);
-	
+
 	AmmoInTheClip -= InSpentAmmo;
 }
 
@@ -137,9 +139,8 @@ bool AKT_BaseRangeWeapon::GetTraceData(FVector& StartLocation, FVector& EndLocat
 	if (!GetPlayerViewPoint(LViewLocation, LViewRotation)) return false;
 
 	StartLocation = LViewLocation;
-	const FVector LShootDirection = LViewRotation.Vector() + FVector(FMath::FRandRange(-0.05, 0.05) * InScatterFactor,
-	                                                                 FMath::FRandRange(-0.05, 0.05) * InScatterFactor,
-	                                                                 FMath::FRandRange(-0.05, 0.05) * InScatterFactor);
+	const auto LHalfRad = FMath::DegreesToRadians(InScatterFactor);
+	const FVector LShootDirection = FMath::VRandCone(LViewRotation.Vector(), LHalfRad);
 	EndLocation = StartLocation + MaxDistanceAttack * LShootDirection;
 	return true;
 }
@@ -156,8 +157,10 @@ void AKT_BaseRangeWeapon::MakeHit(FHitResult& HitResult, const FVector& StartLoc
 }
 
 
-void AKT_BaseRangeWeapon::SpawnProjectile(const FHitResult& HitResult, const FVector& EndLocation, const FName& SocketName,
-	const TSubclassOf<AKT_BaseProjectile>& InProjectileClass, const int32& InDamage)
+void AKT_BaseRangeWeapon::SpawnProjectile(const FHitResult& HitResult, const FVector& EndLocation,
+                                          const FName& SocketName,
+                                          const TSubclassOf<AKT_BaseProjectile>& InProjectileClass,
+                                          const int32& InDamage)
 {
 	const FTransform LSpawnTransform(FRotator::ZeroRotator, GetMuzzleWorldLocation(SocketName));
 	AKT_BaseProjectile* LProjectile = GetWorld()->SpawnActorDeferred<AKT_BaseProjectile>(
@@ -183,34 +186,35 @@ void AKT_BaseRangeWeapon::Reload(const int InAmmo)
 
 void AKT_BaseRangeWeapon::ToReload_Implementation()
 {
-	int LCountOfAmmo;
-	int LClipSize = ClipSize;
+	if (IsChangingFireMode || !IsValid(Character)) return;
+	
+	int32 LCountOfAmmo, LClipSize = ClipSize;
 	LClipSize++;
+	
 	if (Character->IsScoping)
 	{
 		Character->UnScope_Implementation();
 	}
-	if (Character->ItemsManagerComponent->CountAmmo(GetClass(), LCountOfAmmo) && AmmoInTheClip < LClipSize)
+	if (!Character->ItemsManagerComponent->CountAmmo(GetClass(), LCountOfAmmo) || AmmoInTheClip >= LClipSize) return;
+	
+	IsReloading = true;
+	if (AmmoInTheClip > 0)
 	{
-		IsReloading = true;
-		if (AmmoInTheClip > 0)
+		if (LCountOfAmmo >= LClipSize - AmmoInTheClip)
 		{
-			if (LCountOfAmmo >= LClipSize - AmmoInTheClip)
-			{
-				LCountOfAmmo = LClipSize - AmmoInTheClip;
-			}
+			LCountOfAmmo = LClipSize - AmmoInTheClip;
 		}
-		else
-		{
-			if (LCountOfAmmo >= LClipSize - 1 - AmmoInTheClip)
-			{
-				LCountOfAmmo = LClipSize - 1 - AmmoInTheClip;
-			}
-		}
-		ReloadTimerDelegate.BindUFunction(this, "Reload", LCountOfAmmo);
-		GetWorldTimerManager().SetTimer(ReloadTimerHandle, ReloadTimerDelegate, ReloadTime / Character->BerserkBooster,
-		                                false);
 	}
+	else
+	{
+		if (LCountOfAmmo >= LClipSize - 1 - AmmoInTheClip)
+		{
+			LCountOfAmmo = LClipSize - 1 - AmmoInTheClip;
+		}
+	}
+	ReloadTimerDelegate.BindUFunction(this, "Reload", LCountOfAmmo);
+	GetWorldTimerManager().SetTimer(ReloadTimerHandle, ReloadTimerDelegate, ReloadTime / Character->BerserkBooster,
+	                                false);
 }
 
 

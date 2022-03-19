@@ -27,7 +27,7 @@
 AKT_PlayerCharacter::AKT_PlayerCharacter()
 {
 	bReplicates = true;
-	
+
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>("Camera");
 	ParkourCapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>("ParkourCapsuleComponent");
 	WallRunRightCollisionComponent = CreateDefaultSubobject<UBoxComponent>("WallRunRightCollisionComponent");
@@ -41,23 +41,26 @@ AKT_PlayerCharacter::AKT_PlayerCharacter()
 	WallRunRightCollisionComponent->SetupAttachment(GetCapsuleComponent());
 	CameraComponent->SetupAttachment(GetCapsuleComponent());
 	FirstPersonMeshComponent->SetupAttachment(CameraComponent);
-	
+
 	GetCharacterMovement()->bWantsToCrouch = true;
 
 	ParkourCapsuleComponent->OnComponentBeginOverlap.AddDynamic(this, &AKT_PlayerCharacter::WallRunningBegin);
 	ParkourCapsuleComponent->OnComponentEndOverlap.AddDynamic(this, &AKT_PlayerCharacter::WallRunningEnd);
 
-	WallRunRightCollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &AKT_PlayerCharacter::WallRunningCameraTiltRight);
-	WallRunLeftCollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &AKT_PlayerCharacter::WallRunningCameraTiltLeft);
+	WallRunRightCollisionComponent->OnComponentBeginOverlap.AddDynamic(
+		this, &AKT_PlayerCharacter::WallRunningCameraTiltRight);
+	WallRunLeftCollisionComponent->OnComponentBeginOverlap.AddDynamic(
+		this, &AKT_PlayerCharacter::WallRunningCameraTiltLeft);
 
 	WallRunRightCollisionComponent->OnComponentEndOverlap.AddDynamic(this, &AKT_PlayerCharacter::EndTiltOnWallRunning);
 	WallRunLeftCollisionComponent->OnComponentEndOverlap.AddDynamic(this, &AKT_PlayerCharacter::EndTiltOnWallRunning);
-	
-	
+
+
 	CrouchingTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("CrouchingTimeline"));
 	SlidingTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("SlidingTimeline"));
 	WallRunningTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("WallRunningTimeline"));
-	TiltCameraOnWallRunningTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("TiltCameraOnWallRunningTimeLine"));
+	TiltCameraOnWallRunningTimeLine = CreateDefaultSubobject<UTimelineComponent>(
+		TEXT("TiltCameraOnWallRunningTimeLine"));
 	ScopingTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("ScopingTimeLine"));
 
 	SlidingInterpFunction.BindUFunction(this, FName("SlidingTimeLineFloatReturn"));
@@ -65,7 +68,7 @@ AKT_PlayerCharacter::AKT_PlayerCharacter()
 	WallRunningInterpFunction.BindUFunction(this, FName("WallRunningTimeLineFloatReturn"));
 	TiltCameraOnWallRunningInterpFunction.BindUFunction(this, FName("TiltCameraOnWallRunningTimeLineFloatReturn"));
 	ScopingInterpFunction.BindUFunction(this, FName("ScopingTimeLineFloatReturn"));
-	
+
 	ItemsManagerComponent->SetIsReplicated(true);
 	HealthComponent->SetIsReplicated(true);
 }
@@ -79,9 +82,9 @@ void AKT_PlayerCharacter::BeginPlay()
 	check(HealthComponent);
 
 	HealthComponent->OnDead.AddDynamic(this, &AKT_PlayerCharacter::Die);
-	
+
 	SprintSpeed = WalkSpeed * 1.5; //TODO
-	
+
 	SpeedOfWalk = WalkSpeed;
 	SpeedOfRun = SprintSpeed;
 	SpeedOfCrouch = CrouchSpeed;
@@ -94,7 +97,7 @@ void AKT_PlayerCharacter::BeginPlay()
 
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Block);
-	
+
 	GetMovementComponent()->SetPlaneConstraintEnabled(true);
 
 	GetCharacterMovement()->MaxWalkSpeed = SpeedOfWalk;
@@ -118,7 +121,8 @@ void AKT_PlayerCharacter::BeginPlay()
 	}
 	if (CurveFloatForWallRunningCameraTilt)
 	{
-		TiltCameraOnWallRunningTimeLine->AddInterpFloat(CurveFloatForWallRunningCameraTilt, TiltCameraOnWallRunningInterpFunction, FName("Alpha"));
+		TiltCameraOnWallRunningTimeLine->AddInterpFloat(CurveFloatForWallRunningCameraTilt,
+		                                                TiltCameraOnWallRunningInterpFunction, FName("Alpha"));
 		TiltCameraOnWallRunningTimeLine->SetLooping(false);
 	}
 	if (ScopingCameraTilt)
@@ -132,28 +136,31 @@ void AKT_PlayerCharacter::BeginPlay()
 void AKT_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	
+
 	PlayerInputComponent->BindAction("Escape", IE_Pressed, this, &AKT_PlayerCharacter::OnEscapeButtonPressed);
 
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AKT_PlayerCharacter::Interact);
-	
-	PlayerInputComponent->BindAction("FirstGrenadeSlot", IE_Pressed, this, &AKT_PlayerCharacter::DropFirstGrenadeOnServer);
-	
-	PlayerInputComponent->BindAction("SecondGrenadeSlot", IE_Pressed, this, &AKT_PlayerCharacter::DropSecondGrenadeOnServer);
-	
+
+	// PlayerInputComponent->BindAction("FirstGrenadeSlot", IE_Pressed, this,
+	//                                  &AKT_PlayerCharacter::DropFirstGrenadeOnServer);
+	//
+	// PlayerInputComponent->BindAction("SecondGrenadeSlot", IE_Pressed, this,
+	//                                  &AKT_PlayerCharacter::DropSecondGrenadeOnServer);
+
 	PlayerInputComponent->BindAction("AlterFire", IE_Pressed, this, &AKT_PlayerCharacter::RightClick);
 	PlayerInputComponent->BindAction("AlterFire", IE_Released, this, &AKT_PlayerCharacter::RightUnClick);
-	
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, ItemsManagerComponent, &UKT_ItemsManagerComponent::Fire);
+
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, ItemsManagerComponent, &UKT_ItemsManagerComponent::StartFire);
 	PlayerInputComponent->BindAction("Fire", IE_Released, ItemsManagerComponent, &UKT_ItemsManagerComponent::StopFire);
-	
+
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, ItemsManagerComponent, &UKT_ItemsManagerComponent::Reload);
 
-	PlayerInputComponent->BindAction("ChangeWeapon", IE_Pressed, ItemsManagerComponent, &UKT_ItemsManagerComponent::ChangeWeapon);
+	PlayerInputComponent->BindAction("ChangeWeapon", IE_Pressed, ItemsManagerComponent,
+	                                 &UKT_ItemsManagerComponent::ChangeWeapon);
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AKT_PlayerCharacter::Jumping);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
-	
+
 	PlayerInputComponent->BindAction("Dash", IE_Released, this, &AKT_PlayerCharacter::Dash);
 
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AKT_PlayerCharacter::DoSprint);
@@ -170,7 +177,7 @@ void AKT_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 void AKT_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
+
 	DOREPLIFETIME(AKT_PlayerCharacter, CanInteract);
 	DOREPLIFETIME(AKT_PlayerCharacter, InteractiveObject);
 }
@@ -273,7 +280,7 @@ void AKT_PlayerCharacter::ChangeCharacterSpeeds(const float InSpeedFactor)
 		GetCharacterMovement()->MaxWalkSpeed = SpeedOfCrouch;
 		SetCharacterSpeedOnServer(SpeedOfCrouch);
 	}
-	else 
+	else
 	{
 		GetCharacterMovement()->MaxWalkSpeed = SpeedOfWalk;
 		SetCharacterSpeedOnServer(SpeedOfWalk);
@@ -311,7 +318,7 @@ void AKT_PlayerCharacter::Sprint()
 	SetCharacterSpeedOnServer(SpeedOfRun);
 	SetCanShootOnServer(false);
 	IsSprinted = true;
-	
+
 	GetWorldTimerManager().SetTimer(SprintTimerHandle, SprintTimerDelegate, 0.5, false);
 }
 
@@ -373,12 +380,12 @@ void AKT_PlayerCharacter::Crouching()
 {
 	CrouchingEndLocation = CrouchingStartLocation = CameraComponent->GetRelativeLocation();
 	CrouchingEndLocation.Z -= 50;
-	
+
 	GetCharacterMovement()->MaxWalkSpeed = SpeedOfCrouch;
-	
+
 	CrouchingTimeLine->Play();
 
-	ItemsManagerComponent->CanShoot = true;
+	ItemsManagerComponent->ToShoot = true;
 	IsCrouching = true;
 	IsSprinted = false;
 	CanDash = false;
@@ -387,9 +394,9 @@ void AKT_PlayerCharacter::Crouching()
 void AKT_PlayerCharacter::UnCrouching()
 {
 	GetCharacterMovement()->MaxWalkSpeed = SpeedOfWalk;
-	
+
 	CrouchingTimeLine->Reverse();
-	
+
 	IsCrouching = false;
 	CanSliding = false;
 }
@@ -411,7 +418,8 @@ void AKT_PlayerCharacter::CrouchingOnServer_Implementation(bool InCrouching)
 void AKT_PlayerCharacter::CrouchingTimeLineFloatReturn_Implementation(float Value)
 {
 	CameraComponent->SetRelativeLocation(FMath::Lerp(CrouchingStartLocation, CrouchingEndLocation, Value));
-	GetCapsuleComponent()->SetCapsuleHalfHeight(FMath::Lerp(UpperHalfHeightCapsuleCollision, LowerHalfHeightCapsuleCollision, Value), true);
+	GetCapsuleComponent()->SetCapsuleHalfHeight(
+		FMath::Lerp(UpperHalfHeightCapsuleCollision, LowerHalfHeightCapsuleCollision, Value), true);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -524,7 +532,7 @@ void AKT_PlayerCharacter::Dash()
 				DashOnServer(false, false);
 			}
 		}
-		
+
 		CanDash = false;
 
 		FTimerHandle LTimerHandle;
@@ -599,13 +607,16 @@ void AKT_PlayerCharacter::DashReload()
 
 ///////////////////////////////////////////WallRunning//////////////////////////////////////////////////////////////////
 
-void AKT_PlayerCharacter::WallRunningBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AKT_PlayerCharacter::WallRunningBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+                                           UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+                                           const FHitResult& SweepResult)
 {
 	WallRunningStart(OtherActor);
 }
 
 
-void AKT_PlayerCharacter::WallRunningEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void AKT_PlayerCharacter::WallRunningEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+                                         UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	WallRunningStop(OtherActor);
 }
@@ -613,7 +624,7 @@ void AKT_PlayerCharacter::WallRunningEnd(UPrimitiveComponent* OverlappedComp, AA
 void AKT_PlayerCharacter::WallRunningStart(AActor* OtherActor)
 {
 	PlayerDirectionForWallRunning = CameraComponent->GetForwardVector();
-	
+
 	if (OtherActor->ActorHasTag(ParkourTag) && GetMovementComponent()->IsFalling())
 	{
 		OnWall = true;
@@ -667,20 +678,26 @@ void AKT_PlayerCharacter::TiltCameraOnWallRunningTimeLineFloatReturn(float Value
 	{
 		if (PlayerController)
 		{
-			PlayerController->SetControlRotation(FMath::LerpRange(GetActorRotation(), FRotator(GetActorRotation().Pitch, GetActorRotation().Yaw, -TiltAngle), Value));
+			PlayerController->SetControlRotation(FMath::LerpRange(GetActorRotation(),
+			                                                      FRotator(GetActorRotation().Pitch,
+			                                                               GetActorRotation().Yaw, -TiltAngle), Value));
 		}
 	}
 	else
 	{
 		if (PlayerController)
 		{
-			PlayerController->SetControlRotation(FMath::LerpRange(GetActorRotation(), FRotator(GetActorRotation().Pitch, GetActorRotation().Yaw, TiltAngle), Value));
+			PlayerController->SetControlRotation(FMath::LerpRange(GetActorRotation(),
+			                                                      FRotator(GetActorRotation().Pitch,
+			                                                               GetActorRotation().Yaw, TiltAngle), Value));
 		}
 	}
 }
 
 
-void AKT_PlayerCharacter::WallRunningCameraTiltRight(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AKT_PlayerCharacter::WallRunningCameraTiltRight(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+                                                     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+                                                     bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor->ActorHasTag(ParkourTag) && GetMovementComponent()->IsFalling())
 	{
@@ -691,7 +708,9 @@ void AKT_PlayerCharacter::WallRunningCameraTiltRight(UPrimitiveComponent* Overla
 }
 
 
-void AKT_PlayerCharacter::WallRunningCameraTiltLeft(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AKT_PlayerCharacter::WallRunningCameraTiltLeft(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+                                                    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+                                                    bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor->ActorHasTag(ParkourTag) && GetMovementComponent()->IsFalling())
 	{
@@ -702,7 +721,8 @@ void AKT_PlayerCharacter::WallRunningCameraTiltLeft(UPrimitiveComponent* Overlap
 }
 
 
-void AKT_PlayerCharacter::EndTiltOnWallRunning(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void AKT_PlayerCharacter::EndTiltOnWallRunning(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+                                               UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (CameraIsTilt)
 	{
@@ -712,127 +732,102 @@ void AKT_PlayerCharacter::EndTiltOnWallRunning(UPrimitiveComponent* OverlappedCo
 }
 
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 ///////////////////////////////////////////Weapons//////////////////////////////////////////////////////////////////////
 
 
-void AKT_PlayerCharacter::DropFirstGrenadeOnServer_Implementation()
-{
-	if (IsValid(ItemsManagerComponent->FirstGrenadeSlot))
-	{
-		ItemsManagerComponent->FirstGrenadeSlot->ToUseWeapon(false);
-		ItemsManagerComponent->FirstGrenadeSlot->Destroy();
-		ItemsManagerComponent->FirstGrenadeSlot = nullptr;
-	}
-}
+// void AKT_PlayerCharacter::DropFirstGrenadeOnServer_Implementation()
+// {
+// 	if (IsValid(ItemsManagerComponent->FirstGrenadeSlot))
+// 	{
+// 		ItemsManagerComponent->FirstGrenadeSlot->ToUseWeapon(false);
+// 		ItemsManagerComponent->FirstGrenadeSlot->Destroy();
+// 		ItemsManagerComponent->FirstGrenadeSlot = nullptr;
+// 	}
+// }
 
 
-void AKT_PlayerCharacter::DropSecondGrenadeOnServer_Implementation()
-{
-	if (IsValid(ItemsManagerComponent->SecondGrenadeSlot))
-	{
-		ItemsManagerComponent->SecondGrenadeSlot->ToUseWeapon(false);
-		ItemsManagerComponent->SecondGrenadeSlot->Destroy();
-		ItemsManagerComponent->SecondGrenadeSlot = nullptr;
-	}
-}
+// void AKT_PlayerCharacter::DropSecondGrenadeOnServer_Implementation()
+// {
+// 	if (IsValid(ItemsManagerComponent->SecondGrenadeSlot))
+// 	{
+// 		ItemsManagerComponent->SecondGrenadeSlot->ToUseWeapon(false);
+// 		ItemsManagerComponent->SecondGrenadeSlot->Destroy();
+// 		ItemsManagerComponent->SecondGrenadeSlot = nullptr;
+// 	}
+// }
 
 
-void AKT_PlayerCharacter::AddGrenade_Implementation(TSubclassOf<AKT_BaseGrenade> InGrenadeClass, const bool InToFirstSlot)
-{
-	const FAttachmentTransformRules LRules(EAttachmentRule::KeepWorld, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false);
-	const FRotator LRotation = GetControlRotation();
-	const FActorSpawnParameters LSpawnInfo;
-	
-	if (InToFirstSlot)
-	{
-		const FVector LLocation = GetMesh()->GetSocketLocation(ItemsManagerComponent->FirstGrenadeSlotSocketName);
-		ItemsManagerComponent->FirstGrenadeSlot = GetWorld()->SpawnActor<AKT_BaseGrenade>(InGrenadeClass, LLocation, LRotation, LSpawnInfo);
-		if (IsValid(ItemsManagerComponent->FirstGrenadeSlot))
-		{
-			ItemsManagerComponent->FirstGrenadeSlot->Initialize(this);
-			ItemsManagerComponent->FirstGrenadeSlot->AttachToComponent(GetMesh(), LRules, ItemsManagerComponent->FirstGrenadeSlotSocketName);
-		}
-		
-	}
-	else
-	{
-		const FVector LLocation = GetMesh()->GetSocketLocation(ItemsManagerComponent->SecondGrenadeSlotSocketName);
-		ItemsManagerComponent->SecondGrenadeSlot = GetWorld()->SpawnActor<AKT_BaseGrenade>(InGrenadeClass, LLocation, LRotation, LSpawnInfo);
-
-		if (IsValid(ItemsManagerComponent->SecondGrenadeSlot))
-		{
-			ItemsManagerComponent->SecondGrenadeSlot->Initialize(this);
-			ItemsManagerComponent->SecondGrenadeSlot->AttachToComponent(GetMesh(), LRules, ItemsManagerComponent->FirstGrenadeSlotSocketName);
-		}
-	}
-}
+// void AKT_PlayerCharacter::AddGrenade_Implementation(TSubclassOf<AKT_BaseGrenade> InGrenadeClass, const bool InToFirstSlot)
+// {
+// 	const FAttachmentTransformRules LRules(EAttachmentRule::KeepWorld, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false);
+// 	const FRotator LRotation = GetControlRotation();
+// 	const FActorSpawnParameters LSpawnInfo;
+// 	
+// 	if (InToFirstSlot)
+// 	{
+// 		const FVector LLocation = GetMesh()->GetSocketLocation(ItemsManagerComponent->FirstGrenadeSlotSocketName);
+// 		ItemsManagerComponent->FirstGrenadeSlot = GetWorld()->SpawnActor<AKT_BaseGrenade>(InGrenadeClass, LLocation, LRotation, LSpawnInfo);
+// 		if (IsValid(ItemsManagerComponent->FirstGrenadeSlot))
+// 		{
+// 			ItemsManagerComponent->FirstGrenadeSlot->Initialize(this);
+// 			ItemsManagerComponent->FirstGrenadeSlot->AttachToComponent(GetMesh(), LRules, ItemsManagerComponent->FirstGrenadeSlotSocketName);
+// 		}
+// 		
+// 	}
+// 	else
+// 	{
+// 		const FVector LLocation = GetMesh()->GetSocketLocation(ItemsManagerComponent->SecondGrenadeSlotSocketName);
+// 		ItemsManagerComponent->SecondGrenadeSlot = GetWorld()->SpawnActor<AKT_BaseGrenade>(InGrenadeClass, LLocation, LRotation, LSpawnInfo);
+//
+// 		if (IsValid(ItemsManagerComponent->SecondGrenadeSlot))
+// 		{
+// 			ItemsManagerComponent->SecondGrenadeSlot->Initialize(this);
+// 			ItemsManagerComponent->SecondGrenadeSlot->AttachToComponent(GetMesh(), LRules, ItemsManagerComponent->FirstGrenadeSlotSocketName);
+// 		}
+// 	}
+// }
 
 
 void AKT_PlayerCharacter::RightClick()
 {
-	if (IsValid(ItemsManagerComponent->GetSelectedWeaponSlot()))
+	if (!IsValid(ItemsManagerComponent->GetSelectedWeaponSlot())) return;
+
+	if (ItemsManagerComponent->GetSelectedWeaponSlot()->CanScope)
 	{
-		if (ItemsManagerComponent->GetSelectedWeaponSlot()->CanScope)
-		{
-			Scope();
-			ScopeOnServer();
-		}
-		else
-		{
-			AlterFireOnServer();
-		}
+		Scope();
+		ScopeOnServer();
+	}
+	else
+	{
+		ItemsManagerComponent->GetSelectedWeaponSlot()->StartChangeFireMode();
 	}
 }
 
 void AKT_PlayerCharacter::RightUnClick_Implementation()
 {
-	if (IsValid(ItemsManagerComponent->GetSelectedWeaponSlot()))
-	{
-		if (ItemsManagerComponent->GetSelectedWeaponSlot()->CanScope)
-		{
-			UnScope();
-			UnScopeOnServer();
-		}
-		else
-		{
-			ItemsManagerComponent->CanShoot = false;
-		}
-	}
-}
-
-
-void AKT_PlayerCharacter::AlterFireOnServer_Implementation()
-{
-	if (IsSprinted)
-	{
-		BreakSprint();
-	}
-	else
-	{
-		ItemsManagerComponent->CanShoot = true;
-	}
+	if (!IsValid(ItemsManagerComponent->GetSelectedWeaponSlot())) return;
+	if (!ItemsManagerComponent->GetSelectedWeaponSlot()->CanScope) return;
 	
-	if (ItemsManagerComponent->CanShoot)
-	{
-		ItemsManagerComponent->GetSelectedWeaponSlot()->ToUseWeapon(true);
-	}
+	UnScope();
+	UnScopeOnServer();
 }
 
 
 void AKT_PlayerCharacter::ScopingTimeLineFloatReturn(float Value)
 {
-	
 	if (IsScoping)
 	{
-		FirstPersonMeshComponent->SetRelativeTransform(UKismetMathLibrary::TLerp(FirstPersonMeshComponent->GetRelativeTransform(), CalculateADSTransform(), Value));
+		FirstPersonMeshComponent->SetRelativeTransform(
+			UKismetMathLibrary::TLerp(FirstPersonMeshComponent->GetRelativeTransform(), CalculateADSTransform(),
+			                          Value));
 	}
 	else
 	{
-		FirstPersonMeshComponent->SetRelativeTransform(UKismetMathLibrary::TLerp(FirstPersonMeshComponent->GetRelativeTransform(), DefaultArmsTransform, Value));
+		FirstPersonMeshComponent->SetRelativeTransform(
+			UKismetMathLibrary::TLerp(FirstPersonMeshComponent->GetRelativeTransform(), DefaultArmsTransform, Value));
 	}
 }
 
@@ -840,8 +835,9 @@ void AKT_PlayerCharacter::ScopingTimeLineFloatReturn(float Value)
 FTransform AKT_PlayerCharacter::CalculateADSTransform()
 {
 	const auto LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot());
-	return  UKismetMathLibrary::InvertTransform(UKismetMathLibrary::MakeRelativeTransform(LWeapon->Mesh->GetSocketTransform(LWeapon->ScopingSocketName), FirstPersonMeshComponent->GetComponentTransform()));
-
+	return UKismetMathLibrary::InvertTransform(UKismetMathLibrary::MakeRelativeTransform(
+		LWeapon->Mesh->GetSocketTransform(LWeapon->ScopingSocketName),
+		FirstPersonMeshComponent->GetComponentTransform()));
 }
 
 
@@ -865,7 +861,7 @@ void AKT_PlayerCharacter::ScopeOnServer_Implementation()
 void AKT_PlayerCharacter::UnScope_Implementation()
 {
 	IsScoping = false;
-	ScopingTimeLine->Reverse();
+	ScopingTimeLine->ReverseFromEnd();
 }
 
 
@@ -877,7 +873,7 @@ void AKT_PlayerCharacter::UnScopeOnServer_Implementation()
 
 void AKT_PlayerCharacter::SetCanShootOnServer_Implementation(const bool InCanShoot)
 {
-	ItemsManagerComponent->CanShoot = InCanShoot;
+	ItemsManagerComponent->ToShoot = InCanShoot;
 }
 
 
@@ -885,7 +881,7 @@ void AKT_PlayerCharacter::CheckCanFireOnServer_Implementation()
 {
 	if (!IsSprinted)
 	{
-		ItemsManagerComponent->CanShoot = true;
+		ItemsManagerComponent->ToShoot = true;
 	}
 }
 
@@ -898,7 +894,7 @@ void AKT_PlayerCharacter::Interact()
 {
 	if (!IsValid(InteractiveObject) || !CanInteract) return;
 	if (!InteractiveObject->CanTake) return;
-	
+
 	CallInteractOnServer();
 	InteractiveObject->InteractiveOnClient(this);
 }
@@ -964,8 +960,7 @@ void AKT_PlayerCharacter::Die(AController* Player)
 	const FRotator LRotation = GetActorRotation();
 	const FActorSpawnParameters LSpawnInfo;
 
-	
-	
+
 	if (HasAuthority())
 	{
 		FTimerHandle LDestroyTimerHandle;
@@ -973,7 +968,7 @@ void AKT_PlayerCharacter::Die(AController* Player)
 
 		DieOnClient();
 		DieMulticast();
-		
+
 		LDestroyTimerDelegate.BindUFunction(this, "Destruction");
 		GetWorldTimerManager().SetTimer(LDestroyTimerHandle, LDestroyTimerDelegate, 5, false);
 	}
@@ -993,7 +988,7 @@ void AKT_PlayerCharacter::DieMulticast_Implementation()
 		CapsuleComp->SetGenerateOverlapEvents(false);
 		CapsuleComp->SetNotifyRigidBodyCollision(false);
 	}
-	
+
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 	GetMesh()->SetCollisionProfileName("PhysicsActor");
 	GetMesh()->SetSimulatePhysics(true);
@@ -1019,6 +1014,6 @@ void AKT_PlayerCharacter::Destruction()
 	// {
 	// 	ItemsManagerComponent->SecondWeaponSlot->Destroy();
 	// }
-	
+
 	Destroy();
 }

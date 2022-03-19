@@ -1,13 +1,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InteractiveObjects/UsableObjects/KT_BaseLyingObject.h"
+#include "InteractiveObjects/UsableObjects/KT_BasePickupObject.h"
 #include "KT_SpeedBooster.generated.h"
 
 
 
 UCLASS()
-class KILLTHEM_API AKT_SpeedBooster : public AKT_BaseLyingObject
+class KILLTHEM_API AKT_SpeedBooster : public AKT_BasePickupObject
 {
 	GENERATED_BODY()
 				

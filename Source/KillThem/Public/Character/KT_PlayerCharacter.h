@@ -187,20 +187,17 @@ protected:
 
 /////////////////////////////////////Weapon////////////////////////////////////////
 
-	UFUNCTION(Server, Reliable)
-		void DropFirstGrenadeOnServer();
-
-	UFUNCTION(Server, Reliable)
-		void DropSecondGrenadeOnServer();
+	// UFUNCTION(Server, Reliable)
+	// 	void DropFirstGrenadeOnServer();
+	//
+	// UFUNCTION(Server, Reliable)
+	// 	void DropSecondGrenadeOnServer();
 
 	UFUNCTION()
 		void RightClick();
 
 	UFUNCTION(Server, Reliable)
 		void RightUnClick();
-
-	UFUNCTION(Server, Reliable)
-		void AlterFireOnServer();
 
 	UFUNCTION(Client, Reliable)
 		void Scope();
@@ -245,8 +242,8 @@ public:
 	UFUNCTION()
 		void BreakSprint();
 
-	UFUNCTION(Server, Reliable)
-    	void AddGrenade(TSubclassOf<AKT_BaseGrenade> InGrenadeClass, const bool InToFirstSlot);
+	// UFUNCTION(Server, Reliable)
+ //    	void AddGrenade(TSubclassOf<AKT_BaseGrenade> InGrenadeClass, const bool InToFirstSlot);
 
 	UFUNCTION(Server, Reliable)
 		void InteractInfoOnServer(AKT_BaseInteractiveObject* InInteractiveObject);

@@ -1,10 +1,10 @@
-#include "InteractiveObjects/UsableObjects/KT_BaseLyingObject.h"
+#include "InteractiveObjects/UsableObjects/KT_BasePickupObject.h"
 
 #include "Character/KT_PlayerCharacter.h"
 #include "UI/MainHUD_WD/KT_MainHUD_WD.h"
 
 
-AKT_BaseLyingObject::AKT_BaseLyingObject()
+AKT_BasePickupObject::AKT_BasePickupObject()
 {
 	SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>("SkeletalMesh");
 
@@ -19,7 +19,7 @@ AKT_BaseLyingObject::AKT_BaseLyingObject()
 }
 
 
-void AKT_BaseLyingObject::BeginPlay()
+void AKT_BasePickupObject::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -31,7 +31,7 @@ void AKT_BaseLyingObject::BeginPlay()
 }
 
 
-void AKT_BaseLyingObject::TimeLineProgress_Implementation(float Value)
+void AKT_BasePickupObject::TimeLineProgress_Implementation(float Value)
 {
 	if (!IsValid(PlayerCharacter)) return;
 
@@ -39,14 +39,14 @@ void AKT_BaseLyingObject::TimeLineProgress_Implementation(float Value)
 }
 
 
-void AKT_BaseLyingObject::RotationTimeLineFloatReturn(float Value)
+void AKT_BasePickupObject::RotationTimeLineFloatReturn(float Value)
 {
 	SkeletalMesh->SetRelativeRotation(FRotator(SkeletalMesh->GetRelativeRotation().Pitch,
 		SkeletalMesh->GetRelativeRotation().Yaw + SpeedRotation, SkeletalMesh->GetRelativeRotation().Roll));
 }
 
 
-void AKT_BaseLyingObject::InteractiveOnServer(AKT_PlayerCharacter* Player)
+void AKT_BasePickupObject::InteractiveOnServer(AKT_PlayerCharacter* Player)
 {
 	Super::InteractiveOnServer(Player);
 	
@@ -61,7 +61,7 @@ void AKT_BaseLyingObject::InteractiveOnServer(AKT_PlayerCharacter* Player)
 }
 
 
-void AKT_BaseLyingObject::BoosterActivated_Implementation(AKT_PlayerCharacter* Player, UTexture2D* Icon, float Time)
+void AKT_BasePickupObject::BoosterActivated_Implementation(AKT_PlayerCharacter* Player, UTexture2D* Icon, float Time)
 {
 	if (!IsValid(Player) || HasAuthority()) return;
 
@@ -72,7 +72,7 @@ void AKT_BaseLyingObject::BoosterActivated_Implementation(AKT_PlayerCharacter* P
 }
 
 
-void AKT_BaseLyingObject::BoosterDeactivated_Implementation(AKT_PlayerCharacter* Player)
+void AKT_BasePickupObject::BoosterDeactivated_Implementation(AKT_PlayerCharacter* Player)
 {
 	if (!IsValid(Player) || HasAuthority()) return;
 	
@@ -80,7 +80,7 @@ void AKT_BaseLyingObject::BoosterDeactivated_Implementation(AKT_PlayerCharacter*
 }
 
 
-void AKT_BaseLyingObject::DisableObject()
+void AKT_BasePickupObject::DisableObject()
 {
 	Super::DisableObject();
 
@@ -96,14 +96,14 @@ void AKT_BaseLyingObject::DisableObject()
 }
 
 
-void AKT_BaseLyingObject::BoostDown(AKT_PlayerCharacter* Player) 
+void AKT_BasePickupObject::BoostDown(AKT_PlayerCharacter* Player) 
 {
 	BoosterDeactivated(Player);
 	PlayerCharacter = nullptr;
 }
 
 
-void AKT_BaseLyingObject::EnableObject(AKT_PlayerCharacter* Player)
+void AKT_BasePickupObject::EnableObject(AKT_PlayerCharacter* Player)
 {
 	Super::EnableObject(Player);
 

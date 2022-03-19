@@ -277,29 +277,21 @@ void UKT_ItemsManagerComponent::Reload_Implementation()
 }
 
 
-void UKT_ItemsManagerComponent::Fire_Implementation()
+void UKT_ItemsManagerComponent::StartFire_Implementation()
 {
 	if (!IsValid(PlayerCharacter)) return;
-	
-	if (PlayerCharacter->IsSprinted)
+
+	WantShoot = true;
+	if (IsValid(GetSelectedWeaponSlot()))
 	{
-		PlayerCharacter->BreakSprint();
-	}
-	else
-	{
-		CanShoot = true;
-	}
-	
-	if (CanShoot && IsValid(GetSelectedWeaponSlot()))
-	{
-		GetSelectedWeaponSlot()->ToUseWeapon(false);
+		GetSelectedWeaponSlot()->UseWeapon();
 	}
 }
 
 
 void UKT_ItemsManagerComponent::StopFire_Implementation()
 {
-	CanShoot = false;
+	WantShoot = false;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////

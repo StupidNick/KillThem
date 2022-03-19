@@ -3,17 +3,17 @@
 #include "CoreMinimal.h"
 
 #include "KillThem/Public/InteractiveObjects/KT_BaseInteractiveObject.h"
-#include "KT_BaseLyingObject.generated.h"
+#include "KT_BasePickupObject.generated.h"
 
 
 
 UCLASS()
-class KILLTHEM_API AKT_BaseLyingObject : public AKT_BaseInteractiveObject
+class KILLTHEM_API AKT_BasePickupObject : public AKT_BaseInteractiveObject
 {
 	GENERATED_BODY()
 	
 public:
-	AKT_BaseLyingObject();
+	AKT_BasePickupObject();
 
 //private C++ functions
 private:

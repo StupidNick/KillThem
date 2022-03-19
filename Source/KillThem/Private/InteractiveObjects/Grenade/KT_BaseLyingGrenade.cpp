@@ -14,6 +14,6 @@ void AKT_BaseLyingGrenade::InteractiveOnServer(AKT_PlayerCharacter* Player)
 
 	if (HasAuthority())
 	{
-		Player->AddGrenade(ClassOfGrenade, IsAFirstGrenadeSlot);
+		// Player->AddGrenade(ClassOfGrenade, IsAFirstGrenadeSlot);
 	}
 }

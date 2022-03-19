@@ -1,14 +1,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InteractiveObjects/UsableObjects/KT_BaseLyingObject.h"
+#include "InteractiveObjects/UsableObjects/KT_BasePickupObject.h"
 #include "KT_ShieldBox.generated.h"
 
 
 
 
 UCLASS()
-class KILLTHEM_API AKT_ShieldBox : public AKT_BaseLyingObject
+class KILLTHEM_API AKT_ShieldBox : public AKT_BasePickupObject
 {
 	GENERATED_BODY()
 

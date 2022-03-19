@@ -33,31 +33,42 @@ private:
 private:
 
 	
+	
 //private C++ functions
 protected:
 
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-		virtual void UseWeapon();
-
-	UFUNCTION()
 		void AutoFireReload();
 
-//private C++ variables
+	UFUNCTION()
+		void ActivateTimerBetweenShots();
+
+	UFUNCTION(Server, Reliable)
+		void EndChangeFireMode();
+
+	UFUNCTION()
+		bool GetWeaponCanShoot() const;
+
+//protected C++ variables
 protected:
+
+	bool CanShoot = true;
+
+	bool IsChangingFireMode = false;
 
 	UPROPERTY(BlueprintReadOnly, Transient, ReplicatedUsing = OnRep_AmmoInTheClip, Category = "Stats")
 		int AmmoInTheClip;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(Replicated)
 		bool UseAlterFire;
 	
 	FTimerHandle AutoFireTimerHandle;
-	FTimerHandle AlterFireHandle;
+	FTimerHandle ChangeFireModeTimerHandle;
 	
 	FTimerDelegate AutoFireTimerDelegate;
-	FTimerDelegate AlterFireTimerDelegate;
+	FTimerDelegate ChangeFireModeTimerDelegate;
 
 //public C++ functions
 public:
@@ -68,13 +79,13 @@ public:
 		void OnRep_AmmoInTheClip();
 
 	UFUNCTION()
-		void ToUseWeapon(const bool IsAlterFire);
-
-	UFUNCTION()
-		void StopFire();
+		virtual void UseWeapon();
 
 	UFUNCTION(Server, Reliable)
-		void Initialize(AKT_PlayerCharacter* InCharacter, const int InAmmoInTheClip = -1);
+		void Initialize(AKT_PlayerCharacter* InCharacter, const int32& InAmmoInTheClip = -1);
+
+	UFUNCTION(Server, Reliable)
+		void StartChangeFireMode();
 
 	UFUNCTION()
 	FORCEINLINE int GetAmmoInTheClip() const
@@ -86,7 +97,9 @@ public:
 //public C++ variables
 public:
 
-	bool CanShoot = true;
+	UPROPERTY(BlueprintReadOnly, Replicated)
+		bool IsReloading = false;
+
 	
 //public BP variables
 public:
@@ -117,8 +130,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
 		bool AutoFire;
 
+/////////////////////////AltFire////////////////////////////////////
+
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
-		float TimeBeforeAlterFire;
+		float ChangeFireModeTime;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
 		float AlterDamage;
