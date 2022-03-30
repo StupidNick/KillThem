@@ -13,12 +13,12 @@ void AKT_BerserkBooster::InteractiveOnServer(AKT_PlayerCharacter* Player)
 {
 	Super::InteractiveOnServer(Player);
 
-	Player->BerserkBoostOnServer(BerserkFactor);
+	Player->SetBerserkBoost(BerserkFactor);
 }
 
 void AKT_BerserkBooster::BoostDown(AKT_PlayerCharacter* Player)
 {
 	Super::BoostDown(Player);
 	
-	Player->BerserkBoostOnServer(1 / BerserkFactor);
+	Player->SetBerserkBoost(1);
 }

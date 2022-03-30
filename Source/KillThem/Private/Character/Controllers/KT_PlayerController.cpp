@@ -20,6 +20,14 @@ void AKT_PlayerController::BeginPlay()
 }
 
 
+void AKT_PlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+	
+	InputComponent->BindAction("Escape", IE_Pressed, this, &AKT_PlayerController::OnEscapeButtonPressed);
+}
+
+
 void AKT_PlayerController::OnPossess_Implementation(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
@@ -54,4 +62,17 @@ void AKT_PlayerController::RespawnPlayer_Implementation()
 
 	LRespawnTimerDelegate.BindUFunction(Cast<AKT_BaseGameMode>(UGameplayStatics::GetGameMode(this)), "RespawnPlayer", this);
 	GetWorldTimerManager().SetTimer(LRespawnTimerHandle, LRespawnTimerDelegate, Cast<AKT_BaseGameMode>(UGameplayStatics::GetGameMode(this))->TimerForRespawnPlayers, false);
+}
+
+
+void AKT_PlayerController::OnEscapeButtonPressed_Implementation()
+{
+	if (!GameHUD->PauseMenu)
+	{
+		GameHUD->CreatePauseMenuWD();
+	}
+	else
+	{
+		GameHUD->RemovePauseMenuWD();
+	}
 }

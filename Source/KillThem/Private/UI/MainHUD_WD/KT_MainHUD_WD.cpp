@@ -6,6 +6,7 @@
 #include "Components/KT_ItemsManagerComponent.h"
 #include "Components/ProgressBar.h"
 #include "UI/MainHUD_WD/Panels/KT_AimWD.h"
+#include "UI/MainHUD_WD/Panels/KT_DashProgressBarsContainer.h"
 #include "UI/MainHUD_WD/Panels/KT_IconWithTextWD.h"
 
 
@@ -39,6 +40,10 @@ void UKT_MainHUD_WD::InitializeMainHUD_Implementation(AKT_PlayerCharacter* Playe
 	Character->OnBoosterActivated.AddDynamic(this, &UKT_MainHUD_WD::ActivateBooster);
 	Character->OnBoosterDeactivated.AddDynamic(this, &UKT_MainHUD_WD::DeactivatedBooster);
 	Character->OnBoosterUpdates.AddDynamic(this, &UKT_MainHUD_WD::UpdateBooster);
+	
+	Character->OnDashRecoverUpdates.AddDynamic(DashProgressBarContainer, &UKT_DashProgressBarsContainer::UpdateProgressBar);
+	Character->OnDashUsed.AddDynamic(DashProgressBarContainer, &UKT_DashProgressBarsContainer::ClearProgressBar);
+	DashProgressBarContainer->InitializeProgressBarsContainer(Character);
 }
 
 

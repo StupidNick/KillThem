@@ -17,12 +17,12 @@ void AKT_RageBooster::InteractiveOnServer(AKT_PlayerCharacter* Player)
 {
 	Super::InteractiveOnServer(Player);
 
-	Player->RageBoostOnServer(RageFactor);
+	Player->SetRageBoost(RageFactor);
 }
 
 void AKT_RageBooster::BoostDown(AKT_PlayerCharacter* Player)
 {
 	Super::BoostDown(Player);
 	
-	Player->RageBoostOnServer(1 / RageFactor);
+	Player->SetRageBoost(1);
 }

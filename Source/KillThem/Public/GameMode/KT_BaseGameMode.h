@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KT_PlayerStart.h"
 #include "Character/KT_PlayerCharacter.h"
 #include "GameFramework/GameModeBase.h"
 #include "GameFramework/PlayerStart.h"
@@ -14,6 +15,7 @@ class KILLTHEM_API AKT_BaseGameMode : public AGameModeBase
 
 //public C++ methods
 public:
+	AKT_BaseGameMode();
 
 	UFUNCTION(Reliable, Server)
 		void RespawnPlayer(AController* Player);
@@ -23,9 +25,6 @@ public:
 
 //public C++ variables
 public:
-
-	UPROPERTY()
-		TArray<APlayerStart*> PlayerStartArray;
 
 	UPROPERTY()
 		TArray<AKT_PlayerCharacter*> Players;
@@ -47,8 +46,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Items")
 		float ItemsDestructionTimer;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Players")
-		TSubclassOf<AActor> PlayerStartClassForFind;
+	UPROPERTY(EditAnywhere, Category = "Players")
+		AKT_PlayerStart* PlayerStart = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Players")
 		TSubclassOf<AKT_PlayerCharacter> DefaultCharacterClass;

@@ -1,10 +1,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/KT_CharacterMovementComponent.h"
 
 
 #include "Components/TimelineComponent.h"
 #include "GameFramework/Character.h"
+#include "GameMode/KT_PlayerStart.h"
 
 
 #include "KT_PlayerCharacter.generated.h"
@@ -27,6 +29,8 @@ class AKT_GameHUD;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBusterActivated, UTexture2D*, Icon, float, Time);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBusterUpdates, float, Time);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBusterDeactivated, bool, Deactivated);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FDashRecoverUpdates, const float&, Value, const int32&, Counter);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDashUsed, const int32&, Counter);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDead, APawn*, Player);
 
 
@@ -38,22 +42,14 @@ class KILLTHEM_API AKT_PlayerCharacter : public ACharacter
 //Constructor
 public:
 	
-	AKT_PlayerCharacter();
+	AKT_PlayerCharacter(const FObjectInitializer& ObjInit);
+	
 
 //private с++ functions
 private:
 
 	UFUNCTION()
-		void SlidingTimeLineFloatReturn(float Value);
-	
-	UFUNCTION(NetMulticast, Reliable)
-		void CrouchingTimeLineFloatReturn(float Value);
-
-	UFUNCTION(NetMulticast, Reliable)
-		void WallRunningTimeLineFloatReturn(float Value);
-
-	UFUNCTION()
-		void TiltCameraOnWallRunningTimeLineFloatReturn(float Value);
+		void Initialize();
 
 	UFUNCTION()
 		void ScopingTimeLineFloatReturn(float Value);
@@ -61,129 +57,22 @@ private:
 	UFUNCTION()
 		FTransform CalculateADSTransform();
 
-	UFUNCTION()
-		void Destruction();
-
-	
+	FOnTimelineFloat ScopingInterpFunction{};
 
 //private с++ variables
 private:
 
 	UPROPERTY()
-		UTimelineComponent* SlidingTimeLine;
-
-	UPROPERTY()
-		UTimelineComponent* CrouchingTimeLine;
-
-	UPROPERTY()
-		UTimelineComponent* WallRunningTimeLine;
-
-	UPROPERTY()
-		UTimelineComponent* TiltCameraOnWallRunningTimeLine;
-
-	UPROPERTY()
 		UTimelineComponent* ScopingTimeLine;
 
 	UPROPERTY()
-		FVector CrouchingStartLocation;
-	UPROPERTY()
-		FVector CrouchingEndLocation;
-
-	UPROPERTY()
-		bool CameraTiltToRight;
-
-	UPROPERTY()
-		bool CameraIsTilt = false;
-
-	UPROPERTY()
 		FTransform DefaultArmsTransform;
-
-	FTimerHandle SprintTimerHandle;
-	FTimerDelegate SprintTimerDelegate;
-
+	
 
 //protected c++ functions
 protected:
 	
 	virtual void BeginPlay() override;
-
-	void MoveForward(float Value);
-	UFUNCTION(Server, Reliable)
-		void SetMoveForwardOnServer(bool Value);
-	void MoveRight(float Value);
-
-/////////////////////////////////////Sprint/////////////////////////////////////////
-	UFUNCTION()
-		void DoSprint();
-	UFUNCTION()
-		void Sprint();
-	UFUNCTION()
-		void UnSprint();
-	UFUNCTION(Server, Reliable)
-		void SetCharacterSpeedOnServer(const float InSpeed);
-	UFUNCTION(Server, Reliable)
-		void SetCanShootOnServer(const bool InCanShoot);
-
-/////////////////////////////////////Crouch/////////////////////////////////////////
-	UFUNCTION()
-		void DoCrouch();
-	UFUNCTION()
-		void Crouching();
-	UFUNCTION()
-		void UnCrouching();
-	UFUNCTION(Server, Reliable)
-		void CrouchingOnServer(bool InCrouching);
-
-/////////////////////////////////////Slide/////////////////////////////////////////
-	UFUNCTION()
-		void Sliding();
-	UFUNCTION()
-		void SlidingReload();
-	UFUNCTION(Server, Reliable)
-		void SlidingOnServer();
-
-/////////////////////////////////////Jump/////////////////////////////////////////
-	UFUNCTION()
-		void Jumping();
-	UFUNCTION()
-		void JumpingOnWall();
-	UFUNCTION(Server, Reliable)
-		void JumpingOnWallOnServer();
-	UFUNCTION(Server, Reliable)
-		void JumpingOnServer();
-
-/////////////////////////////////////Dash/////////////////////////////////////////
-	UFUNCTION()
-		void Dash();
-	UFUNCTION()
-		void RightDash(bool Right);
-	UFUNCTION()
-		void ForwardDash(bool Forward);
-	UFUNCTION(Server, Reliable)
-		void DashOnServer(bool MoveForward, bool Value);
-	UFUNCTION()
-		void DashReload();
-
-/////////////////////////////////////WallRun//////////////////////////////////////
-
-	UFUNCTION()
-		void WallRunningBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	UFUNCTION()
-		void WallRunningEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-	UFUNCTION()
-		void WallRunningStart(AActor* OtherActor);
-	UFUNCTION()
-		void WallRunningStop(AActor* OtherActor);
-
-
-	UFUNCTION()
-		void WallRunningCameraTiltRight(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	UFUNCTION()
-		void WallRunningCameraTiltLeft(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION()
-		void EndTiltOnWallRunning(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 /////////////////////////////////////Weapon////////////////////////////////////////
 
@@ -217,17 +106,12 @@ protected:
 	UFUNCTION(Server, Reliable)
 		void CallInteractOnServer();
 
-	UFUNCTION(Client, Reliable)
-		void OnEscapeButtonPressed();
+	UFUNCTION()
+		void Destruction();
+	
 	
 //protected c++ variables
 protected:
-
-	UPROPERTY(BlueprintReadWrite)
-		int JumpCounter = 0;
-
-	UPROPERTY()
-		FVector PlayerDirectionForWallRunning;
 
 	UPROPERTY(Replicated)
 		bool CanInteract;
@@ -239,34 +123,33 @@ protected:
 //public c++ functions
 public:
 
-	UFUNCTION()
-		void BreakSprint();
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+/////////////////////////////////////Boosters//////////////////////////////////////
+	
+	UFUNCTION(Server, Reliable)
+		void SetSpeedBoost(const float& Boost);
+
+	UFUNCTION(Server, Reliable)
+		void SetBerserkBoost(const float& Boost);
+
+	UFUNCTION(Server, Reliable)
+		void SetRageBoost(const float& Boost);
 
 	// UFUNCTION(Server, Reliable)
  //    	void AddGrenade(TSubclassOf<AKT_BaseGrenade> InGrenadeClass, const bool InToFirstSlot);
 
+/////////////////////////////////////Interact//////////////////////////////////////
+	
 	UFUNCTION(Server, Reliable)
 		void InteractInfoOnServer(AKT_BaseInteractiveObject* InInteractiveObject);
 
 	UFUNCTION(Server, Unreliable)
 		void UnInteractInfo();
 
-	UFUNCTION()
-		void ChangeCharacterSpeeds(const float InSpeedFactor);
-
-	UFUNCTION(Server, Reliable)
-		void CheckCanFireOnServer();
-
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	UFUNCTION(Server, Reliable)
-		void BerserkBoostOnServer(const float Boost);
-
-	UFUNCTION(Server, Reliable)
-		void RageBoostOnServer(const float Boost);
-
-	UFUNCTION(Server, Reliable)
-		void SpeedBoostOnServer(const float Boost);
+/////////////////////////////////////Die/////////////////////////////////////////
 
 	UFUNCTION()
 		void Die(AController* Player);
@@ -277,58 +160,30 @@ public:
 	UFUNCTION(Client, Reliable)
 		void DieOnClient();
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
+	
 //public c++ variables
 public:
 
-/////////////////////////////////////Timelines/////////////////////////////////////////
-	FOnTimelineFloat SlidingInterpFunction{};
+/////////////////////////////////Boosters/////////////////////////////////////////////
 
-	FOnTimelineFloat CrouchingInterpFunction{};
+	UPROPERTY(Replicated)
+		float DamageBooster = 1.0f;
 
-	FOnTimelineFloat WallRunningInterpFunction{};
-
-	FOnTimelineFloat TiltCameraOnWallRunningInterpFunction{};
-
-	FOnTimelineFloat ScopingInterpFunction{};
-//////////////////////////////////////////////////////////////////////////////////////
-	
-	
-////////////////////////////////////PersonParams//////////////////////////////////////
-
-	UPROPERTY()
-		float SpeedOfWalk;
-
-	UPROPERTY()
-		float SpeedOfRun;
-
-	UPROPERTY()
-		float SpeedOfCrouch;
-
-	UPROPERTY()
-		float SpeedOfSliding;
-
-	UPROPERTY()
-		float SpeedOfDash;
-
-	UPROPERTY()
-		float DamageBooster;
-
-	UPROPERTY()
-		float BerserkBooster;
-
-//////////////////////////////////////////////////////////////////////////////////////
-
+	UPROPERTY(Replicated)
+		float BerserkBooster = 1.0f;
 
 //public BP variables
 public:
 
+//////////////////////////////////////////////////////Components////////////////////////////////////////////////////////
 	UPROPERTY(EditAnywhere, Category = "Character | Components")
 		UKT_ItemsManagerComponent* ItemsManagerComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Components")
 		UKT_HealthComponent* HealthComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Components")
+		UKT_CharacterMovementComponent* CharacterMovementComponent;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character | Components")
 		USkeletalMeshComponent* FirstPersonMeshComponent;
@@ -345,77 +200,11 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Character | Components")
 		UBoxComponent* WallRunLeftCollisionComponent;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Character")
+	UPROPERTY(BlueprintReadOnly, Category = "Character | Components")
 		APlayerController* PlayerController;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Character | Parkour")
-		FName ParkourTag;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Character | Parkour")
+	UPROPERTY(BlueprintReadOnly, Category = "Character | Components")
 		AKT_GameHUD* HUD;
-
-/////////////////////////////////////Moving/////////////////////////////////////////
-	UPROPERTY(BlueprintReadOnly, Category = "Character | Moving")
-		bool IsMoveForward = false;
-	UPROPERTY(BlueprintReadOnly, Category = "Character | Moving")
-		bool IsMoveRight = false;
-	UPROPERTY(BlueprintReadOnly, Category = "Character | Moving")
-		float MoveForwardValue = 0;
-	UPROPERTY(BlueprintReadOnly, Category = "Character | Moving")
-		float MoveRightValue = 0;
-	UPROPERTY(EditDefaultsOnly, Category = "Character | Moving")
-		float WalkSpeed = 600;
-
-/////////////////////////////////////Sprinting/////////////////////////////////////////
-	UPROPERTY(BlueprintReadOnly, Category = "Character | Sprinting")
-		bool IsSprinted = false;
-	UPROPERTY(EditDefaultsOnly, Category = "Character | Sprinting")
-		float SprintSpeed = 1200;
-	
-/////////////////////////////////////Crouching/////////////////////////////////////////
-	UPROPERTY(EditAnywhere, Category = "Character | Crouching")
-		UCurveFloat* CurveFloatForCrouching;
-	UPROPERTY(EditDefaultsOnly, Category = "Character | Crouching")
-		float CrouchSpeed = 300;
-	UPROPERTY(BlueprintReadOnly, Category = "Character | Crouching")
-		bool IsCrouching = false;
-	UPROPERTY(EditAnywhere, Category = "Character | Crouching")
-		float UpperHalfHeightCapsuleCollision;
-	UPROPERTY(EditAnywhere, Category = "Character | Crouching")
-		float LowerHalfHeightCapsuleCollision;
-
-/////////////////////////////////////Sliding/////////////////////////////////////////
-	UPROPERTY(EditAnywhere, Category = "Character | Sliding")
-		UCurveFloat* CurveFloatForSliding;
-	UPROPERTY(EditDefaultsOnly, Category = "Character | Sliding")
-		float SlidingSpeed = 1000;
-	UPROPERTY(BlueprintReadOnly, Category = "Character | Sliding")
-		bool CanSliding = false;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Character | Jumping")
-		int MaxJump = 0;
-
-/////////////////////////////////////Dashing/////////////////////////////////////////
-	UPROPERTY(BlueprintReadOnly, Category = "Character | Dashing")
-		bool CanDash = true;
-	UPROPERTY(EditDefaultsOnly, Category = "Character | Dashing")
-		float DashSpeed = 2000;
-
-/////////////////////////////////////WallRunning/////////////////////////////////////////
-	UPROPERTY(EditAnywhere, Category = "Character | WallRunning")
-		UCurveFloat* CurveFloatForWallRunning;
-
-	UPROPERTY(EditAnywhere, Category = "Character | WallRunning")
-		UCurveFloat* CurveFloatForWallRunningCameraTilt;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Character | WallRunning")
-		bool OnWall;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Character | WallRunning")
-		float TiltAngle;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Character | WallRunning")
-		float WallRunningForce;
 
 /////////////////////////////////////More/////////////////////////////////////////
 	UPROPERTY(EditAnywhere, Category = "Character | Weapons")
@@ -431,11 +220,14 @@ public:
 		FOnBusterUpdates OnBoosterUpdates;
 
 	UPROPERTY(BlueprintAssignable, Category = "HealthComponent | EventsForBind")
+		FDashRecoverUpdates OnDashRecoverUpdates;
+
+	UPROPERTY(BlueprintAssignable, Category = "HealthComponent | EventsForBind")
+		FDashUsed OnDashUsed;
+
+	UPROPERTY(BlueprintAssignable, Category = "HealthComponent | EventsForBind")
 		FOnBusterDeactivated OnBoosterDeactivated;
 
 	UPROPERTY(BlueprintAssignable, Category = "HealthComponent | EventsForBind")
 		FOnDead OnDead;
 };
-
-
-

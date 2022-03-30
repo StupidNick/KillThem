@@ -5,6 +5,7 @@
 #include "Components/KT_HealthComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/KT_CharacterMovementComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Misc/OutputDeviceNull.h"
@@ -24,9 +25,14 @@
 
 ////////////////////////////////////////////////////Begin Play//////////////////////////////////////////////////////////
 
-AKT_PlayerCharacter::AKT_PlayerCharacter()
+AKT_PlayerCharacter::AKT_PlayerCharacter(const FObjectInitializer& ObjInit) :
+Super(ObjInit.SetDefaultSubobjectClass<UKT_CharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
+	PrimaryActorTick.bCanEverTick = false;
+	
 	bReplicates = true;
+	SetReplicateMovement(true);
+	GetCharacterMovement()->SetIsReplicated(true);
 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>("Camera");
 	ParkourCapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>("ParkourCapsuleComponent");
@@ -41,32 +47,8 @@ AKT_PlayerCharacter::AKT_PlayerCharacter()
 	WallRunRightCollisionComponent->SetupAttachment(GetCapsuleComponent());
 	CameraComponent->SetupAttachment(GetCapsuleComponent());
 	FirstPersonMeshComponent->SetupAttachment(CameraComponent);
-
-	GetCharacterMovement()->bWantsToCrouch = true;
-
-	ParkourCapsuleComponent->OnComponentBeginOverlap.AddDynamic(this, &AKT_PlayerCharacter::WallRunningBegin);
-	ParkourCapsuleComponent->OnComponentEndOverlap.AddDynamic(this, &AKT_PlayerCharacter::WallRunningEnd);
-
-	WallRunRightCollisionComponent->OnComponentBeginOverlap.AddDynamic(
-		this, &AKT_PlayerCharacter::WallRunningCameraTiltRight);
-	WallRunLeftCollisionComponent->OnComponentBeginOverlap.AddDynamic(
-		this, &AKT_PlayerCharacter::WallRunningCameraTiltLeft);
-
-	WallRunRightCollisionComponent->OnComponentEndOverlap.AddDynamic(this, &AKT_PlayerCharacter::EndTiltOnWallRunning);
-	WallRunLeftCollisionComponent->OnComponentEndOverlap.AddDynamic(this, &AKT_PlayerCharacter::EndTiltOnWallRunning);
-
-
-	CrouchingTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("CrouchingTimeline"));
-	SlidingTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("SlidingTimeline"));
-	WallRunningTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("WallRunningTimeline"));
-	TiltCameraOnWallRunningTimeLine = CreateDefaultSubobject<UTimelineComponent>(
-		TEXT("TiltCameraOnWallRunningTimeLine"));
+	
 	ScopingTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("ScopingTimeLine"));
-
-	SlidingInterpFunction.BindUFunction(this, FName("SlidingTimeLineFloatReturn"));
-	CrouchingInterpFunction.BindUFunction(this, FName("CrouchingTimeLineFloatReturn"));
-	WallRunningInterpFunction.BindUFunction(this, FName("WallRunningTimeLineFloatReturn"));
-	TiltCameraOnWallRunningInterpFunction.BindUFunction(this, FName("TiltCameraOnWallRunningTimeLineFloatReturn"));
 	ScopingInterpFunction.BindUFunction(this, FName("ScopingTimeLineFloatReturn"));
 
 	ItemsManagerComponent->SetIsReplicated(true);
@@ -74,70 +56,54 @@ AKT_PlayerCharacter::AKT_PlayerCharacter()
 }
 
 
-void AKT_PlayerCharacter::BeginPlay()
+void AKT_PlayerCharacter::Initialize()
 {
-	Super::BeginPlay();
-
-	check(ItemsManagerComponent);
-	check(HealthComponent);
-
 	HealthComponent->OnDead.AddDynamic(this, &AKT_PlayerCharacter::Die);
 
-	SprintSpeed = WalkSpeed * 1.5; //TODO
+	ParkourCapsuleComponent->OnComponentBeginOverlap.AddDynamic(CharacterMovementComponent, &UKT_CharacterMovementComponent::WallRunningBegin);
+	ParkourCapsuleComponent->OnComponentEndOverlap.AddDynamic(CharacterMovementComponent, &UKT_CharacterMovementComponent::WallRunningEnd);
 
-	SpeedOfWalk = WalkSpeed;
-	SpeedOfRun = SprintSpeed;
-	SpeedOfCrouch = CrouchSpeed;
-	SpeedOfSliding = SlidingSpeed;
-	SpeedOfDash = DashSpeed;
-	DamageBooster = 1;
-	BerserkBooster = 1;
+	WallRunRightCollisionComponent->OnComponentBeginOverlap.AddDynamic(CharacterMovementComponent, &UKT_CharacterMovementComponent::WallRunningCameraTiltRight);
+	WallRunLeftCollisionComponent->OnComponentBeginOverlap.AddDynamic(CharacterMovementComponent, &UKT_CharacterMovementComponent::WallRunningCameraTiltLeft);
 
-	SprintTimerDelegate.BindUFunction(this, "SlidingReload");
+	WallRunRightCollisionComponent->OnComponentEndOverlap.AddDynamic(CharacterMovementComponent, &UKT_CharacterMovementComponent::EndTiltOnWallRunning);
+	WallRunLeftCollisionComponent->OnComponentEndOverlap.AddDynamic(CharacterMovementComponent, &UKT_CharacterMovementComponent::EndTiltOnWallRunning);
 
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Block);
-
-	GetMovementComponent()->SetPlaneConstraintEnabled(true);
-
-	GetCharacterMovement()->MaxWalkSpeed = SpeedOfWalk;
-
-	DefaultArmsTransform = FirstPersonMeshComponent->GetRelativeTransform();
-
-	if (CurveFloatForSliding)
-	{
-		SlidingTimeLine->AddInterpFloat(CurveFloatForSliding, SlidingInterpFunction, FName("Alpha"));
-		SlidingTimeLine->SetLooping(false);
-	}
-	if (CurveFloatForCrouching)
-	{
-		CrouchingTimeLine->AddInterpFloat(CurveFloatForCrouching, CrouchingInterpFunction, FName("Alpha"));
-		CrouchingTimeLine->SetLooping(false);
-	}
-	if (CurveFloatForWallRunning)
-	{
-		WallRunningTimeLine->AddInterpFloat(CurveFloatForWallRunning, WallRunningInterpFunction, FName("Alpha"));
-		WallRunningTimeLine->SetLooping(true);
-	}
-	if (CurveFloatForWallRunningCameraTilt)
-	{
-		TiltCameraOnWallRunningTimeLine->AddInterpFloat(CurveFloatForWallRunningCameraTilt,
-		                                                TiltCameraOnWallRunningInterpFunction, FName("Alpha"));
-		TiltCameraOnWallRunningTimeLine->SetLooping(false);
-	}
 	if (ScopingCameraTilt)
 	{
 		ScopingTimeLine->AddInterpFloat(ScopingCameraTilt, ScopingInterpFunction, FName("Alpha"));
 		ScopingTimeLine->SetLooping(false);
 	}
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Block);
+
+	DefaultArmsTransform = FirstPersonMeshComponent->GetRelativeTransform();
+
+	if (HasAuthority())
+	{
+		CharacterMovementComponent->CheckAndReloadDash();
+	}
+}
+
+
+void AKT_PlayerCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	CharacterMovementComponent = Cast<UKT_CharacterMovementComponent>(GetCharacterMovement());
+
+	check(ItemsManagerComponent);
+	check(HealthComponent);
+	check(CharacterMovementComponent);
+
+	Initialize();
 }
 
 
 void AKT_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	PlayerInputComponent->BindAction("Escape", IE_Pressed, this, &AKT_PlayerCharacter::OnEscapeButtonPressed);
 
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AKT_PlayerCharacter::Interact);
 
@@ -147,7 +113,7 @@ void AKT_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	// PlayerInputComponent->BindAction("SecondGrenadeSlot", IE_Pressed, this,
 	//                                  &AKT_PlayerCharacter::DropSecondGrenadeOnServer);
 
-	PlayerInputComponent->BindAction("AlterFire", IE_Pressed, this, &AKT_PlayerCharacter::RightClick);
+	PlayerInputComponent->BindAction("AlterFire", IE_Pressed, this, &AKT_PlayerCharacter::RightClick);//TODO relocate to ItemsManagerComponent
 	PlayerInputComponent->BindAction("AlterFire", IE_Released, this, &AKT_PlayerCharacter::RightUnClick);
 
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, ItemsManagerComponent, &UKT_ItemsManagerComponent::StartFire);
@@ -155,19 +121,18 @@ void AKT_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, ItemsManagerComponent, &UKT_ItemsManagerComponent::Reload);
 
-	PlayerInputComponent->BindAction("ChangeWeapon", IE_Pressed, ItemsManagerComponent,
-	                                 &UKT_ItemsManagerComponent::ChangeWeapon);
+	PlayerInputComponent->BindAction("ChangeWeapon", IE_Pressed, ItemsManagerComponent, &UKT_ItemsManagerComponent::ChangeWeapon);
 
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AKT_PlayerCharacter::Jumping);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, CharacterMovementComponent, &UKT_CharacterMovementComponent::Jumping);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
-	PlayerInputComponent->BindAction("Dash", IE_Released, this, &AKT_PlayerCharacter::Dash);
+	PlayerInputComponent->BindAction("Dash", IE_Released, CharacterMovementComponent, &UKT_CharacterMovementComponent::Dash);
 
-	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AKT_PlayerCharacter::DoSprint);
-	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AKT_PlayerCharacter::DoCrouch);
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, CharacterMovementComponent, &UKT_CharacterMovementComponent::ChangeSprint);
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, CharacterMovementComponent, &UKT_CharacterMovementComponent::ChangeCrouch);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &AKT_PlayerCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &AKT_PlayerCharacter::MoveRight);
+	PlayerInputComponent->BindAxis("MoveForward", CharacterMovementComponent, &UKT_CharacterMovementComponent::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", CharacterMovementComponent, &UKT_CharacterMovementComponent::MoveRight);
 
 	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
@@ -180,560 +145,29 @@ void AKT_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 	DOREPLIFETIME(AKT_PlayerCharacter, CanInteract);
 	DOREPLIFETIME(AKT_PlayerCharacter, InteractiveObject);
+	DOREPLIFETIME(AKT_PlayerCharacter, DamageBooster);
+	DOREPLIFETIME(AKT_PlayerCharacter, BerserkBooster);
 }
 
 
-void AKT_PlayerCharacter::BerserkBoostOnServer_Implementation(const float Boost)
+void AKT_PlayerCharacter::SetBerserkBoost_Implementation(const float& Boost)
 {
-	BerserkBooster *= Boost;
+	BerserkBooster = Boost;
 }
 
 
-void AKT_PlayerCharacter::RageBoostOnServer_Implementation(const float Boost)
+void AKT_PlayerCharacter::SetRageBoost_Implementation(const float& Boost)
 {
-	SpeedOfWalk *= Boost;
-	SpeedOfRun *= Boost;
-	SpeedOfCrouch *= Boost;
-	SpeedOfSliding *= Boost;
-	SpeedOfDash *= Boost;
+	DamageBooster = Boost;
 }
 
 
-void AKT_PlayerCharacter::SpeedBoostOnServer_Implementation(const float Boost)
+void AKT_PlayerCharacter::SetSpeedBoost_Implementation(const float& Boost)
 {
-	BerserkBooster *= Boost;
-}
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-///////////////////////////////////////////////////Moving///////////////////////////////////////////////////////////////
-
-void AKT_PlayerCharacter::MoveForward(float Value)
-{
-	if (Value != 0.0f)
-	{
-		if (!OnWall)
-		{
-			AddMovementInput(GetActorForwardVector(), Value);
-			MoveForwardValue = Value;
-		}
-		IsMoveForward = true;
-		SetMoveForwardOnServer(true);
-	}
-	else
-	{
-		if (IsSprinted)
-		{
-			BreakSprint();
-		}
-		IsMoveForward = false;
-		SetMoveForwardOnServer(false);
-	}
-}
-
-
-void AKT_PlayerCharacter::SetMoveForwardOnServer_Implementation(bool Value)
-{
-	if (Value)
-	{
-		IsMoveForward = true;
-	}
-	else
-	{
-		IsMoveForward = false;
-	}
-}
-
-
-void AKT_PlayerCharacter::MoveRight(float Value)
-{
-	if (Value != 0.0f)
-	{
-		AddMovementInput(GetActorRightVector(), Value);
-		MoveRightValue = Value;
-		IsMoveRight = true;
-	}
-	else
-	{
-		IsMoveRight = false;
-	}
-}
-
-
-void AKT_PlayerCharacter::ChangeCharacterSpeeds(const float InSpeedFactor)
-{
-	SpeedOfWalk *= InSpeedFactor;
-	SpeedOfRun *= InSpeedFactor;
-	SpeedOfCrouch *= InSpeedFactor;
-	SpeedOfSliding *= InSpeedFactor;
-	SpeedOfDash *= InSpeedFactor;
-
-	if (IsSprinted)
-	{
-		GetCharacterMovement()->MaxWalkSpeed = SpeedOfRun;
-		SetCharacterSpeedOnServer(SpeedOfRun);
-	}
-	else if (IsCrouching)
-	{
-		GetCharacterMovement()->MaxWalkSpeed = SpeedOfCrouch;
-		SetCharacterSpeedOnServer(SpeedOfCrouch);
-	}
-	else
-	{
-		GetCharacterMovement()->MaxWalkSpeed = SpeedOfWalk;
-		SetCharacterSpeedOnServer(SpeedOfWalk);
-	}
+	CharacterMovementComponent->SpeedBooster = Boost;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-//////////////////////////////////////////////Sprint////////////////////////////////////////////////////////////////////
-
-void AKT_PlayerCharacter::DoSprint()
-{
-	if (IsMoveForward)
-	{
-		if (IsSprinted)
-		{
-			UnSprint();
-		}
-		else
-		{
-			Sprint();
-		}
-	}
-}
-
-
-void AKT_PlayerCharacter::Sprint()
-{
-	if (IsCrouching)
-	{
-		DoCrouch();
-	}
-	GetCharacterMovement()->MaxWalkSpeed = SpeedOfRun;
-	SetCharacterSpeedOnServer(SpeedOfRun);
-	SetCanShootOnServer(false);
-	IsSprinted = true;
-
-	GetWorldTimerManager().SetTimer(SprintTimerHandle, SprintTimerDelegate, 0.5, false);
-}
-
-
-void AKT_PlayerCharacter::UnSprint()
-{
-	GetCharacterMovement()->MaxWalkSpeed = SpeedOfWalk;
-	SetCharacterSpeedOnServer(SpeedOfWalk);
-	SetCanShootOnServer(true);
-	IsSprinted = false;
-	CanSliding = false;
-}
-
-
-void AKT_PlayerCharacter::BreakSprint()
-{
-	if (IsCrouching)
-	{
-		return;
-	}
-	GetCharacterMovement()->MaxWalkSpeed = SpeedOfWalk;
-	SetCharacterSpeedOnServer(SpeedOfWalk);
-	SetCanShootOnServer(true);
-	IsSprinted = false;
-	CanSliding = false;
-}
-
-
-void AKT_PlayerCharacter::SetCharacterSpeedOnServer_Implementation(const float InSpeed)
-{
-	GetCharacterMovement()->MaxWalkSpeed = InSpeed;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////Crouching//////////////////////////////////////////////////////////////
-
-void AKT_PlayerCharacter::DoCrouch()
-{
-	if (!IsCrouching)
-	{
-		Crouching();
-		CrouchingOnServer(true);
-	}
-	else
-	{
-		UnCrouching();
-		CrouchingOnServer(false);
-	}
-	if (CanSliding && !GetMovementComponent()->IsFalling())
-	{
-		Sliding();
-		SlidingOnServer();
-	}
-}
-
-void AKT_PlayerCharacter::Crouching()
-{
-	CrouchingEndLocation = CrouchingStartLocation = CameraComponent->GetRelativeLocation();
-	CrouchingEndLocation.Z -= 50;
-
-	GetCharacterMovement()->MaxWalkSpeed = SpeedOfCrouch;
-
-	CrouchingTimeLine->Play();
-
-	ItemsManagerComponent->ToShoot = true;
-	IsCrouching = true;
-	IsSprinted = false;
-	CanDash = false;
-}
-
-void AKT_PlayerCharacter::UnCrouching()
-{
-	GetCharacterMovement()->MaxWalkSpeed = SpeedOfWalk;
-
-	CrouchingTimeLine->Reverse();
-
-	IsCrouching = false;
-	CanSliding = false;
-}
-
-
-void AKT_PlayerCharacter::CrouchingOnServer_Implementation(bool InCrouching)
-{
-	if (InCrouching)
-	{
-		Crouching();
-	}
-	else
-	{
-		UnCrouching();
-	}
-}
-
-
-void AKT_PlayerCharacter::CrouchingTimeLineFloatReturn_Implementation(float Value)
-{
-	CameraComponent->SetRelativeLocation(FMath::Lerp(CrouchingStartLocation, CrouchingEndLocation, Value));
-	GetCapsuleComponent()->SetCapsuleHalfHeight(
-		FMath::Lerp(UpperHalfHeightCapsuleCollision, LowerHalfHeightCapsuleCollision, Value), true);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////Sliding////////////////////////////////////////////////////////////////
-
-void AKT_PlayerCharacter::Sliding()
-{
-	SlidingTimeLine->PlayFromStart();
-	IsSprinted = false;
-	CanSliding = false;
-}
-
-void AKT_PlayerCharacter::SlidingOnServer_Implementation()
-{
-	Sliding();
-}
-
-
-void AKT_PlayerCharacter::SlidingReload()
-{
-	if (IsSprinted)
-	{
-		CanSliding = true;
-	}
-}
-
-
-void AKT_PlayerCharacter::SlidingTimeLineFloatReturn(float Value)
-{
-	FVector LSlideDirection = GetVelocity().GetSafeNormal(0.0001);
-	AddActorWorldOffset(LSlideDirection * Value * UGameplayStatics::GetWorldDeltaSeconds(this) * SlidingSpeed);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-////////////////////////////////////////////////////Jumping/////////////////////////////////////////////////////////////
-
-void AKT_PlayerCharacter::Jumping()
-{
-	if (OnWall)
-	{
-		JumpingOnWall();
-		JumpingOnWallOnServer();
-	}
-	if (IsCrouching)
-	{
-		DoCrouch();
-	}
-	if (JumpCounter < MaxJump)
-	{
-		LaunchCharacter(FVector(0, 0, 420), false, true);
-		JumpingOnServer();
-		JumpCounter++;
-	}
-}
-
-void AKT_PlayerCharacter::JumpingOnWall()
-{
-	GetCharacterMovement()->GravityScale = 1;
-	GetCharacterMovement()->SetPlaneConstraintNormal(FVector(0, 0, 0));
-	OnWall = false;
-}
-
-void AKT_PlayerCharacter::JumpingOnWallOnServer_Implementation()
-{
-	JumpingOnWall();
-}
-
-
-void AKT_PlayerCharacter::JumpingOnServer_Implementation()
-{
-	LaunchCharacter(FVector(0, 0, 420), false, true);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-////////////////////////////////////////////////Dashing/////////////////////////////////////////////////////////////////
-
-void AKT_PlayerCharacter::Dash()
-{
-	if (CanDash)
-	{
-		if (IsMoveForward)
-		{
-			if (MoveForwardValue >= 0)
-			{
-				ForwardDash(true);
-				DashOnServer(true, true);
-			}
-			else
-			{
-				ForwardDash(false);
-				DashOnServer(true, false);
-			}
-		}
-		else if (IsMoveRight)
-		{
-			if (MoveRightValue > 0)
-			{
-				RightDash(true);
-				DashOnServer(false, true);
-			}
-			else
-			{
-				RightDash(false);
-				DashOnServer(false, false);
-			}
-		}
-
-		CanDash = false;
-
-		FTimerHandle LTimerHandle;
-		FTimerDelegate LTimerDelegate;
-
-		LTimerDelegate.BindUFunction(this, "DashReload");
-		GetWorldTimerManager().SetTimer(LTimerHandle, LTimerDelegate, 2, false);
-	}
-}
-
-
-void AKT_PlayerCharacter::RightDash(bool Right)
-{
-	if (Right)
-	{
-		LaunchCharacter(FVector(UKismetMathLibrary::GetRightVector(GetActorRotation()) * SpeedOfDash), true, false);
-	}
-	else
-	{
-		LaunchCharacter(FVector(UKismetMathLibrary::GetRightVector(GetActorRotation()) * -SpeedOfDash), true, false);
-	}
-}
-
-
-void AKT_PlayerCharacter::ForwardDash(bool Forward)
-{
-	if (Forward)
-	{
-		LaunchCharacter(FVector(UKismetMathLibrary::GetForwardVector(GetActorRotation()) * SpeedOfDash), true, false);
-	}
-	else
-	{
-		LaunchCharacter(FVector(UKismetMathLibrary::GetForwardVector(GetActorRotation()) * -SpeedOfDash), true, false);
-	}
-}
-
-
-void AKT_PlayerCharacter::DashOnServer_Implementation(bool MoveForward, bool Value)
-{
-	if (MoveForward)
-	{
-		if (Value)
-		{
-			ForwardDash(true);
-		}
-		else
-		{
-			ForwardDash(false);
-		}
-	}
-	else
-	{
-		if (Value)
-		{
-			RightDash(true);
-		}
-		else
-		{
-			RightDash(false);
-		}
-	}
-}
-
-
-void AKT_PlayerCharacter::DashReload()
-{
-	CanDash = true;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-///////////////////////////////////////////WallRunning//////////////////////////////////////////////////////////////////
-
-void AKT_PlayerCharacter::WallRunningBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-                                           UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-                                           const FHitResult& SweepResult)
-{
-	WallRunningStart(OtherActor);
-}
-
-
-void AKT_PlayerCharacter::WallRunningEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-                                         UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	WallRunningStop(OtherActor);
-}
-
-void AKT_PlayerCharacter::WallRunningStart(AActor* OtherActor)
-{
-	PlayerDirectionForWallRunning = CameraComponent->GetForwardVector();
-
-	if (OtherActor->ActorHasTag(ParkourTag) && GetMovementComponent()->IsFalling())
-	{
-		OnWall = true;
-		JumpCounter = 0;
-		WallRunningTimeLine->PlayFromStart();
-	}
-}
-
-void AKT_PlayerCharacter::WallRunningStop(AActor* OtherActor)
-{
-	WallRunningTimeLine->Stop();
-
-	if (OtherActor->ActorHasTag(ParkourTag))
-	{
-		GetCharacterMovement()->GravityScale = 1;
-		GetCharacterMovement()->SetPlaneConstraintNormal(FVector(0, 0, 0));
-		OnWall = false;
-	}
-}
-
-
-void AKT_PlayerCharacter::WallRunningTimeLineFloatReturn_Implementation(float Value)
-{
-	if (IsMoveForward)
-	{
-		if (OnWall)
-		{
-			GetCharacterMovement()->GravityScale = 0;
-			GetCharacterMovement()->SetPlaneConstraintNormal(FVector(0, 0, 1));
-			AddMovementInput(PlayerDirectionForWallRunning, WallRunningForce);
-		}
-		else
-		{
-			GetCharacterMovement()->GravityScale = 1;
-			GetCharacterMovement()->SetPlaneConstraintNormal(FVector(0, 0, 0));
-			OnWall = false;
-		}
-	}
-	else
-	{
-		GetCharacterMovement()->GravityScale = 1;
-		GetCharacterMovement()->SetPlaneConstraintNormal(FVector(0, 0, 0));
-		OnWall = false;
-	}
-}
-
-
-void AKT_PlayerCharacter::TiltCameraOnWallRunningTimeLineFloatReturn(float Value)
-{
-	if (CameraTiltToRight)
-	{
-		if (PlayerController)
-		{
-			PlayerController->SetControlRotation(FMath::LerpRange(GetActorRotation(),
-			                                                      FRotator(GetActorRotation().Pitch,
-			                                                               GetActorRotation().Yaw, -TiltAngle), Value));
-		}
-	}
-	else
-	{
-		if (PlayerController)
-		{
-			PlayerController->SetControlRotation(FMath::LerpRange(GetActorRotation(),
-			                                                      FRotator(GetActorRotation().Pitch,
-			                                                               GetActorRotation().Yaw, TiltAngle), Value));
-		}
-	}
-}
-
-
-void AKT_PlayerCharacter::WallRunningCameraTiltRight(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-                                                     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-                                                     bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (OtherActor->ActorHasTag(ParkourTag) && GetMovementComponent()->IsFalling())
-	{
-		CameraTiltToRight = true;
-		CameraIsTilt = true;
-		TiltCameraOnWallRunningTimeLine->PlayFromStart();
-	}
-}
-
-
-void AKT_PlayerCharacter::WallRunningCameraTiltLeft(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-                                                    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-                                                    bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (OtherActor->ActorHasTag(ParkourTag) && GetMovementComponent()->IsFalling())
-	{
-		CameraTiltToRight = false;
-		CameraIsTilt = true;
-		TiltCameraOnWallRunningTimeLine->PlayFromStart();
-	}
-}
-
-
-void AKT_PlayerCharacter::EndTiltOnWallRunning(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-                                               UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (CameraIsTilt)
-	{
-		TiltCameraOnWallRunningTimeLine->ReverseFromEnd();
-		CameraIsTilt = false;
-	}
-}
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 ///////////////////////////////////////////Weapons//////////////////////////////////////////////////////////////////////
 
@@ -810,7 +244,7 @@ void AKT_PlayerCharacter::RightUnClick_Implementation()
 {
 	if (!IsValid(ItemsManagerComponent->GetSelectedWeaponSlot())) return;
 	if (!ItemsManagerComponent->GetSelectedWeaponSlot()->CanScope) return;
-	
+
 	UnScope();
 	UnScopeOnServer();
 }
@@ -870,21 +304,6 @@ void AKT_PlayerCharacter::UnScopeOnServer_Implementation()
 	Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot())->IsScoping = false;
 }
 
-
-void AKT_PlayerCharacter::SetCanShootOnServer_Implementation(const bool InCanShoot)
-{
-	ItemsManagerComponent->ToShoot = InCanShoot;
-}
-
-
-void AKT_PlayerCharacter::CheckCanFireOnServer_Implementation()
-{
-	if (!IsSprinted)
-	{
-		ItemsManagerComponent->ToShoot = true;
-	}
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -921,19 +340,9 @@ void AKT_PlayerCharacter::UnInteractInfo_Implementation()
 	CanInteract = false;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void AKT_PlayerCharacter::OnEscapeButtonPressed_Implementation()
-{
-	if (!HUD->PauseMenu)
-	{
-		HUD->CreatePauseMenuWD();
-	}
-	else
-	{
-		HUD->RemovePauseMenuWD();
-	}
-}
-
+///////////////////////////////////////////////////////Die//////////////////////////////////////////////////////////////
 
 void AKT_PlayerCharacter::DieOnClient_Implementation()
 {

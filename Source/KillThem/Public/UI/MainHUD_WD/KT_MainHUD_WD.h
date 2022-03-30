@@ -7,6 +7,7 @@
 #include "KT_MainHUD_WD.generated.h"
 
 
+class UKT_DashProgressBarsContainer;
 class UKT_AimWD;
 class UProgressBar;
 class AKT_PlayerCharacter;
@@ -73,7 +74,6 @@ public:
 	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "MainHUD_WD | SPBar")
 		void DeactivatedBooster(bool Deactivated);
 
-
 //Blueprint values
 public:
 
@@ -91,6 +91,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget), Category = "MainHUD_WD | Widgets")
 		UKT_AimWD* Aim = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget), Category = "MainHUD_WD | Widgets")
+		UKT_DashProgressBarsContainer* DashProgressBarContainer = nullptr;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget), Category = "MainHUD_WD | Widgets")
 		UKT_ProgressBarWithImageAndText* Ability = nullptr;

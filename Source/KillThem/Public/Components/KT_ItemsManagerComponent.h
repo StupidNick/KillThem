@@ -64,6 +64,9 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponChanged)
 		int32 CurrentWeaponIndex = 0;
 
+	UPROPERTY(Replicated)
+		bool CanShoot = true;
+
 //Protected C++ functions
 protected:
 
@@ -132,6 +135,9 @@ public:
 		void Reload();
 
 	UFUNCTION(Server, Reliable)
+		void SetCanShoot(const bool InCanShoot);
+
+	UFUNCTION(Server, Reliable)
 		void StartFire();
 
 	UFUNCTION(Server, Reliable)
@@ -153,9 +159,6 @@ public:
 
 //Public C++ variables
 public:
-
-	UPROPERTY()
-		bool ToShoot = true;
 
 	UPROPERTY()
 		bool WantShoot = true;

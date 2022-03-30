@@ -36,6 +36,7 @@ void UKT_ItemsManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 
 	DOREPLIFETIME(UKT_ItemsManagerComponent, WeaponsArray);
 	DOREPLIFETIME(UKT_ItemsManagerComponent, CurrentWeaponIndex);
+	DOREPLIFETIME(UKT_ItemsManagerComponent, CanShoot);
 }
 
 
@@ -269,9 +270,9 @@ void UKT_ItemsManagerComponent::Reload_Implementation()
 {
 	if (!IsValid(PlayerCharacter)) return;
 	
-	if (PlayerCharacter->IsSprinted)
+	if (PlayerCharacter->CharacterMovementComponent->IsSprinted)
 	{
-		PlayerCharacter->BreakSprint();
+		// PlayerCharacter->BreakSprint();//TODO fix sprint
 	}
 	Cast<AKT_BaseRangeWeapon>(GetSelectedWeaponSlot())->ToReload();
 }
@@ -280,6 +281,10 @@ void UKT_ItemsManagerComponent::Reload_Implementation()
 void UKT_ItemsManagerComponent::StartFire_Implementation()
 {
 	if (!IsValid(PlayerCharacter)) return;
+	if (!CanShoot)
+	{
+		Cast<UKT_CharacterMovementComponent>(PlayerCharacter->GetMovementComponent())->UnSprint();
+	}
 
 	WantShoot = true;
 	if (IsValid(GetSelectedWeaponSlot()))
@@ -292,6 +297,20 @@ void UKT_ItemsManagerComponent::StartFire_Implementation()
 void UKT_ItemsManagerComponent::StopFire_Implementation()
 {
 	WantShoot = false;
+}
+
+
+void UKT_ItemsManagerComponent::SetCanShoot_Implementation(const bool InCanShoot)
+{
+	if (InCanShoot) 
+	{
+		CanShoot = true;
+	}
+	else
+	{
+		StopFire();
+		CanShoot = false;
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////

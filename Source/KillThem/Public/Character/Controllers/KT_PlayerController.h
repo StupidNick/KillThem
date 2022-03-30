@@ -23,8 +23,13 @@ protected:
 	
 	virtual void BeginPlay() override;
 
+	virtual void SetupInputComponent() override;
+
 	UFUNCTION(NetMulticast, Reliable)
 		virtual void OnPossess(APawn* InPawn) override;
+
+	UFUNCTION(Client, Reliable)
+		void OnEscapeButtonPressed();
 
 
 //public c++ functions
