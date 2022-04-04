@@ -34,8 +34,7 @@ void AKT_BaseRangeWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 void AKT_BaseRangeWeapon::UseWeapon()
 {
-	if (!GetWeaponCanShoot()) return;
-	if (AmmoInTheClip <= 0 || IsReloading) return;
+	if (AmmoInTheClip <= 0 || IsReloading || !GetWeaponCanShoot()) return;
 
 	if (UseAlterFire)
 	{
@@ -43,14 +42,13 @@ void AKT_BaseRangeWeapon::UseWeapon()
 
 		if (ProjectileShootingAtAlterFire)
 		{
-			ProjectileShoot(AlterFireProjectileClass, AlterDamage, AlterFireSocketName, AlterFireScatterFactor,
-			                CostAlterShotInAmmo);
+			ProjectileShoot(AlterFireProjectileClass, AlterDamage, AlterFireSocketName, AlterFireScatterFactor);
 		}
 		else
 		{
-			LineTraceShot(AlterFireProjectileClass, AlterDamage, AlterFireSocketName, AlterFireScatterFactor,
-			              CostAlterShotInAmmo);
+			LineTraceShot(AlterFireProjectileClass, AlterDamage, AlterFireSocketName, AlterFireScatterFactor);
 		}
+		AmmoInTheClip -= CostAlterShotInAmmo;
 	}
 	else
 	{
@@ -62,6 +60,7 @@ void AKT_BaseRangeWeapon::UseWeapon()
 		{
 			LineTraceShot(ProjectileClass, Damage, FireSocketName, ScatterFactor);
 		}
+		AmmoInTheClip--;
 	}
 	ActivateTimerBetweenShots();
 }
@@ -69,8 +68,7 @@ void AKT_BaseRangeWeapon::UseWeapon()
 
 void AKT_BaseRangeWeapon::ProjectileShoot(const TSubclassOf<AKT_BaseProjectile>& InProjectileClass,
                                           const int32& InDamage,
-                                          const FName& InShotSocketName, const float& InScatterFactor,
-                                          const int32& InSpentAmmo)
+                                          const FName& InShotSocketName, const float& InScatterFactor)
 {
 	if (!IsValid(Character)) return;
 	if (!IsValid(Controller)) return;
@@ -84,14 +82,11 @@ void AKT_BaseRangeWeapon::ProjectileShoot(const TSubclassOf<AKT_BaseProjectile>&
 	MakeHit(LHitResult, LStartLocation, LEndLocation);
 
 	SpawnProjectile(LHitResult, LEndLocation, InShotSocketName, InProjectileClass, InDamage);
-
-	AmmoInTheClip -= InSpentAmmo;
 }
 
 
 void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile>& InProjectileClass, const int32& InDamage,
-                                        const FName& InShotSocketName, const float& InScatterFactor,
-                                        const int32& InSpentAmmo)
+                                        const FName& InShotSocketName, const float& InScatterFactor)
 {
 	if (!IsValid(Character)) return;
 	if (!IsValid(Controller)) return;
@@ -103,8 +98,7 @@ void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile>& I
 
 	FHitResult LHitResult;
 	MakeHit(LHitResult, LStartLocation, LEndLocation);
-
-	AmmoInTheClip -= InSpentAmmo;
+	
 	if (!LHitResult.Actor.IsValid()) return;
 
 	SpawnProjectile(LHitResult, LEndLocation, InShotSocketName, InProjectileClass);

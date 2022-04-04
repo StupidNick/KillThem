@@ -38,7 +38,7 @@ public:
 	virtual void UseWeapon() override;
 
 	UFUNCTION(Server, Reliable)
-		void ToReload();
+		virtual void ToReload();
 
 	
 	void SetScatterFactor(const float InScatterFactor);
@@ -47,10 +47,10 @@ public:
 protected:
 
 	UFUNCTION()
-		virtual void ProjectileShoot(const TSubclassOf<AKT_BaseProjectile>& InProjectileClass, const int32& InDamage, const FName& InShotSocketName, const float& InScatterFactor, const int32& InSpentAmmo = 1);
+		virtual void ProjectileShoot(const TSubclassOf<AKT_BaseProjectile>& InProjectileClass, const int32& InDamage, const FName& InShotSocketName, const float& InScatterFactor);
 
 	UFUNCTION()
-		virtual void LineTraceShot(const TSubclassOf<AKT_BaseProjectile>& InProjectileClass, const int32& InDamage, const FName& InShotSocketName, const float& InScatterFactor, const int32& InSpentAmmo = 1);
+		virtual void LineTraceShot(const TSubclassOf<AKT_BaseProjectile>& InProjectileClass, const int32& InDamage, const FName& InShotSocketName, const float& InScatterFactor);
 
 	UFUNCTION()
 		bool GetPlayerViewPoint(FVector& ViewLocation, FRotator& ViewRotation) const;
@@ -68,7 +68,7 @@ protected:
 		void SpawnProjectile(const FHitResult& HitResult, const FVector& EndLocation, const FName& SocketName, const TSubclassOf<AKT_BaseProjectile>& InProjectileClass, const int32& InDamage = 0);
 	
 	UFUNCTION()
-		void Reload(const int InAmmo);
+		virtual void Reload(const int InAmmo);
 
 //Protected C++ variables
 protected:
