@@ -33,8 +33,16 @@ void AKT_BaseInteractiveWeapon::InteractiveOnServer(AKT_PlayerCharacter* Player)
 {
 	Super::InteractiveOnServer(Player);
 	
-	Player->ItemsManagerComponent->AddWeapon(WeaponClass, 0, AmmoInTheClip);
+	Player->ItemsManagerComponent->AddWeaponOnServer(WeaponClass, 0, AmmoInTheClip);
 	Destruction();
+}
+
+
+void AKT_BaseInteractiveWeapon::InteractiveOnClient(AKT_PlayerCharacter* Player)
+{
+	Super::InteractiveOnClient(Player);
+
+	Player->ItemsManagerComponent->AddWeaponOnClient(WeaponClass);
 }
 
 

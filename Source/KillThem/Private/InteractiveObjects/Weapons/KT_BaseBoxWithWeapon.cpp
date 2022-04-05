@@ -19,7 +19,7 @@ void AKT_BaseBoxWithWeapon::InteractiveOnServer(AKT_PlayerCharacter* Player)
 	{
 		if (i == Player) return;
 	}
-	Player->ItemsManagerComponent->AddWeapon(WeaponClass, AmountOfAmmo);
+	Player->ItemsManagerComponent->AddWeaponOnServer(WeaponClass, AmountOfAmmo);
 	OnSphereComponentEndOverlap(InteractSphereCollision, Player, InteractSphereCollision, 0);
 
 	if (RecoverTime > 0)
@@ -40,6 +40,7 @@ void AKT_BaseBoxWithWeapon::InteractiveOnClient(AKT_PlayerCharacter* Player)
 	{
 		if (i == Player) return;
 	}
+	Player->ItemsManagerComponent->AddWeaponOnClient(WeaponClass);
 	DisableObject();
 
 	if (RecoverTime > 0)

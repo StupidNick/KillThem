@@ -61,6 +61,9 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponChanged)
 		TArray<AKT_BaseWeapon*> WeaponsArray;
 
+	UPROPERTY()
+		TArray<AKT_BaseWeapon*> FirstPersonWeaponsArray;
+
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponChanged)
 		int32 CurrentWeaponIndex = 0;
 
@@ -126,10 +129,28 @@ public:
 //////////////////////////////////////////////////Weapon////////////////////////////////////////////////////////////////
 	
 	UFUNCTION(Server, Reliable)
-		void AddWeapon(TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int16& InAmountOfAmmo, const int16& InAmmoInTheClip = -1);
+		void AddWeaponOnServer(TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int16& InAmountOfAmmo, const int16& InAmmoInTheClip = -1);
+
+	UFUNCTION(Client, Reliable)
+		void AddWeaponOnClient(TSubclassOf<AKT_BaseWeapon> InWeaponClass);
 	
+	UFUNCTION()
+		AKT_BaseWeapon* SpawnWeaponOnServer(TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int16& InAmountOfAmmo, const int16& InAmmoInTheClip = -1);
+
+	UFUNCTION()
+		AKT_BaseWeapon* SpawnWeaponOnClient(TSubclassOf<AKT_BaseWeapon> InWeaponClass);
+	
+	UFUNCTION(Client, Reliable)
+		void SetWeaponOwnerNoSee(AKT_BaseWeapon* InWeapon);
+	
+	UFUNCTION()
+		void ToChangeWeapon();
+
 	UFUNCTION(Server, Reliable)
-		void ChangeWeapon();
+		void ChangeWeaponOnServer();
+
+	UFUNCTION(Client, Reliable)
+		void ChangeWeaponOnClient();
 
 	UFUNCTION(Server, Reliable)
 		void Reload();
@@ -143,7 +164,7 @@ public:
 	UFUNCTION(Server, Reliable)
 		void StopFire();
 
-	UFUNCTION(Server, Reliable)
+	UFUNCTION()
 		void AttachWeaponToSocket(AKT_BaseWeapon* InWeapon, USceneComponent* InSceneComponent, const FName& InSocketName);
 
 	UFUNCTION(Server, Reliable)
@@ -152,6 +173,11 @@ public:
 	FORCEINLINE AKT_BaseWeapon*& GetSelectedWeaponSlot()
 	{
 		return WeaponsArray[CurrentWeaponIndex];
+	}
+
+	FORCEINLINE AKT_BaseWeapon*& GetFirstPersonSelectedWeaponSlot()
+	{
+		return FirstPersonWeaponsArray[CurrentWeaponIndex];
 	}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -189,9 +215,13 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Character | Weapons")
 		FName HandsSocketName;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Character | Weapons")
 		FName BehindBackSocketName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Character | Weapons")
+		FName FirstPersonHandsSocketName;
+	UPROPERTY(EditDefaultsOnly, Category = "Character | Weapons")
+		FName FirstPersonBehindBackSocketName;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Character | Grenade")
 		FName FirstGrenadeSlotSocketName;
