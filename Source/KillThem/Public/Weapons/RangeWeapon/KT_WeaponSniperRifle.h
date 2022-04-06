@@ -16,6 +16,8 @@ public:
 	
 	// virtual void UseWeapon() override;
 
+	virtual void Scope() override;
+	virtual void UnScope() override;
 
 //Public BP variables	
 public:

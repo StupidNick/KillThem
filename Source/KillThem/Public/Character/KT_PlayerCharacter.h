@@ -172,6 +172,9 @@ public:
 	UPROPERTY(Replicated)
 		float BerserkBooster = 1.0f;
 
+	UPROPERTY(Replicated)
+		bool IsScoping = false;
+
 //public BP variables
 public:
 
@@ -209,9 +212,6 @@ public:
 /////////////////////////////////////More/////////////////////////////////////////
 	UPROPERTY(EditAnywhere, Category = "Character | Weapons")
 		UCurveFloat* ScopingCameraTilt;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Character | Weapons")
-		bool IsScoping = false;
 
 	UPROPERTY(BlueprintAssignable, Category = "HealthComponent | EventsForBind")
 		FOnBusterActivated OnBoosterActivated;

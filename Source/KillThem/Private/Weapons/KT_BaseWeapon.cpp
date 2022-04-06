@@ -1,5 +1,6 @@
 #include "Weapons/KT_BaseWeapon.h"
 
+#include "Camera/CameraComponent.h"
 #include "Character/KT_PlayerCharacter.h"
 #include "Components/KT_ItemsManagerComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -8,8 +9,10 @@
 AKT_BaseWeapon::AKT_BaseWeapon()
 {
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>("Mesh");
+	ScopeCamera = CreateDefaultSubobject<UCameraComponent>("ScopeCamera");
 	
 	RootComponent = Mesh;
+	ScopeCamera->SetupAttachment(Mesh);
 
 	Mesh->SetCollisionProfileName(FName("IgnoreAll"));
 	bReplicates = true;
@@ -42,9 +45,6 @@ void AKT_BaseWeapon::OnRep_AmmoInTheClip_Implementation()
 		Character->ItemsManagerComponent->OnAmmoInTheClipChange.Broadcast(AmmoInTheClip);
 	}
 }
-
-
-void AKT_BaseWeapon::UseWeapon(){}
 
 
 void AKT_BaseWeapon::BreakAllAction_Implementation()

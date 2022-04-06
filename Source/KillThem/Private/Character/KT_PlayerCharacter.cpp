@@ -144,6 +144,7 @@ void AKT_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AKT_PlayerCharacter, CanInteract);
+	DOREPLIFETIME(AKT_PlayerCharacter, IsScoping);
 	DOREPLIFETIME(AKT_PlayerCharacter, InteractiveObject);
 	DOREPLIFETIME(AKT_PlayerCharacter, DamageBooster);
 	DOREPLIFETIME(AKT_PlayerCharacter, BerserkBooster);
@@ -280,8 +281,9 @@ void AKT_PlayerCharacter::Scope_Implementation()
 	const auto LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot());
 	if (!LWeapon->IsReloading)
 	{
-		IsScoping = true;
-		ScopingTimeLine->Play();
+		PlayerController->SetViewTargetWithBlend(ItemsManagerComponent->GetFirstPersonSelectedWeaponSlot(), 0.1f, EViewTargetBlendFunction::VTBlend_Linear, 0.0f, false);
+		// ScopingTimeLine->Play();
+		// LWeapon->Scope();
 	}
 }
 
@@ -294,8 +296,9 @@ void AKT_PlayerCharacter::ScopeOnServer_Implementation()
 
 void AKT_PlayerCharacter::UnScope_Implementation()
 {
-	IsScoping = false;
-	ScopingTimeLine->ReverseFromEnd();
+	// ScopingTimeLine->Reverse();
+	// ItemsManagerComponent->GetSelectedWeaponSlot()->UnScope();
+	PlayerController->SetViewTargetWithBlend(this, 0.1f, EViewTargetBlendFunction::VTBlend_Linear, 0.0f, false);
 }
 
 

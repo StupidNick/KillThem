@@ -13,6 +13,7 @@
 
 class UImage;
 class AKT_PlayerCharacter;
+class UUserWidget;
 
 
 
@@ -79,7 +80,13 @@ public:
 		void OnRep_AmmoInTheClip();
 
 	UFUNCTION()
-		virtual void UseWeapon();
+		virtual void UseWeapon() {}
+
+	UFUNCTION()
+		virtual void Scope() {}
+
+	UFUNCTION()
+		virtual void UnScope() {}
 
 	UFUNCTION(Server, Reliable)
 		void Initialize(AKT_PlayerCharacter* InCharacter, const int32& InAmmoInTheClip = -1);
@@ -115,6 +122,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Components")
 		USkeletalMeshComponent* Mesh;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Components")
+		UCameraComponent* ScopeCamera;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
 		int ClipSize;
 
@@ -123,6 +133,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Weapon | Info")
 		UTexture2D* AimIcon;
+
+	// UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
+	// 	TSubclassOf<UUserWidget> ScopeUserWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
 		float DelayBetweenShots;
