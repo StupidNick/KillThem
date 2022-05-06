@@ -133,6 +133,9 @@ public:
 
 	UFUNCTION(Client, Reliable)
 		void AddWeaponOnClient(TSubclassOf<AKT_BaseWeapon> InWeaponClass);
+
+	UFUNCTION(Server, Reliable)
+		void AddClientWeaponToServer(AKT_BaseWeapon* InWeapon, int32 Index);
 	
 	UFUNCTION()
 		AKT_BaseWeapon* SpawnWeaponOnServer(TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int16& InAmountOfAmmo, const int16& InAmmoInTheClip = -1);
@@ -170,11 +173,13 @@ public:
 	UFUNCTION(Server, Reliable)
 		void DetachWeaponFromActor(AKT_BaseWeapon* InWeapon);
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE AKT_BaseWeapon*& GetSelectedWeaponSlot()
 	{
 		return WeaponsArray[CurrentWeaponIndex];
 	}
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE AKT_BaseWeapon*& GetFirstPersonSelectedWeaponSlot()
 	{
 		return FirstPersonWeaponsArray[CurrentWeaponIndex];

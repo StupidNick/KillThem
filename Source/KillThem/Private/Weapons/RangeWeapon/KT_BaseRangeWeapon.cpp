@@ -42,11 +42,11 @@ void AKT_BaseRangeWeapon::UseWeapon()
 
 		if (ProjectileShootingAtAlterFire)
 		{
-			ProjectileShoot(AlterFireProjectileClass, AlterDamage, AlterFireSocketName, AlterFireScatterFactor);
+			ProjectileShoot(AlterFireProjectileClass, AlterDamage, AlterFireSocketName, AlterFireScatterFactor, AlterFireParticle);
 		}
 		else
 		{
-			LineTraceShot(AlterFireProjectileClass, AlterDamage, AlterFireSocketName, AlterFireScatterFactor);
+			LineTraceShot(AlterFireProjectileClass, AlterDamage, AlterFireSocketName, AlterFireScatterFactor, AlterFireParticle);
 		}
 		AmmoInTheClip -= CostAlterShotInAmmo;
 	}
@@ -54,11 +54,11 @@ void AKT_BaseRangeWeapon::UseWeapon()
 	{
 		if (ProjectileShooting)
 		{
-			ProjectileShoot(ProjectileClass, Damage, FireSocketName, ScatterFactor);
+			ProjectileShoot(ProjectileClass, Damage, FireSocketName, ScatterFactor, FireParticle);
 		}
 		else
 		{
-			LineTraceShot(ProjectileClass, Damage, FireSocketName, ScatterFactor);
+			LineTraceShot(ProjectileClass, Damage, FireSocketName, ScatterFactor, FireParticle);
 		}
 		AmmoInTheClip--;
 	}
@@ -68,7 +68,7 @@ void AKT_BaseRangeWeapon::UseWeapon()
 
 void AKT_BaseRangeWeapon::ProjectileShoot(const TSubclassOf<AKT_BaseProjectile>& InProjectileClass,
                                           const int32& InDamage,
-                                          const FName& InShotSocketName, const float& InScatterFactor)
+                                          const FName& InShotSocketName, const float& InScatterFactor, UParticleSystem* MuzzleParticle)
 {
 	if (!IsValid(Character)) return;
 	if (!IsValid(Controller)) return;
@@ -81,12 +81,13 @@ void AKT_BaseRangeWeapon::ProjectileShoot(const TSubclassOf<AKT_BaseProjectile>&
 	FHitResult LHitResult;
 	MakeHit(LHitResult, LStartLocation, LEndLocation);
 
+	SpawnMuzzleFlash(MuzzleParticle, InShotSocketName);
 	SpawnProjectile(LHitResult, LEndLocation, InShotSocketName, InProjectileClass, InDamage);
 }
 
 
 void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile>& InProjectileClass, const int32& InDamage,
-                                        const FName& InShotSocketName, const float& InScatterFactor)
+                                        const FName& InShotSocketName, const float& InScatterFactor, UParticleSystem* MuzzleParticle)
 {
 	if (!IsValid(Character)) return;
 	if (!IsValid(Controller)) return;
@@ -99,9 +100,10 @@ void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile>& I
 	FHitResult LHitResult;
 	MakeHit(LHitResult, LStartLocation, LEndLocation);
 	
-	if (!LHitResult.Actor.IsValid()) return;
-
+	SpawnMuzzleFlash(MuzzleParticle, InShotSocketName);
 	SpawnProjectile(LHitResult, LEndLocation, InShotSocketName, InProjectileClass);
+	
+	if (!LHitResult.Actor.IsValid()) return;
 
 	if (IsValid(DamageTypeClass) && LHitResult.Actor->GetClass() == Character->GetClass())
 	{
@@ -156,7 +158,7 @@ void AKT_BaseRangeWeapon::SpawnProjectile(const FHitResult& HitResult, const FVe
                                           const TSubclassOf<AKT_BaseProjectile>& InProjectileClass,
                                           const int32& InDamage)
 {
-	const FTransform LSpawnTransform(FRotator::ZeroRotator, GetMuzzleWorldLocation(SocketName));
+	const FTransform LSpawnTransform = Mesh->GetSocketTransform(SocketName);
 	AKT_BaseProjectile* LProjectile = GetWorld()->SpawnActorDeferred<AKT_BaseProjectile>(
 		InProjectileClass, LSpawnTransform);
 	if (IsValid(LProjectile))
@@ -228,4 +230,13 @@ void AKT_BaseRangeWeapon::OnRep_Scoping_Implementation()
 void AKT_BaseRangeWeapon::SetScatterFactor(const float InScatterFactor)
 {
 	ScatterFactor = InScatterFactor;
+}
+
+
+void AKT_BaseRangeWeapon::SpawnMuzzleFlash_Implementation(UParticleSystem* MuzzleParticle, const FName& InShotSocketName)
+{
+	const FTransform LSocketTransform = Mesh->GetSocketTransform(InShotSocketName);
+	UGameplayStatics::SpawnEmitterAttached(MuzzleParticle, Mesh, InShotSocketName, LSocketTransform.GetLocation(),
+		LSocketTransform.GetRotation().Rotator(), FVector::OneVector, EAttachLocation::KeepWorldPosition,
+		true, EPSCPoolMethod::None, true);
 }

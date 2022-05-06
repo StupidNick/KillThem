@@ -226,6 +226,7 @@ void UKT_ItemsManagerComponent::AddWeaponOnClient_Implementation(TSubclassOf<AKT
 		{
 			AttachWeaponToSocket(LWeapon, PlayerCharacter->FirstPersonMeshComponent, FirstPersonHandsSocketName);
 			FirstPersonWeaponsArray.Add(LWeapon);
+			AddClientWeaponToServer(LWeapon, 0);
 		}
 		return;
 	}
@@ -236,6 +237,7 @@ void UKT_ItemsManagerComponent::AddWeaponOnClient_Implementation(TSubclassOf<AKT
 		{
 			AttachWeaponToSocket(LWeapon, PlayerCharacter->FirstPersonMeshComponent, BehindBackSocketName);
 			FirstPersonWeaponsArray.Add(LWeapon);
+			AddClientWeaponToServer(LWeapon, 1);
 		}
 		return;
 	}
@@ -245,6 +247,20 @@ void UKT_ItemsManagerComponent::AddWeaponOnClient_Implementation(TSubclassOf<AKT
 	{
 		AttachWeaponToSocket(GetFirstPersonSelectedWeaponSlot(), PlayerCharacter->FirstPersonMeshComponent,
 		                     FirstPersonHandsSocketName);
+		AddClientWeaponToServer(GetFirstPersonSelectedWeaponSlot(), CurrentWeaponIndex);
+	}
+}
+
+
+void UKT_ItemsManagerComponent::AddClientWeaponToServer_Implementation(AKT_BaseWeapon* InWeapon, int32 Index)
+{
+	if (FirstPersonWeaponsArray.IsValidIndex(Index))
+	{
+		FirstPersonWeaponsArray[Index] = InWeapon;
+	}
+	else
+	{
+		FirstPersonWeaponsArray.Add(InWeapon);
 	}
 }
 

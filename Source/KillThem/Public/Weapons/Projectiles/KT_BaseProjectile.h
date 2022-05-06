@@ -70,8 +70,14 @@ public:
 		UProjectileMovementComponent* ProjectileMovementComponent = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
-		TSubclassOf<UDamageType> DamageTypeClass;
+		bool IsRadialDamage = false;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
 		float ProjectileLifeTime;
+
+	UPROPERTY(EditDefaultsOnly)
+		float DamageRadius = 20.f;
+
+	UPROPERTY(EditDefaultsOnly)
+		bool DoFullDamage = false;
 };

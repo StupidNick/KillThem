@@ -19,14 +19,14 @@ void AKT_WeaponShotgun::UseWeapon()
 	{
 		if (AmmoInTheClip < CostAlterShotInAmmo) return;
 
-		ProjectileShoot(AlterFireProjectileClass, AlterDamage, AlterFireSocketName, AlterFireScatterFactor);
+		ProjectileShoot(AlterFireProjectileClass, AlterDamage, AlterFireSocketName, AlterFireScatterFactor, AlterFireParticle);
 		AmmoInTheClip -= CostAlterShotInAmmo;
 	}
 	else
 	{
 		for (int32 LCounter = 0; LCounter < NumbersOfShot; LCounter++)
 		{
-			LineTraceShot(ProjectileClass, Damage, FireSocketName, ScatterFactor);
+			LineTraceShot(ProjectileClass, Damage, FireSocketName, ScatterFactor, FireParticle);
 		}
 		AmmoInTheClip--;
 	}

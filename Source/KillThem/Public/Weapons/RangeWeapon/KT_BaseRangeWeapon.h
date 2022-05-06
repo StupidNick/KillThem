@@ -46,11 +46,14 @@ public:
 //Protected C++ functions
 protected:
 
-	UFUNCTION()
-		virtual void ProjectileShoot(const TSubclassOf<AKT_BaseProjectile>& InProjectileClass, const int32& InDamage, const FName& InShotSocketName, const float& InScatterFactor);
+	UFUNCTION(NetMulticast, Unreliable)
+		void SpawnMuzzleFlash(UParticleSystem* MuzzleParticle, const FName& InShotSocketName);
 
 	UFUNCTION()
-		virtual void LineTraceShot(const TSubclassOf<AKT_BaseProjectile>& InProjectileClass, const int32& InDamage, const FName& InShotSocketName, const float& InScatterFactor);
+		virtual void ProjectileShoot(const TSubclassOf<AKT_BaseProjectile>& InProjectileClass, const int32& InDamage, const FName& InShotSocketName, const float& InScatterFactor, UParticleSystem* MuzzleParticle);
+
+	UFUNCTION()
+		virtual void LineTraceShot(const TSubclassOf<AKT_BaseProjectile>& InProjectileClass, const int32& InDamage, const FName& InShotSocketName, const float& InScatterFactor, UParticleSystem* MuzzleParticle);
 
 	UFUNCTION()
 		bool GetPlayerViewPoint(FVector& ViewLocation, FRotator& ViewRotation) const;
@@ -110,6 +113,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
 		FName FireSocketName;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
+		UParticleSystem* FireParticle;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
 		bool ProjectileShootingAtAlterFire;
 
@@ -124,6 +130,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
 		FName AlterFireSocketName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
+		UParticleSystem* AlterFireParticle;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Scoping")
 		FName ScopingSocketName;

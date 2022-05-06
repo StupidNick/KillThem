@@ -179,7 +179,7 @@ public:
 public:
 
 //////////////////////////////////////////////////////Components////////////////////////////////////////////////////////
-	UPROPERTY(EditAnywhere, Category = "Character | Components")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category = "Character | Components")
 		UKT_ItemsManagerComponent* ItemsManagerComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Components")
@@ -191,7 +191,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character | Components")
 		USkeletalMeshComponent* FirstPersonMeshComponent;
 
-	UPROPERTY(EditAnywhere, Category = "Character | Components")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character | Components")
 		UCameraComponent* CameraComponent;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Character | Components")
