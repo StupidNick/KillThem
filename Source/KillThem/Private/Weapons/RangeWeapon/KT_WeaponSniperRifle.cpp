@@ -1,16 +1,26 @@
 #include "Weapons/RangeWeapon/KT_WeaponSniperRifle.h"
 
+#include "Camera/CameraComponent.h"
+#include "GameMode/KT_GameHUD.h"
+#include "UI/MainHUD_WD/KT_MainHUD_WD.h"
 
 
 void AKT_WeaponSniperRifle::Scope()
 {
+	if (!IsValid(Character)) return;
 	
-	// if (!ScopeUserWidgetClass) return;
-	// Character->CameraComponent->SetFieldOfView(40);
+	ActualFoV = Character->CameraComponent->FieldOfView;
+	Character->HUD->CreateSniperScopeWD();
+	Character->HUD->MainHUD->RemoveFromParent();
+	Character->CameraComponent->SetFieldOfView(ScopeFOV);
 }
 
 
 void AKT_WeaponSniperRifle::UnScope()
 {
-	// Character->CameraComponent->SetFieldOfView(90);
+	if (!IsValid(Character)) return;
+	
+	Character->CameraComponent->SetFieldOfView(ActualFoV);
+	Character->HUD->RemoveSniperScopeWD();
+	Character->HUD->MainHUD->AddToViewport();
 }

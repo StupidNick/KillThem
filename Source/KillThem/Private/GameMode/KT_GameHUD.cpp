@@ -55,11 +55,30 @@ void AKT_GameHUD::CreateMainHUD_WD()
 
 void AKT_GameHUD::RemoveMainHUD_WD()
 {
-	if (MainHUD)
+	if (!IsValid(MainHUD)) return;
+	
+	MainHUD->RemoveFromParent();
+	MainHUD = nullptr;
+	
+}
+
+
+void AKT_GameHUD::CreateSniperScopeWD()
+{
+	if (SniperScopeClass && !IsValid(SniperScope))
 	{
-		MainHUD->RemoveFromParent();
-		MainHUD = nullptr;
+		SniperScope = CreateWidget<UKT_SniperScopeWD>(GetWorld(), SniperScopeClass);
+		SniperScope->AddToViewport();
 	}
+}
+
+
+void AKT_GameHUD::RemoveSniperScopeWD()
+{
+	if (!IsValid(SniperScope)) return;
+
+	SniperScope->RemoveFromParent();
+	SniperScope = nullptr;
 }
 
 
@@ -76,11 +95,10 @@ void AKT_GameHUD::CreateMainMenuWD()
 
 void AKT_GameHUD::RemoveMainMenuWD()
 {
-	if (MainMenu)
-	{
-		MainMenu->RemoveFromParent();
-		MainMenu = nullptr;
-	}
+	if (!IsValid(MainMenu)) return;
+	
+	MainMenu->RemoveFromParent();
+	MainMenu = nullptr;
 }
 
 
@@ -97,14 +115,13 @@ void AKT_GameHUD::CreatePauseMenuWD()
 
 void AKT_GameHUD::RemovePauseMenuWD()
 {
-	if (PauseMenu)
-	{
-		PauseMenu->RemoveFromParent();
-		PauseMenu = nullptr;
+	if (!IsValid(PauseMenu)) return;
+	
+	PauseMenu->RemoveFromParent();
+	PauseMenu = nullptr;
 
-		const FInputModeGameOnly GameOnly;
-		MyController->SetInputMode(GameOnly);
-	}
+	const FInputModeGameOnly GameOnly;
+	MyController->SetInputMode(GameOnly);
 }
 
 
@@ -121,11 +138,10 @@ void AKT_GameHUD::CreateFindServerWD()
 
 void AKT_GameHUD::RemoveFindServerWD()
 {
-	if (FindServer)
-	{
-		FindServer->RemoveFromParent();
-		FindServer = nullptr;
-	}
+	if (!IsValid(FindServer)) return;
+	
+	FindServer->RemoveFromParent();
+	FindServer = nullptr;
 }
 
 
@@ -142,11 +158,11 @@ void AKT_GameHUD::CreateSettingsWD()
 
 void AKT_GameHUD::RemoveSettingsWD()
 {
-	if (SettingsWD)
-	{
-		SettingsWD->RemoveFromParent();
-		SettingsWD = nullptr;
-	}
+	if (!IsValid(SettingsWD)) return;
+	
+	SettingsWD->RemoveFromParent();
+	SettingsWD = nullptr;
+	
 }
 
 

@@ -21,6 +21,7 @@
 #include "Net/UnrealNetwork.h"
 #include "UI/MainHUD_WD/KT_MainHUD_WD.h"
 #include "Weapons/RangeWeapon/KT_BaseRangeWeapon.h"
+#include "Weapons/RangeWeapon/KT_WeaponSniperRifle.h"
 
 
 ////////////////////////////////////////////////////Begin Play//////////////////////////////////////////////////////////
@@ -210,7 +211,7 @@ void AKT_PlayerCharacter::ScopingTimeLineFloatReturn(float Value)
 
 FTransform AKT_PlayerCharacter::CalculateADSTransform()
 {
-	const auto LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot());
+	const auto LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetFirstPersonSelectedWeaponSlot());
 	return UKismetMathLibrary::InvertTransform(UKismetMathLibrary::MakeRelativeTransform(
 		LWeapon->Mesh->GetSocketTransform(LWeapon->ScopingSocketName),
 		FirstPersonMeshComponent->GetComponentTransform()));
@@ -219,13 +220,12 @@ FTransform AKT_PlayerCharacter::CalculateADSTransform()
 
 void AKT_PlayerCharacter::Scope_Implementation()
 {
-	const auto LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot());
-	if (!LWeapon->IsReloading)
-	{
-		// PlayerController->SetViewTargetWithBlend(ItemsManagerComponent->GetFirstPersonSelectedWeaponSlot(), 0.1f, EViewTargetBlendFunction::VTBlend_Linear, 0.0f, false);
-		// ScopingTimeLine->Play();
-		// LWeapon->Scope();
-	}
+	const auto LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetFirstPersonSelectedWeaponSlot());
+	if (LWeapon->IsReloading) return;
+	
+	ScopingTimeLine->Play();
+	ItemsManagerComponent->GetSelectedWeaponSlot()->Scope();
+	IsScoping = true;
 }
 
 
@@ -237,9 +237,9 @@ void AKT_PlayerCharacter::ScopeOnServer_Implementation()
 
 void AKT_PlayerCharacter::UnScope_Implementation()
 {
-	// ScopingTimeLine->Reverse();
-	// ItemsManagerComponent->GetSelectedWeaponSlot()->UnScope();
-	// PlayerController->SetViewTargetWithBlend(this, 0.1f, EViewTargetBlendFunction::VTBlend_Linear, 0.0f, false);
+	ScopingTimeLine->Reverse();
+	ItemsManagerComponent->GetSelectedWeaponSlot()->UnScope();
+	IsScoping = false;
 }
 
 

@@ -73,6 +73,15 @@ protected:
 	UFUNCTION()
 		virtual void Reload(const int InAmmo);
 
+	UFUNCTION()
+		void ClipReloading();
+
+	UFUNCTION()
+		void BulletReloading();
+
+	UFUNCTION()
+		void StopReloading();
+
 //Protected C++ variables
 protected:
 
@@ -89,8 +98,11 @@ protected:
 //public BP variables
 public:
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Reload")
 		float ReloadTime;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Reload")
+		bool ClipReload = true;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
 		float MaxDistanceAttack;

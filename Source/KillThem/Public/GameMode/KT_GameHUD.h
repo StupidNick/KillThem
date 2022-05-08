@@ -3,8 +3,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
 #include "UI/MenusWD/PauseMenuWD/KT_PauseMenuWD.h"
+#include "UI/WeaponsWD/KT_SniperScopeWD.h"
 #include "KT_GameHUD.generated.h"
-
 
 
 class AKT_PlayerCharacter;
@@ -69,28 +69,33 @@ public:
 		void RemoveMainHUD_WD();
 
 	UFUNCTION(BlueprintCallable, Category = "MainHUD")
-		void CreateMainMenuWD();
+		void CreateSniperScopeWD();
 	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void RemoveSniperScopeWD();
+
+	UFUNCTION(BlueprintCallable, Category = "MainMenu")
+		void CreateMainMenuWD();
+	UFUNCTION(BlueprintCallable, Category = "MainMenu")
 		void RemoveMainMenuWD();
 
-	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	UFUNCTION(BlueprintCallable, Category = "PauseMenu")
 		void CreatePauseMenuWD();
-	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	UFUNCTION(BlueprintCallable, Category = "PauseMenu")
 		void RemovePauseMenuWD();
 
-	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	UFUNCTION(BlueprintCallable, Category = "MainMenu")
 		void CreateFindServerWD();
-	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	UFUNCTION(BlueprintCallable, Category = "MainMenu")
 		void RemoveFindServerWD();
 
-	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	UFUNCTION(BlueprintCallable, Category = "MainMenu")
 		void CreateSettingsWD();
-	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	UFUNCTION(BlueprintCallable, Category = "MainMenu")
 		void RemoveSettingsWD();
 
-	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	UFUNCTION(BlueprintCallable, Category = "MainMenu")
 		void CreateMadeByWD();
-	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	UFUNCTION(BlueprintCallable, Category = "MainMenu")
 		void RemoveMadeByWD();
 
 
@@ -101,6 +106,11 @@ public:
 		TSubclassOf<UKT_MainHUD_WD>  MainHUDClass;
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
 		UKT_MainHUD_WD* MainHUD = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+		TSubclassOf<UKT_SniperScopeWD>  SniperScopeClass;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UKT_SniperScopeWD* SniperScope = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
 		TSubclassOf<UKT_MainMenuWD>  MainMenuClass;

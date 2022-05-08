@@ -15,20 +15,14 @@ class KILLTHEM_API AKT_WeaponShotgun : public AKT_BaseRangeWeapon
 
 //Private C++ functions	
 private:
-	
-	void StopReload();
 
 //Protected C++ functions	
-protected:	
-
-	virtual void Reload(const int InAmmo);
+protected:
 
 //Public C++ functions	
 public:
 	
 	virtual void UseWeapon() override;
-
-	virtual void ToReload();
 
 
 //Public BP variables	
