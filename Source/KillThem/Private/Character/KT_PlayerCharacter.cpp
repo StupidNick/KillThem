@@ -292,7 +292,7 @@ void AKT_PlayerCharacter::DieOnClient_Implementation()
 {
 	if (IsValid(GetController()))
 	{
-		Cast<AKT_PlayerController>(GetController())->RespawnPlayer();
+		Cast<AKT_PlayerController>(GetController())->PreparePlayerForRespawnOnServer();
 		Cast<AKT_PlayerController>(GetController())->UnPossess();
 	}
 	if (IsValid(HUD))
@@ -309,21 +309,14 @@ void AKT_PlayerCharacter::Die(AController* Player)
 		FirstPersonMeshComponent->DestroyComponent();
 	}
 
-	const FVector LLocation = GetActorLocation() + FVector(0, 0, -60);
-	const FRotator LRotation = GetActorRotation();
-	const FActorSpawnParameters LSpawnInfo;
-
 
 	if (HasAuthority())
 	{
-		FTimerHandle LDestroyTimerHandle;
-		FTimerDelegate LDestroyTimerDelegate;
-
 		DieOnClient();
 		DieMulticast();
 
-		LDestroyTimerDelegate.BindUFunction(this, "Destruction");
-		GetWorldTimerManager().SetTimer(LDestroyTimerHandle, LDestroyTimerDelegate, 5, false);
+		FTimerHandle LDestroyTimerHandle;
+		GetWorldTimerManager().SetTimer(LDestroyTimerHandle, this, &AKT_PlayerCharacter::Destruction, 5, false);
 	}
 	OnDead.Broadcast(this);
 	PlayerController = nullptr;

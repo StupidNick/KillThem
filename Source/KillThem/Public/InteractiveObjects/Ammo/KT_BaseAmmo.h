@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KT_CoreTypes.h"
 #include "InteractiveObjects/UsableObjects/KT_BasePickupObject.h"
 #include "KT_BaseAmmo.generated.h"
 
@@ -21,7 +22,7 @@ public:
 	UPROPERTY()
 		bool IsDroppedAmmo = false;
 
-	//public C++ functions
+//public C++ functions
 public:
 
 	UFUNCTION(NetMulticast, Reliable)
@@ -44,6 +45,7 @@ protected:
 	FTimerHandle BoostDownTimerHandle;
 	FTimerDelegate BoostDownTimerDelegate;
 
+	FGameData GameData;
 	
 //public BP variables
 public:

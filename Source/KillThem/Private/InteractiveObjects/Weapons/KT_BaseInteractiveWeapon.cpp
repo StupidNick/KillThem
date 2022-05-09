@@ -65,5 +65,5 @@ void AKT_BaseInteractiveWeapon::Initialize_Implementation(const int16& InAmountO
 	FTimerDelegate LTimerDelegate;
 	
 	LTimerDelegate.BindUFunction(this, "Destruction");
-	GetWorldTimerManager().SetTimer(LTimerHandle, LTimerDelegate, Cast<AKT_BaseGameMode>(UGameplayStatics::GetGameMode(this))->ItemsDestructionTimer, false);
+	GetWorldTimerManager().SetTimer(LTimerHandle, LTimerDelegate, GameData.ItemsDestructionTimer, false);
 }

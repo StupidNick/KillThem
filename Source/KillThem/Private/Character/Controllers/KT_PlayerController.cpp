@@ -5,7 +5,7 @@
 #include "Components/KT_ItemsManagerComponent.h"
 #include "GameMode/KT_BaseGameMode.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "Net/UnrealNetwork.h"
 
 
 AKT_PlayerController::AKT_PlayerController()
@@ -17,6 +17,27 @@ void AKT_PlayerController::BeginPlay()
 {
 	GameHUD = Cast<AKT_GameHUD>(GetHUD());
 	PlayerInitialize();
+}
+
+
+void AKT_PlayerController::OnRep_DeathTimerChanged_Implementation()
+{
+	TimerOfDeath.Broadcast(DeathTimer);
+}
+
+
+void AKT_PlayerController::OnRep_ReadyToRespawn_Implementation()
+{
+	RespawnReady.Broadcast(ReadyToRespawn);
+}
+
+
+void AKT_PlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AKT_PlayerController, DeathTimer);
+	DOREPLIFETIME(AKT_PlayerController, ReadyToRespawn);
 }
 
 
@@ -55,13 +76,43 @@ void AKT_PlayerController::PlayerInitialize()
 }
 
 
-void AKT_PlayerController::RespawnPlayer_Implementation()
+void AKT_PlayerController::PreparePlayerForRespawnOnServer_Implementation()
 {
-	FTimerHandle LRespawnTimerHandle;
-	FTimerDelegate LRespawnTimerDelegate;
+	DeathTimer = RespawnTime;
+	ReadyToRespawn = false;
+	
+	GetWorldTimerManager().SetTimer(RespawnTimerHandle, this, &AKT_PlayerController::CountDownToRespawn, 1, true);
+	PreparePlayerForRespawnOnClient();
+}
 
-	LRespawnTimerDelegate.BindUFunction(Cast<AKT_BaseGameMode>(UGameplayStatics::GetGameMode(this)), "RespawnPlayer", this);
-	GetWorldTimerManager().SetTimer(LRespawnTimerHandle, LRespawnTimerDelegate, Cast<AKT_BaseGameMode>(UGameplayStatics::GetGameMode(this))->TimerForRespawnPlayers, false);
+
+void AKT_PlayerController::PreparePlayerForRespawnOnClient_Implementation()
+{
+	GameHUD->CreateScreenOfDeathWD(this, FText::FromString("KillerName"), DeathTimer);
+}
+
+
+void AKT_PlayerController::CountDownToRespawn_Implementation()
+{
+	if (--DeathTimer <= 0)
+	{
+		GetWorldTimerManager().ClearTimer(RespawnTimerHandle);
+		ReadyToRespawn = true;
+	}
+}
+
+
+void AKT_PlayerController::RespawnPlayerOnClient_Implementation()
+{
+	GameHUD->RemoveScreenOfDeathWD();
+}
+
+
+void AKT_PlayerController::RespawnPlayerOnServer_Implementation()
+{
+	if (DeathTimer > 0) return;
+
+	Cast<AKT_BaseGameMode>(UGameplayStatics::GetGameMode(GetWorld()))->RespawnPlayer(this);
 }
 
 

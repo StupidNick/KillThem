@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "UI/MainHUD_WD/KT_ScreenOfDeathWD.h"
 #include "UI/MenusWD/PauseMenuWD/KT_PauseMenuWD.h"
 #include "UI/WeaponsWD/KT_SniperScopeWD.h"
 #include "KT_GameHUD.generated.h"
@@ -73,6 +74,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "MainHUD")
 		void RemoveSniperScopeWD();
 
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void CreateScreenOfDeathWD(AKT_PlayerController* Controller, const FText& InKillerName, const int32& InRespawnTimer);
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void RemoveScreenOfDeathWD();
+
 	UFUNCTION(BlueprintCallable, Category = "MainMenu")
 		void CreateMainMenuWD();
 	UFUNCTION(BlueprintCallable, Category = "MainMenu")
@@ -111,6 +117,11 @@ public:
 		TSubclassOf<UKT_SniperScopeWD>  SniperScopeClass;
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
 		UKT_SniperScopeWD* SniperScope = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+		TSubclassOf<UKT_ScreenOfDeathWD>  ScreenOfDeathClass;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UKT_ScreenOfDeathWD* ScreenOfDeath = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
 		TSubclassOf<UKT_MainMenuWD>  MainMenuClass;

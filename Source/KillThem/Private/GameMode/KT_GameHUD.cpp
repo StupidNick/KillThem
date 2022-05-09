@@ -82,6 +82,26 @@ void AKT_GameHUD::RemoveSniperScopeWD()
 }
 
 
+void AKT_GameHUD::CreateScreenOfDeathWD(AKT_PlayerController* Controller, const FText& InKillerName, const int32& InRespawnTimer)
+{
+	if (ScreenOfDeathClass && !IsValid(ScreenOfDeath))
+	{
+		ScreenOfDeath = CreateWidget<UKT_ScreenOfDeathWD>(GetWorld(), ScreenOfDeathClass);
+		ScreenOfDeath->AddToViewport();
+		ScreenOfDeath->InitializeWD(Controller, InKillerName, InRespawnTimer);
+	}
+}
+
+
+void AKT_GameHUD::RemoveScreenOfDeathWD()
+{
+	if (!IsValid(ScreenOfDeath)) return;
+
+	ScreenOfDeath->RemoveFromParent();
+	ScreenOfDeath = nullptr;
+}
+
+
 void AKT_GameHUD::CreateMainMenuWD()
 {
 	if (MainMenuClass && !MainMenu)

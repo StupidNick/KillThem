@@ -1,10 +1,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "KT_PlayerStart.h"
+#include "KT_CoreTypes.h"
 #include "Character/KT_PlayerCharacter.h"
 #include "GameFramework/GameModeBase.h"
-#include "GameFramework/PlayerStart.h"
 #include "KT_BaseGameMode.generated.h"
 
 
@@ -20,14 +19,23 @@ public:
 	UFUNCTION(Reliable, Server)
 		void RespawnPlayer(AController* Player);
 
+	virtual void StartPlay() override;
+
+//private C++ variables
+private:
+
+	FTimerHandle GameTimerHandle;
+	int32 GameTime = 0;
+
+//private C++ functions
+private:
+	
 	UFUNCTION()
-		void Respawn(AController* Player);
+		void StartGame();
 
-//public C++ variables
-public:
+	UFUNCTION()
+		void GameTimerUpdate();
 
-	UPROPERTY()
-		TArray<AKT_PlayerCharacter*> Players;
 
 //protected C++ functions
 protected:
@@ -37,17 +45,8 @@ protected:
 //public BP variables
 public:
 
-	UPROPERTY(EditDefaultsOnly, Category = "Players")
-		int MaxPlayerCount;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Players")
-		float TimerForRespawnPlayers;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Items")
-		float ItemsDestructionTimer;
-
-	UPROPERTY(EditAnywhere, Category = "Players")
-		AKT_PlayerStart* PlayerStart = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = "Game")
+		FGameData GameData;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Players")
 		TSubclassOf<AKT_PlayerCharacter> DefaultCharacterClass;
