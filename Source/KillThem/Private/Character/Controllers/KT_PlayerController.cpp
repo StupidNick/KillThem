@@ -15,6 +15,9 @@ AKT_PlayerController::AKT_PlayerController()
 
 void AKT_PlayerController::BeginPlay()
 {
+	if (!IsValid(GetWorld())) return;
+
+	GameMode = Cast<AKT_BaseGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 	GameHUD = Cast<AKT_GameHUD>(GetHUD());
 	PlayerInitialize();
 }
@@ -54,14 +57,13 @@ void AKT_PlayerController::OnPossess_Implementation(APawn* InPawn)
 	Super::OnPossess(InPawn);
 	
 	PlayerInitialize();
+	if (!IsValid(PlayerCharacter) || !IsValid(GameMode)) return;
+	
+	GameMode->CreateTeamsInfo();
 	if (IsValid(PlayerCharacter->ItemsManagerComponent->GetSelectedWeaponSlot()))
 	{
 		PlayerCharacter->ItemsManagerComponent->GetSelectedWeaponSlot()->Controller = this;
 	}
-
-	if (HasAuthority()) return;
-	
-	GameHUD->RespawnPlayer(PlayerCharacter);
 }
 
 
@@ -72,6 +74,10 @@ void AKT_PlayerController::PlayerInitialize()
 		PlayerCharacter = Cast<AKT_PlayerCharacter>(GetPawn());
 		PlayerCharacter->PlayerController = this;
 		PlayerCharacter->HUD = GameHUD;
+	}
+	if (!HasAuthority())
+	{
+		GameHUD->RespawnPlayer(PlayerCharacter);
 	}
 }
 
@@ -104,15 +110,21 @@ void AKT_PlayerController::CountDownToRespawn_Implementation()
 
 void AKT_PlayerController::RespawnPlayerOnClient_Implementation()
 {
-	GameHUD->RemoveScreenOfDeathWD();
+	GameHUD->RemoveAllActiveWD();
 }
 
 
 void AKT_PlayerController::RespawnPlayerOnServer_Implementation()
 {
-	if (DeathTimer > 0) return;
+	if (DeathTimer > 0 || !IsValid(GameMode)) return;
+	if (IsValid(GetPawn()))
+	{
+		const auto LPawn = GetPawn();
+		UnPossess();
+		LPawn->Destroy();
+	}
 
-	Cast<AKT_BaseGameMode>(UGameplayStatics::GetGameMode(GetWorld()))->RespawnPlayer(this);
+	GameMode->RespawnPlayer(this);
 }
 
 

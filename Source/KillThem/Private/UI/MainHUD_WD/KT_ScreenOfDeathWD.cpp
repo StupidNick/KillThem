@@ -35,6 +35,7 @@ void UKT_ScreenOfDeathWD::SetReadyRespawn(const bool CanRespawn)
 
 void UKT_ScreenOfDeathWD::RespawnPlayer()
 {
+	StopListeningForInputAction("Interact", IE_Pressed);
 	MyController->RespawnPlayerOnClient();
 	MyController->RespawnPlayerOnServer();
 }

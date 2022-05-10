@@ -2,11 +2,12 @@
 
 #include "CoreMinimal.h"
 #include "KT_CoreTypes.h"
+#include "Character/KT_SpectatorPawn.h"
 #include "GameFramework/PlayerController.h"
 #include "KT_PlayerController.generated.h"
 
 
-
+class AKT_PlayerCharacter;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTimerOfDeath, const int32&, Timer);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FRespawnReady, const bool, CanRespawn);
 
@@ -77,8 +78,14 @@ public:
 //Blueprint Values
 public:
 
+	UPROPERTY()
+		AKT_PlayerCharacter* PlayerCharacter;
+
 	UPROPERTY(BlueprintReadOnly)
-		class AKT_PlayerCharacter* PlayerCharacter;
+		class AKT_SpectatorPawn* SpectatorPlayerPawn;
+
+	UPROPERTY(BlueprintReadOnly)
+		class AKT_BaseGameMode* GameMode;
 
 	UPROPERTY(BlueprintReadOnly)
 		class AKT_GameHUD* GameHUD;

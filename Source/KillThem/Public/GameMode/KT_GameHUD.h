@@ -8,6 +8,7 @@
 #include "KT_GameHUD.generated.h"
 
 
+class UKT_StartGameSpectatorWD;
 class AKT_PlayerCharacter;
 class UKT_SettingsWD;
 class UKT_FindServerWD;
@@ -55,11 +56,18 @@ public:
 
 //c++ protected values
 protected:
-	
+
+	UFUNCTION()
+		void AddFunctionToActiveWDArray(FString Name);
+
+	UFUNCTION()
+		void RemoveFunctionFromActiveWDArray(FString Name);
 
 //c++ privat values
 private:
 
+	UPROPERTY()
+		TArray<FString> ActiveWDNameArr;
 
 //Blueprint methods
 public:
@@ -78,6 +86,11 @@ public:
 		void CreateScreenOfDeathWD(AKT_PlayerController* Controller, const FText& InKillerName, const int32& InRespawnTimer);
 	UFUNCTION(BlueprintCallable, Category = "MainHUD")
 		void RemoveScreenOfDeathWD();
+
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void CreateSpectatorWD();
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void RemoveSpectatorWD();
 
 	UFUNCTION(BlueprintCallable, Category = "MainMenu")
 		void CreateMainMenuWD();
@@ -105,6 +118,10 @@ public:
 		void RemoveMadeByWD();
 
 
+	UFUNCTION(BlueprintCallable, Category = "General")
+		void RemoveAllActiveWD();
+
+
 //Blueprint values
 public:
 
@@ -122,6 +139,11 @@ public:
 		TSubclassOf<UKT_ScreenOfDeathWD>  ScreenOfDeathClass;
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
 		UKT_ScreenOfDeathWD* ScreenOfDeath = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+		TSubclassOf<UKT_StartGameSpectatorWD>  SpectatorWDClass;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UKT_StartGameSpectatorWD* SpectatorWD = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
 		TSubclassOf<UKT_MainMenuWD>  MainMenuClass;

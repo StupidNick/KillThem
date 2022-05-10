@@ -3,16 +3,9 @@
 #include "Camera/CameraComponent.h"
 #include "Character/Controllers/KT_PlayerController.h"
 #include "Components/KT_HealthComponent.h"
-#include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Components/KT_CharacterMovementComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Misc/OutputDeviceNull.h"
 #include "Components/TimelineComponent.h"
-#include "GameFramework/PlayerState.h"
-#include "Kismet/GameplayStatics.h"
-#include "Weapons/KT_BaseWeapon.h"
 #include "InteractiveObjects/KT_BaseInteractiveObject.h"
 
 #include "Components/KT_ItemsManagerComponent.h"
@@ -21,7 +14,6 @@
 #include "Net/UnrealNetwork.h"
 #include "UI/MainHUD_WD/KT_MainHUD_WD.h"
 #include "Weapons/RangeWeapon/KT_BaseRangeWeapon.h"
-#include "Weapons/RangeWeapon/KT_WeaponSniperRifle.h"
 
 
 ////////////////////////////////////////////////////Begin Play//////////////////////////////////////////////////////////
@@ -362,4 +354,13 @@ void AKT_PlayerCharacter::Destruction()
 	// }
 
 	Destroy();
+}
+
+
+void AKT_PlayerCharacter::SetPlayerColor(const FLinearColor Color)
+{
+	const auto LMaterialInst = FirstPersonMeshComponent->CreateAndSetMaterialInstanceDynamic(0);
+	if (!IsValid(LMaterialInst)) return;
+
+	LMaterialInst->SetVectorParameterValue(MaterialColorName, Color);
 }

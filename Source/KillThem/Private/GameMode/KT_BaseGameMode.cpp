@@ -2,8 +2,7 @@
 
 #include "EngineUtils.h"
 #include "Character/KT_PlayerCharacter.h"
-#include "Kismet/GameplayStatics.h"
-#include "Math/TransformCalculus3D.h"
+#include "GameMode/KT_PlayerState.h"
 
 
 
@@ -15,9 +14,18 @@ AKT_BaseGameMode::AKT_BaseGameMode()
 void AKT_BaseGameMode::StartPlay()
 {
 	Super::StartPlay();
-
-	GameTime = GameData.GameTime;
+	
+	GameTimer = GameTime;
 	StartGame();
+}
+
+
+void AKT_BaseGameMode::CreateControllers_Implementation()
+{
+	// for (int32 Counter = 0; Counter <= NumbersOfPlayer; ++Counter)
+	// {
+	// 	Client
+	// }
 }
 
 
@@ -30,12 +38,23 @@ void AKT_BaseGameMode::StartGame()
 
 void AKT_BaseGameMode::GameTimerUpdate()
 {
-	UE_LOG(LogTemp, Error, TEXT("Time: %i"), GameTime);
+	UE_LOG(LogTemp, Error, TEXT("Time: %i"), GameTimer);
 	
-	if (--GameTime <= 0)
+	if (--GameTimer <= 0)
 	{
 		GetWorldTimerManager().ClearTimer(GameTimerHandle);
+		GameOver();
 	}
+}
+
+
+void AKT_BaseGameMode::GameOver()
+{
+	//TODO create widget game over
+	// for (auto Iteraor = GetWorld()->GetControllerIterator(); Iteraor; ++Iteraor)
+	// {
+	// 	Cast<AKT_PlayerController>(*Iteraor)->SetPause(true);
+	// }
 }
 
 
@@ -57,4 +76,51 @@ void AKT_BaseGameMode::RespawnPlayer_Implementation(AController* Player)
 	{
 		Player->Possess(LPawn);
 	}
+	SetPlayerColor(Player);
+}
+
+
+void AKT_BaseGameMode::CreateTeamsInfo_Implementation()
+{
+	if (!IsValid(GetWorld()) || !HasAuthority()) return;
+	
+	int32 TeamID = 1;
+	for (auto Iteraor = GetWorld()->GetControllerIterator(); Iteraor; ++Iteraor)
+	{
+		const auto LController = Iteraor->Get();
+		if (!IsValid(LController)) continue;
+
+		const auto LPlayerState = Cast<AKT_PlayerState>(LController->PlayerState);
+		if (!IsValid(LPlayerState)) continue;
+
+		LPlayerState->SetTeamID(TeamID);
+		LPlayerState->SetTeamColor(DetermineColorByTeamID(TeamID));
+		SetPlayerColor(LController);
+
+		TeamID == NumbersOfTeam ? TeamID = 1 : ++TeamID;
+	}
+}
+
+
+FLinearColor AKT_BaseGameMode::DetermineColorByTeamID(int32 TeamID) const
+{
+	if (TeamID - 1 < TeamColors.Num())
+	{
+		return TeamColors[TeamID - 1];
+	}
+	return DefaultTeamColor;
+}
+
+
+void AKT_BaseGameMode::SetPlayerColor_Implementation(AController* Controller)
+{
+	if (!IsValid(Controller)) return;
+
+	const auto LCharacter = Cast<AKT_PlayerCharacter>(Controller->GetPawn());
+	if (!IsValid(LCharacter)) return;
+
+	const auto LPlayerState = Cast<AKT_PlayerState>(Controller->PlayerState);
+	if (!IsValid(LPlayerState)) return;
+
+	LCharacter->SetPlayerColor(LPlayerState->GetTeamColor());
 }
