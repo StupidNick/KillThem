@@ -2,6 +2,8 @@
 
 #include "Character/KT_PlayerCharacter.h"
 #include "GameFramework/PlayerState.h"
+#include "GameMode/KT_BaseGameMode.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "UI/MainHUD_WD/KT_MainHUD_WD.h"
 
@@ -14,7 +16,9 @@ UKT_HealthComponent::UKT_HealthComponent()
 void UKT_HealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
+	if (!IsValid(GetWorld()) || !IsValid(GetOwner())) return;
+	
+	GameMode = Cast<AKT_BaseGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 	PlayerCharacter = Cast<AKT_PlayerCharacter>(GetOwner());
 	AActor* LOwner = GetOwner();
 	if (IsValid(LOwner))
@@ -27,20 +31,31 @@ void UKT_HealthComponent::BeginPlay()
 }
 
 
-void UKT_HealthComponent::TakeDamage(AActor* DamagedActor, const float Damage, const UDamageType* DamageType,
+void UKT_HealthComponent::TakeDamage_Implementation(AActor* DamagedActor, const float Damage, const UDamageType* DamageType,
 	AController* InstigatedBy, AActor* DamageCauser)
 {
+	float LDamage = Damage;
+	if (!IsValid(GameMode) || !IsValid(PlayerCharacter) || IsDead) return;
+	
+	if (GameMode->IsTeammates(PlayerCharacter->Controller, InstigatedBy))
+	{
+		if (GameMode->DamageToTeammatesAsPercent == 0) return;
+
+		LDamage = Damage * (static_cast<float>(GameMode->DamageToTeammatesAsPercent) / 100);
+	}
+	
 	if (Shield > 0)
 	{
-		ChangeShieldOnServer(-Damage);
+		ChangeShieldOnServer(-LDamage);
 	}
 	else
 	{
-		ChangeHealthOnServer(-Damage);
+		ChangeHealthOnServer(-LDamage);
 	}
 	if (Health <= 0)
 	{
-		OnDead.Broadcast(PlayerCharacter->GetController());
+		Killed(InstigatedBy);
+		OnDead.Broadcast(PlayerCharacter->Controller);
 		IsDead = true;
 	}
 }
@@ -115,4 +130,16 @@ void UKT_HealthComponent::ChangeShield(const float InShield)
 void UKT_HealthComponent::ChangeShieldOnServer_Implementation(const float InShield)
 {
 	ChangeShield(InShield);
+}
+
+
+void UKT_HealthComponent::Killed_Implementation(AController* KilledController)
+{
+	if (!IsValid(GameMode)) return;
+	IsDead = true;
+
+	const auto Player = Cast<APawn>(GetOwner());
+	const auto VictimController = IsValid(Player) ? Player->Controller : nullptr;
+
+	GameMode->Killed(KilledController, VictimController);
 }

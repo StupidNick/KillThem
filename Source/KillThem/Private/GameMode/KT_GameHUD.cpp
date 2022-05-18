@@ -61,7 +61,6 @@ void AKT_GameHUD::CreateMainHUD_WD()
 		MainHUD = CreateWidget<UKT_MainHUD_WD>(GetWorld(), MainHUDClass);
 		MainHUD->AddToViewport();
 		MainHUD->InitializeMainHUD(MyCharacter);
-		AddFunctionToActiveWDArray("RemoveMainHUD_WD");
 	}
 }
 
@@ -72,7 +71,6 @@ void AKT_GameHUD::RemoveMainHUD_WD()
 	
 	MainHUD->RemoveFromParent();
 	MainHUD = nullptr;
-	RemoveFunctionFromActiveWDArray("RemoveMainHUD_WD");
 	
 }
 
@@ -83,7 +81,6 @@ void AKT_GameHUD::CreateSniperScopeWD()
 	{
 		SniperScope = CreateWidget<UKT_SniperScopeWD>(GetWorld(), SniperScopeClass);
 		SniperScope->AddToViewport();
-		AddFunctionToActiveWDArray("RemoveSniperScopeWD");
 	}
 }
 
@@ -94,7 +91,6 @@ void AKT_GameHUD::RemoveSniperScopeWD()
 
 	SniperScope->RemoveFromParent();
 	SniperScope = nullptr;
-	RemoveFunctionFromActiveWDArray("RemoveSniperScopeWD");
 }
 
 
@@ -105,7 +101,6 @@ void AKT_GameHUD::CreateScreenOfDeathWD(AKT_PlayerController* Controller, const 
 		ScreenOfDeath = CreateWidget<UKT_ScreenOfDeathWD>(GetWorld(), ScreenOfDeathClass);
 		ScreenOfDeath->AddToViewport();
 		ScreenOfDeath->InitializeWD(Controller, InKillerName, InRespawnTimer);
-		AddFunctionToActiveWDArray("RemoveScreenOfDeathWD");
 	}
 }
 
@@ -116,7 +111,6 @@ void AKT_GameHUD::RemoveScreenOfDeathWD()
 
 	ScreenOfDeath->RemoveFromParent();
 	ScreenOfDeath = nullptr;
-	RemoveFunctionFromActiveWDArray("RemoveScreenOfDeathWD");
 }
 
 
@@ -127,7 +121,6 @@ void AKT_GameHUD::CreateSpectatorWD()
 		SpectatorWD = CreateWidget<UKT_StartGameSpectatorWD>(GetWorld(), SpectatorWDClass);
 		SpectatorWD->AddToViewport();
 		SpectatorWD->InitializeWD(MyController);
-		AddFunctionToActiveWDArray("RemoveSpectatorWD");
 	}
 }
 
@@ -138,7 +131,27 @@ void AKT_GameHUD::RemoveSpectatorWD()
 
 	SpectatorWD->RemoveFromParent();
 	SpectatorWD = nullptr;
-	RemoveFunctionFromActiveWDArray("RemoveSpectatorWD");
+}
+
+
+void AKT_GameHUD::CreateStatisticTableWD(TArray<AKT_PlayerState*> TeammatesPlayerStates,
+										 TArray<AKT_PlayerState*> EnemiesPlayerStates)
+{
+	if (StatisticTableWDClass && !IsValid(StatisticTableWD))
+	{
+		StatisticTableWD = CreateWidget<UKT_StatisticsTableWD>(GetWorld(), StatisticTableWDClass);
+		StatisticTableWD->AddToViewport();
+		StatisticTableWD->InitializeWD(TeammatesPlayerStates, EnemiesPlayerStates, MyController);
+	}
+}
+
+
+void AKT_GameHUD::RemoveStatisticTableWD()
+{
+	if (!IsValid(StatisticTableWD)) return;
+
+	StatisticTableWD->RemoveFromParent();
+	StatisticTableWD = nullptr;
 }
 
 
@@ -149,7 +162,6 @@ void AKT_GameHUD::CreateMainMenuWD()
 		MainMenu = CreateWidget<UKT_MainMenuWD>(GetWorld(), MainMenuClass);
 		MainMenu->AddToViewport();
 		MainMenu->InitializeMainMenu(this);
-		AddFunctionToActiveWDArray("RemoveMainMenuWD");
 	}
 }
 
@@ -160,7 +172,6 @@ void AKT_GameHUD::RemoveMainMenuWD()
 	
 	MainMenu->RemoveFromParent();
 	MainMenu = nullptr;
-	RemoveFunctionFromActiveWDArray("RemoveMainMenuWD");
 }
 
 
@@ -171,7 +182,6 @@ void AKT_GameHUD::CreatePauseMenuWD()
 		PauseMenu = CreateWidget<UKT_PauseMenuWD>(GetWorld(), PauseMenuClass);
 		PauseMenu->AddToViewport();
 		PauseMenu->InitializeMainMenu(this);
-		AddFunctionToActiveWDArray("RemovePauseMenuWD");
 	}
 }
 
@@ -185,7 +195,6 @@ void AKT_GameHUD::RemovePauseMenuWD()
 
 	const FInputModeGameOnly GameOnly;
 	MyController->SetInputMode(GameOnly);
-	RemoveFunctionFromActiveWDArray("RemovePauseMenuWD");
 }
 
 
@@ -196,7 +205,6 @@ void AKT_GameHUD::CreateFindServerWD()
 		FindServer = CreateWidget<UKT_FindServerWD>(GetWorld(), FindServerClass);
 		FindServer->AddToViewport();
 		FindServer->InitializeFindServerWD(this);
-		AddFunctionToActiveWDArray("RemoveFindServerWD");
 	}
 }
 
@@ -207,7 +215,6 @@ void AKT_GameHUD::RemoveFindServerWD()
 	
 	FindServer->RemoveFromParent();
 	FindServer = nullptr;
-	RemoveFunctionFromActiveWDArray("RemoveFindServerWD");
 }
 
 
@@ -218,7 +225,6 @@ void AKT_GameHUD::CreateSettingsWD()
 		SettingsWD = CreateWidget<UKT_SettingsWD>(GetWorld(), SettingsWDClass);
 		SettingsWD->AddToViewport();
 		SettingsWD->InitializeSettingsWD(this);
-		AddFunctionToActiveWDArray("RemoveSettingsWD");
 	}
 }
 
@@ -229,7 +235,6 @@ void AKT_GameHUD::RemoveSettingsWD()
 	
 	SettingsWD->RemoveFromParent();
 	SettingsWD = nullptr;
-	RemoveFunctionFromActiveWDArray("RemoveSettingsWD");
 }
 
 
@@ -243,29 +248,15 @@ void AKT_GameHUD::RemoveMadeByWD()
 }
 
 
-void AKT_GameHUD::AddFunctionToActiveWDArray(FString Name)
+void AKT_GameHUD::RemoveAllWD()
 {
-	ActiveWDNameArr.AddUnique(Name);
-}
-
-
-void AKT_GameHUD::RemoveFunctionFromActiveWDArray(FString Name)
-{
-	ActiveWDNameArr.RemoveSingle(Name);
-}
-
-
-void AKT_GameHUD::RemoveAllActiveWD()
-{
-	if (!ActiveWDNameArr.IsValidIndex(0)) return;
-	
-	for (int32 Iterator = 0; Iterator < ActiveWDNameArr.Num(); ++Iterator)
-	{
-		//  LDelegate;
-		// LDelegate.BindUFunction(this, *Iterator);
-		// LDelegate.Execute();
-		FOutputDeviceNull OutputDeviceNull;
-		CallFunctionByNameWithArguments(*ActiveWDNameArr[Iterator],OutputDeviceNull, nullptr, true);
-	}
-	ActiveWDNameArr.Empty();
+	RemoveMadeByWD();
+	RemoveSettingsWD();
+	RemoveFindServerWD();
+	RemovePauseMenuWD();
+	RemoveMainMenuWD();
+	RemoveSpectatorWD();
+	RemoveScreenOfDeathWD();
+	RemoveSniperScopeWD();
+	RemoveMainHUD_WD();
 }

@@ -20,6 +20,9 @@ void AKT_PlayerController::BeginPlay()
 	GameMode = Cast<AKT_BaseGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 	GameHUD = Cast<AKT_GameHUD>(GetHUD());
 	PlayerInitialize();
+
+	if (!HasAuthority()) return;
+	GameMode->GetTeamsInfo(this);
 }
 
 
@@ -41,6 +44,8 @@ void AKT_PlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 
 	DOREPLIFETIME(AKT_PlayerController, DeathTimer);
 	DOREPLIFETIME(AKT_PlayerController, ReadyToRespawn);
+	DOREPLIFETIME(AKT_PlayerController, ArrayOfTeammatesPlayerState);
+	DOREPLIFETIME(AKT_PlayerController, ArrayOfEnemiesPlayerState);
 }
 
 
@@ -49,6 +54,8 @@ void AKT_PlayerController::SetupInputComponent()
 	Super::SetupInputComponent();
 	
 	InputComponent->BindAction("Escape", IE_Pressed, this, &AKT_PlayerController::OnEscapeButtonPressed);
+	InputComponent->BindAction("Statistic", IE_Pressed, this, &AKT_PlayerController::CollectPlayersStates);
+	InputComponent->BindAction("Statistic", IE_Released, this, &AKT_PlayerController::HideStatistic);
 }
 
 
@@ -59,7 +66,6 @@ void AKT_PlayerController::OnPossess_Implementation(APawn* InPawn)
 	PlayerInitialize();
 	if (!IsValid(PlayerCharacter) || !IsValid(GameMode)) return;
 	
-	GameMode->CreateTeamsInfo();
 	if (IsValid(PlayerCharacter->ItemsManagerComponent->GetSelectedWeaponSlot()))
 	{
 		PlayerCharacter->ItemsManagerComponent->GetSelectedWeaponSlot()->Controller = this;
@@ -75,7 +81,7 @@ void AKT_PlayerController::PlayerInitialize()
 		PlayerCharacter->PlayerController = this;
 		PlayerCharacter->HUD = GameHUD;
 	}
-	if (!HasAuthority())
+	if (!HasAuthority() && IsValid(PlayerCharacter))
 	{
 		GameHUD->RespawnPlayer(PlayerCharacter);
 	}
@@ -110,7 +116,7 @@ void AKT_PlayerController::CountDownToRespawn_Implementation()
 
 void AKT_PlayerController::RespawnPlayerOnClient_Implementation()
 {
-	GameHUD->RemoveAllActiveWD();
+	GameHUD->RemoveAllWD();
 }
 
 
@@ -138,4 +144,45 @@ void AKT_PlayerController::OnEscapeButtonPressed_Implementation()
 	{
 		GameHUD->RemovePauseMenuWD();
 	}
+}
+
+
+void AKT_PlayerController::CollectPlayersStates_Implementation()
+{
+	if (!IsValid(GameMode)) return;
+	ArrayOfEnemiesPlayerState = GameMode->GetEnemies(this);
+	ArrayOfTeammatesPlayerState = GameMode->GetTeammates(this);
+
+	ShowStatistic(ArrayOfTeammatesPlayerState, ArrayOfEnemiesPlayerState);
+}
+
+
+void AKT_PlayerController::ShowStatistic_Implementation(const TArray<AKT_PlayerState*>& TeammatesPlayerStates, const TArray<AKT_PlayerState*>& EnemiesPlayerStates)
+{
+	if (!IsValid(GameHUD) || HasAuthority()) return;
+	
+	GameHUD->CreateStatisticTableWD(TeammatesPlayerStates, EnemiesPlayerStates);
+}
+
+
+void AKT_PlayerController::HideStatistic_Implementation()
+{
+	if (!IsValid(GameHUD)) return;
+
+	GameHUD->RemoveStatisticTableWD();
+}
+
+
+void AKT_PlayerController::UpdateStat_Implementation(const TArray<AKT_PlayerState*>& InArrayOfTeammatesPlayerState,
+													const TArray<AKT_PlayerState*>& InArrayOfEnemiesPlayerState)
+{
+	if (!InArrayOfTeammatesPlayerState.IsValidIndex(0) || !InArrayOfEnemiesPlayerState.IsValidIndex(0)) return;
+	
+	if (HasAuthority())
+	{
+		ArrayOfEnemiesPlayerState = InArrayOfTeammatesPlayerState;
+		ArrayOfTeammatesPlayerState = InArrayOfEnemiesPlayerState;
+	}
+	
+	StatisticTableUpdate.Broadcast(ArrayOfTeammatesPlayerState, ArrayOfEnemiesPlayerState);
 }

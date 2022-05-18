@@ -116,7 +116,7 @@ void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile>& I
 	if (IsValid(DamageTypeClass) && LHitResult.Actor->GetClass() == Character->GetClass())
 	{
 		UGameplayStatics::ApplyDamage(LHitResult.GetActor(), InDamage * Character->DamageBooster,
-		                              LHitResult.GetActor()->GetInstigatorController(), Character, DamageTypeClass);
+		                              Character->Controller, Character, DamageTypeClass);
 	}
 }
 

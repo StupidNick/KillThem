@@ -7,9 +7,12 @@
 #include "KT_PlayerController.generated.h"
 
 
+class UKT_StatisticsLineWD;
+class AKT_PlayerState;
 class AKT_PlayerCharacter;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTimerOfDeath, const int32&, Timer);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FRespawnReady, const bool, CanRespawn);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FStatisticTableUpdate, const TArray<AKT_PlayerState*>&, TeammatesPlayerStates, const TArray<AKT_PlayerState*>&, EnemiesPlayerStates);
 
 
 
@@ -74,6 +77,18 @@ public:
 	UFUNCTION(Server, Reliable)
 		void RespawnPlayerOnServer();
 
+	UFUNCTION(NetMulticast, Reliable)
+		void UpdateStat(const TArray<AKT_PlayerState*>& InArrayOfTeammatesPlayerState, const TArray<AKT_PlayerState*>& InArrayOfEnemiesPlayerState);
+
+	UFUNCTION(Server, Unreliable)
+		void CollectPlayersStates();
+
+	UFUNCTION(Client, Reliable)
+		void ShowStatistic(const TArray<AKT_PlayerState*>& TeammatesPlayerStates, const TArray<AKT_PlayerState*>& EnemiesPlayerStates);
+
+	UFUNCTION(Client, Reliable)
+		void HideStatistic();
+
 	
 //Blueprint Values
 public:
@@ -93,9 +108,18 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Game", meta = (ClampMin = "1", ClampMax = "20"))
 		int32 RespawnTime;  // in seconds
 
+	UPROPERTY(BlueprintReadOnly, Replicated)
+		TArray<AKT_PlayerState*> ArrayOfTeammatesPlayerState;
+
+	UPROPERTY(BlueprintReadOnly, Replicated)
+		TArray<AKT_PlayerState*> ArrayOfEnemiesPlayerState;
+
 	UPROPERTY(BlueprintAssignable)
 		FTimerOfDeath TimerOfDeath;
 
 	UPROPERTY(BlueprintAssignable)
 		FRespawnReady RespawnReady;
+
+	UPROPERTY(BlueprintAssignable)
+		FStatisticTableUpdate StatisticTableUpdate;
 };

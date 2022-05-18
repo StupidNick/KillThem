@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "UI/HelpersWD/KT_StatisticsTableWD.h"
 #include "UI/MainHUD_WD/KT_ScreenOfDeathWD.h"
 #include "UI/MenusWD/PauseMenuWD/KT_PauseMenuWD.h"
 #include "UI/WeaponsWD/KT_SniperScopeWD.h"
@@ -57,17 +58,8 @@ public:
 //c++ protected values
 protected:
 
-	UFUNCTION()
-		void AddFunctionToActiveWDArray(FString Name);
-
-	UFUNCTION()
-		void RemoveFunctionFromActiveWDArray(FString Name);
-
 //c++ privat values
 private:
-
-	UPROPERTY()
-		TArray<FString> ActiveWDNameArr;
 
 //Blueprint methods
 public:
@@ -91,6 +83,12 @@ public:
 		void CreateSpectatorWD();
 	UFUNCTION(BlueprintCallable, Category = "MainHUD")
 		void RemoveSpectatorWD();
+
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	void CreateStatisticTableWD(TArray<AKT_PlayerState*> TeammatesPlayerStates,
+									 TArray<AKT_PlayerState*> EnemiesPlayerStates);
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void RemoveStatisticTableWD();
 
 	UFUNCTION(BlueprintCallable, Category = "MainMenu")
 		void CreateMainMenuWD();
@@ -119,7 +117,7 @@ public:
 
 
 	UFUNCTION(BlueprintCallable, Category = "General")
-		void RemoveAllActiveWD();
+		void RemoveAllWD();
 
 
 //Blueprint values
@@ -144,6 +142,11 @@ public:
 		TSubclassOf<UKT_StartGameSpectatorWD>  SpectatorWDClass;
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
 		UKT_StartGameSpectatorWD* SpectatorWD = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+		TSubclassOf<UKT_StatisticsTableWD>  StatisticTableWDClass;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UKT_StatisticsTableWD* StatisticTableWD = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
 		TSubclassOf<UKT_MainMenuWD>  MainMenuClass;
