@@ -2,7 +2,9 @@
 
 #include "Blueprint/UserWidget.h"
 #include "Character/KT_PlayerCharacter.h"
+#include "Character/Controllers/KT_DeathmatchPlayerController.h"
 #include "Character/Controllers/KT_PlayerController.h"
+#include "Character/Controllers/KT_TDMPlayerController.h"
 #include "Misc/OutputDeviceNull.h"
 #include "UI/MainHUD_WD/KT_MainHUD_WD.h"
 #include "UI/MainHUD_WD/KT_StartGameSpectatorWD.h"
@@ -137,21 +139,41 @@ void AKT_GameHUD::RemoveSpectatorWD()
 void AKT_GameHUD::CreateStatisticTableWD(TArray<AKT_PlayerState*> TeammatesPlayerStates,
 										 TArray<AKT_PlayerState*> EnemiesPlayerStates)
 {
-	if (StatisticTableWDClass && !IsValid(StatisticTableWD))
+	if (TDMStatisticTableWDClass && !IsValid(TDMStatisticTableWD))
 	{
-		StatisticTableWD = CreateWidget<UKT_StatisticsTableWD>(GetWorld(), StatisticTableWDClass);
-		StatisticTableWD->AddToViewport();
-		StatisticTableWD->InitializeWD(TeammatesPlayerStates, EnemiesPlayerStates, MyController);
+		TDMStatisticTableWD = CreateWidget<UKT_StatisticsTableWD>(GetWorld(), TDMStatisticTableWDClass);
+		TDMStatisticTableWD->AddToViewport();
+		TDMStatisticTableWD->InitializeWD(TeammatesPlayerStates, EnemiesPlayerStates, Cast<AKT_TDMPlayerController>(MyController));
 	}
 }
 
 
-void AKT_GameHUD::RemoveStatisticTableWD()
+void AKT_GameHUD::CreateStatisticTableWD(TArray<AKT_PlayerState*> PlayerStatesArray)
 {
-	if (!IsValid(StatisticTableWD)) return;
+	if (DMStatisticTableWDClass && !IsValid(DMStatisticTableWD))
+	{
+		DMStatisticTableWD = CreateWidget<UKT_DeathmatchStatisticTable>(GetWorld(), DMStatisticTableWDClass);
+		DMStatisticTableWD->AddToViewport();
+		DMStatisticTableWD->InitializeWD(PlayerStatesArray, Cast<AKT_DeathmatchPlayerController>(MyController));
+	}
+}
 
-	StatisticTableWD->RemoveFromParent();
-	StatisticTableWD = nullptr;
+
+void AKT_GameHUD::RemoveTDMStatisticTableWD()
+{
+	if (!IsValid(TDMStatisticTableWD)) return;
+
+	TDMStatisticTableWD->RemoveFromParent();
+	TDMStatisticTableWD = nullptr;
+}
+
+
+void AKT_GameHUD::RemoveDMStatisticTableWD()
+{
+	if (!IsValid(DMStatisticTableWD)) return;
+
+	DMStatisticTableWD->RemoveFromParent();
+	DMStatisticTableWD = nullptr;
 }
 
 

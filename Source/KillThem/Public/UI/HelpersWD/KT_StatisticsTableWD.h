@@ -21,7 +21,7 @@ class KILLTHEM_API UKT_StatisticsTableWD : public UUserWidget
 public:
 	
 	UFUNCTION(BlueprintCallable)
-		void InitializeWD(TArray<AKT_PlayerState*> TeammatesPlayerStates, TArray<AKT_PlayerState*> EnemiesPlayerStates, class AKT_PlayerController* Controller);
+		void InitializeWD(TArray<AKT_PlayerState*> TeammatesPlayerStates, TArray<AKT_PlayerState*> EnemiesPlayerStates, class AKT_TDMPlayerController* Controller);
 
 	UFUNCTION(BlueprintCallable)
 		void Update(const TArray<AKT_PlayerState*>& TeammatesPlayerStates, const TArray<AKT_PlayerState*>& EnemiesPlayerStates);
@@ -36,7 +36,7 @@ public:
 public:
 
 	UPROPERTY(BlueprintReadOnly)
-		class AKT_PlayerController* MyController = nullptr;
+		class AKT_TDMPlayerController* MyController = nullptr;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget), Category = "Widgets")
 		UHorizontalBox* RootHorizontalBox = nullptr;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KT_BaseGameState.h"
 #include "KT_PlayerState.h"
 #include "Character/KT_PlayerCharacter.h"
 #include "Character/Controllers/KT_PlayerController.h"
@@ -15,6 +16,7 @@ class KILLTHEM_API AKT_BaseGameMode : public AGameModeBase
 
 //public C++ methods
 public:
+	
 	AKT_BaseGameMode();
 
 	UFUNCTION(Reliable, Server)
@@ -22,33 +24,20 @@ public:
 
 	virtual void StartPlay() override;
 
-	UFUNCTION(Server, Reliable)
-		void GetTeamsInfo(AKT_PlayerController* Controller);
-
-	UFUNCTION()
-		TArray<AKT_PlayerState*> GetTeammates(const AKT_PlayerController* Controller) const;
-
-	UFUNCTION()
-		TArray<AKT_PlayerState*> GetEnemies(const AKT_PlayerController* Controller) const;
-
 	UFUNCTION()
 		TArray<AKT_PlayerState*> FindPlayerStates() const;
 
 	UFUNCTION()
-		bool IsTeammates(const AController* Controller1, const AController* Controller2) const;
+		virtual void Killed(const AController* KilledController, const AController* VictimController);
 
 	UFUNCTION()
-		void Killed(const AController* KilledController, const AController* VictimController) const;
+		void GameOver(const FName& WinnerName);
 
 	UFUNCTION()
-		void UpdateStatistic();
+		virtual bool IsTeammates(const AController* Controller1, const AController* Controller2) const;
 
-//private C++ variables
-private:
-
-	int32 TeamID = 1;
-	FTimerHandle GameTimerHandle;
-	int32 GameTimer = 0;
+	UFUNCTION()
+		virtual void UpdateStatistic(){};
 
 //private C++ functions
 private:
@@ -56,21 +45,11 @@ private:
 	UFUNCTION()
 		void StartGame();
 
-	UFUNCTION()
-		void GameTimerUpdate();
-
-	UFUNCTION()
-		void GameOver();
-	
-	UFUNCTION()
-		FLinearColor DetermineColorByTeamID(int32 InTeamID) const;
-	
-	UFUNCTION(Server, Reliable)
-		void SetPlayerColor(AController* Controller);
-
 
 //protected C++ functions
 protected:
+
+    
 	
 	virtual void BeginPlay() override;
 	
@@ -79,6 +58,9 @@ public:
 
 	// UPROPERTY(EditDefaultsOnly, Category = "Game")
 	// 	FGameData GameData;
+
+	UPROPERTY()
+		AKT_BaseGameState* MyGameState;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Players")
 		TSubclassOf<AKT_PlayerCharacter> DefaultCharacterClass;
@@ -92,15 +74,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Game", meta = (ClampMin = "3", ClampMax = "3000"))
 		int32 GameTime = 10;  // in seconds
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Game", meta = (ClampMin = "1", ClampMax = "3"))
-		int32 NumbersOfTeam = 2;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Game", meta = (ClampMin = "1", ClampMax = "50"))
 		int32 NumbersOfPlayer = 2;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		TArray<FLinearColor> TeamColors;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		FLinearColor DefaultTeamColor = FLinearColor::Red;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Game", meta = (ClampMin = "-1", ClampMax = "300"))
+		int32 WinScore = 2;
 };

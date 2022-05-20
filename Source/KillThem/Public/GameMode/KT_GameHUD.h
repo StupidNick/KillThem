@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "UI/HelpersWD/KT_DeathmatchStatisticTable.h"
 #include "UI/HelpersWD/KT_StatisticsTableWD.h"
 #include "UI/MainHUD_WD/KT_ScreenOfDeathWD.h"
 #include "UI/MenusWD/PauseMenuWD/KT_PauseMenuWD.h"
@@ -85,10 +86,13 @@ public:
 		void RemoveSpectatorWD();
 
 	UFUNCTION(BlueprintCallable, Category = "MainHUD")
-	void CreateStatisticTableWD(TArray<AKT_PlayerState*> TeammatesPlayerStates,
+		void CreateStatisticTableWD(TArray<AKT_PlayerState*> TeammatesPlayerStates,
 									 TArray<AKT_PlayerState*> EnemiesPlayerStates);
+		void CreateStatisticTableWD(TArray<AKT_PlayerState*> PlayerStatesArray);
 	UFUNCTION(BlueprintCallable, Category = "MainHUD")
-		void RemoveStatisticTableWD();
+		void RemoveTDMStatisticTableWD();
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void RemoveDMStatisticTableWD();
 
 	UFUNCTION(BlueprintCallable, Category = "MainMenu")
 		void CreateMainMenuWD();
@@ -144,9 +148,14 @@ public:
 		UKT_StartGameSpectatorWD* SpectatorWD = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
-		TSubclassOf<UKT_StatisticsTableWD>  StatisticTableWDClass;
+		TSubclassOf<UKT_StatisticsTableWD>  TDMStatisticTableWDClass;
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
-		UKT_StatisticsTableWD* StatisticTableWD = nullptr;
+		UKT_StatisticsTableWD* TDMStatisticTableWD = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+		TSubclassOf<UKT_DeathmatchStatisticTable>  DMStatisticTableWDClass;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UKT_DeathmatchStatisticTable* DMStatisticTableWD = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
 		TSubclassOf<UKT_MainMenuWD>  MainMenuClass;

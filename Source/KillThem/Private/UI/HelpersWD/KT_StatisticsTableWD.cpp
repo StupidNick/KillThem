@@ -1,20 +1,17 @@
 #include "UI/HelpersWD/KT_StatisticsTableWD.h"
 
-#include <algorithm>
-#include <vector>
-
-#include "Character/Controllers/KT_PlayerController.h"
+#include "Character/Controllers/KT_TDMPlayerController.h"
 #include "Components/VerticalBox.h"
 #include "UI/HelpersWD/Panels/KT_StatisticsLineWD.h"
 
 
 void UKT_StatisticsTableWD::InitializeWD(TArray<AKT_PlayerState*> TeammatesPlayerStates,
-                                         TArray<AKT_PlayerState*> EnemiesPlayerStates, AKT_PlayerController* Controller)
+                                         TArray<AKT_PlayerState*> EnemiesPlayerStates, AKT_TDMPlayerController* Controller)
 {
 	if (!StatisticLineClass || !TeammatesPlayerStates.IsValidIndex(0) || !EnemiesPlayerStates.IsValidIndex(0) || !IsValid(Controller)) return;//TODO correct code
 
 	MyController = Controller;
-	MyController->StatisticTableUpdate.AddDynamic(this, &UKT_StatisticsTableWD::Update);
+	MyController->TDMStatisticTableUpdate.AddDynamic(this, &UKT_StatisticsTableWD::Update);
 	
 	Update(TeammatesPlayerStates, EnemiesPlayerStates);
 }
