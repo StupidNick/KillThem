@@ -96,9 +96,6 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 		class AKT_GameHUD* GameHUD;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Game", meta = (ClampMin = "1", ClampMax = "20"))
-		int32 RespawnTime;  // in seconds
-
 	UPROPERTY(BlueprintAssignable)
 		FTimerOfDeath TimerOfDeath;
 

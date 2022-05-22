@@ -25,14 +25,9 @@ void AKT_BaseGameMode::StartGame()
 }
 
 
-void AKT_BaseGameMode::GameOver(const FName& WinnerName)
+void AKT_BaseGameMode::GameOver(const FString& WinnerName)
 {
-	UE_LOG(LogTemp, Error, TEXT("Game over! %s is a winner!"), *WinnerName.ToString());
-	//TODO create widget game over
-	// for (auto Iteraor = GetWorld()->GetControllerIterator(); Iteraor; ++Iteraor)
-	// {
-	// 	Cast<AKT_PlayerController>(*Iteraor)->SetPause(true);
-	// }
+	UE_LOG(LogTemp, Error, TEXT("Game over! %s is a winner!"), *WinnerName);
 }
 
 

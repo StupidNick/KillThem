@@ -36,6 +36,9 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 		void UpdateStat(const TArray<AKT_PlayerState*>& PlayerStatesArray);
 
+	UFUNCTION(NetMulticast, Reliable)
+		void GameOver(const TArray<AKT_PlayerState*>& PlayerStatesArray, const FString& WinnerName);
+
 	
 //Public BP variables	
 public:

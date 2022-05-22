@@ -16,6 +16,10 @@ void AKT_DeathmatchGameMode::Killed(const AController* KilledController, const A
 	else
 	{
 		KillerPlayerState->AddKill();
+		if (KillerPlayerState->GetKills() >= WinScore)
+		{
+			GameOver(*KillerPlayerState->GetName());
+		}
 	}
 }
 
@@ -28,5 +32,20 @@ void AKT_DeathmatchGameMode::UpdateStatistic()
 		if (!IsValid(LController)) continue;
 
 		LController->UpdateStat(FindPlayerStates());
+	}
+}
+
+
+void AKT_DeathmatchGameMode::GameOver(const FString& WinnerName)
+{
+	Super::GameOver(WinnerName);
+
+	const TArray<AKT_PlayerState*> LPlayerStateArray = FindPlayerStates();
+	for (auto Iteraor = GetWorld()->GetControllerIterator(); Iteraor; ++Iteraor)
+	{
+		
+		const auto LController = Cast<AKT_DeathmatchPlayerController>(*Iteraor);
+		LController->SetPause(true);
+		LController->GameOver(LPlayerStateArray, WinnerName);
 	}
 }

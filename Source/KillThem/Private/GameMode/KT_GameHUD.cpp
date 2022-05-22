@@ -141,7 +141,7 @@ void AKT_GameHUD::CreateStatisticTableWD(TArray<AKT_PlayerState*> TeammatesPlaye
 {
 	if (TDMStatisticTableWDClass && !IsValid(TDMStatisticTableWD))
 	{
-		TDMStatisticTableWD = CreateWidget<UKT_StatisticsTableWD>(GetWorld(), TDMStatisticTableWDClass);
+		TDMStatisticTableWD = CreateWidget<UKT_TDMStatisticsTableWD>(GetWorld(), TDMStatisticTableWDClass);
 		TDMStatisticTableWD->AddToViewport();
 		TDMStatisticTableWD->InitializeWD(TeammatesPlayerStates, EnemiesPlayerStates, Cast<AKT_TDMPlayerController>(MyController));
 	}
@@ -174,6 +174,26 @@ void AKT_GameHUD::RemoveDMStatisticTableWD()
 
 	DMStatisticTableWD->RemoveFromParent();
 	DMStatisticTableWD = nullptr;
+}
+
+
+void AKT_GameHUD::CreateDMWinWindowWD(TArray<AKT_PlayerState*> PlayerStatesArray, const FString& WinnerName)
+{
+	if (DMWinWindowWDClass && !IsValid(DMWinWindowWD))
+	{
+		DMWinWindowWD = CreateWidget<UKT_DMWinWD>(GetWorld(), DMWinWindowWDClass);
+		DMWinWindowWD->AddToViewport();
+		DMWinWindowWD->InitializeWD(PlayerStatesArray, MyController, WinnerName);
+	}
+}
+
+
+void AKT_GameHUD::RemoveDMWinWindowWD()
+{
+	if (!IsValid(DMWinWindowWD)) return;
+
+	DMWinWindowWD->RemoveFromParent();
+	DMWinWindowWD = nullptr;
 }
 
 
@@ -281,4 +301,7 @@ void AKT_GameHUD::RemoveAllWD()
 	RemoveScreenOfDeathWD();
 	RemoveSniperScopeWD();
 	RemoveMainHUD_WD();
+	RemoveDMWinWindowWD();
+	RemoveTDMStatisticTableWD();
+	RemoveDMStatisticTableWD();
 }

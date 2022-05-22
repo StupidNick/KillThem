@@ -1,23 +1,23 @@
-#include "UI/HelpersWD/KT_StatisticsTableWD.h"
+#include "UI/GameModeWD/StatisticWD/KT_TDMStatisticsTableWD.h"
 
 #include "Character/Controllers/KT_TDMPlayerController.h"
 #include "Components/VerticalBox.h"
-#include "UI/HelpersWD/Panels/KT_StatisticsLineWD.h"
+#include "UI/GameModeWD/StatisticWD/Panels/KT_StatisticsLineWD.h"
 
 
-void UKT_StatisticsTableWD::InitializeWD(TArray<AKT_PlayerState*> TeammatesPlayerStates,
+void UKT_TDMStatisticsTableWD::InitializeWD(TArray<AKT_PlayerState*> TeammatesPlayerStates,
                                          TArray<AKT_PlayerState*> EnemiesPlayerStates, AKT_TDMPlayerController* Controller)
 {
 	if (!StatisticLineClass || !TeammatesPlayerStates.IsValidIndex(0) || !EnemiesPlayerStates.IsValidIndex(0) || !IsValid(Controller)) return;//TODO correct code
 
 	MyController = Controller;
-	MyController->TDMStatisticTableUpdate.AddDynamic(this, &UKT_StatisticsTableWD::Update);
+	MyController->TDMStatisticTableUpdate.AddDynamic(this, &UKT_TDMStatisticsTableWD::Update);
 	
 	Update(TeammatesPlayerStates, EnemiesPlayerStates);
 }
 
 
-void UKT_StatisticsTableWD::Update(const TArray<AKT_PlayerState*>& TeammatesPlayerStates,
+void UKT_TDMStatisticsTableWD::Update(const TArray<AKT_PlayerState*>& TeammatesPlayerStates,
 									const TArray<AKT_PlayerState*>& EnemiesPlayerStates) //TODO refactor this shit
 {
 	ClearLists();
@@ -32,6 +32,11 @@ void UKT_StatisticsTableWD::Update(const TArray<AKT_PlayerState*>& TeammatesPlay
 		const FText LKillsText = FText::AsNumber(LKills);
 		const FText LDeathsText = FText::AsNumber(LDeaths);
 		LLine->InitializeWD(LName, LKillsText, LDeathsText, FText::FromString("45"), LKills, LDeaths);//TODO change ping to real users ping
+
+		// if (TeammatesPlayerStates[LineIndex] == MyController->PlayerState)
+		// {
+		// 	LLine->PreviewBackground.Color
+		// }
 		LUnsortedList.Add(LLine);
 	}
 	for (const auto Line : SortListByKills(LUnsortedList))
@@ -58,7 +63,7 @@ void UKT_StatisticsTableWD::Update(const TArray<AKT_PlayerState*>& TeammatesPlay
 }
 
 
-void UKT_StatisticsTableWD::ClearLists()
+void UKT_TDMStatisticsTableWD::ClearLists()
 {
 	for (const auto Line : LeftVerticalBox->GetAllChildren())
 	{
@@ -71,7 +76,7 @@ void UKT_StatisticsTableWD::ClearLists()
 }
 
 
-TArray<UKT_StatisticsLineWD*> UKT_StatisticsTableWD::SortListByKills(TArray<UKT_StatisticsLineWD*> UnsortedList)
+TArray<UKT_StatisticsLineWD*> UKT_TDMStatisticsTableWD::SortListByKills(TArray<UKT_StatisticsLineWD*> UnsortedList)
 {
 	TMap<UKT_StatisticsLineWD*, int32> LUnsortedTMap;
 	for (auto Line : UnsortedList)

@@ -1,9 +1,9 @@
-#include "UI/HelpersWD/KT_DeathmatchStatisticTable.h"
+#include "UI/GameModeWD/StatisticWD/KT_DeathmatchStatisticTable.h"
 
 #include "Character/Controllers/KT_DeathmatchPlayerController.h"
 #include "Components/VerticalBox.h"
 #include "GameMode/KT_PlayerState.h"
-#include "UI/HelpersWD/Panels/KT_StatisticsLineWD.h"
+#include "UI/GameModeWD/StatisticWD/Panels/KT_StatisticsLineWD.h"
 
 
 void UKT_DeathmatchStatisticTable::InitializeWD(TArray<AKT_PlayerState*> PlayerStatesArray, AKT_DeathmatchPlayerController* Controller)
@@ -27,6 +27,8 @@ void UKT_DeathmatchStatisticTable::Update(const TArray<AKT_PlayerState*>& Player
 		const int32 LDeaths = PlayerStatesArray[LineIndex]->GetDeaths();
 		
 		UKT_StatisticsLineWD* LLine = CreateWidget<UKT_StatisticsLineWD>(GetWorld(), StatisticLineClass);
+		if (!IsValid(LLine)) continue;
+		
 		const FText LName = FText::FromString(PlayerStatesArray[LineIndex]->GetName());
 		const FText LKillsText = FText::AsNumber(LKills);
 		const FText LDeathsText = FText::AsNumber(LDeaths);

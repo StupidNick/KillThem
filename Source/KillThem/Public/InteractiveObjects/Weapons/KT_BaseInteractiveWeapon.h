@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "KT_CoreTypes.h"
 #include "InteractiveObjects/KT_BaseInteractiveObject.h"
 
 #include "KT_BaseInteractiveWeapon.generated.h"
@@ -33,8 +32,6 @@ private:
 
 	UPROPERTY(Replicated)
 		int16 AmmoInTheClip;
-
-	FGameData GameData;
 	
 //protected C++ functions
 protected:

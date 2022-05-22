@@ -83,7 +83,9 @@ void AKT_PlayerController::PlayerInitialize()
 
 void AKT_PlayerController::PreparePlayerForRespawnOnServer_Implementation()
 {
-	DeathTimer = RespawnTime;
+	if (!IsValid(GameMode)) return;
+	
+	DeathTimer = GameMode->RespawnTime;
 	ReadyToRespawn = false;
 	
 	GetWorldTimerManager().SetTimer(RespawnTimerHandle, this, &AKT_PlayerController::CountDownToRespawn, 1, true);

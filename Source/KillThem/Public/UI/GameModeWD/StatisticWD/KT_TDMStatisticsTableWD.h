@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "GameMode/KT_PlayerState.h"
-#include "KT_StatisticsTableWD.generated.h"
+#include "KT_TDMStatisticsTableWD.generated.h"
 
 
 class UKT_StatisticsLineWD;
@@ -13,7 +13,7 @@ class UHorizontalBox;
 
 
 UCLASS()
-class KILLTHEM_API UKT_StatisticsTableWD : public UUserWidget
+class KILLTHEM_API UKT_TDMStatisticsTableWD : public UUserWidget
 {
 	GENERATED_BODY()
 

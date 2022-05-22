@@ -2,8 +2,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
-#include "UI/HelpersWD/KT_DeathmatchStatisticTable.h"
-#include "UI/HelpersWD/KT_StatisticsTableWD.h"
+#include "UI/GameModeWD/KT_DMWinWD.h"
+#include "UI/GameModeWD/StatisticWD/KT_DeathmatchStatisticTable.h"
+#include "UI/GameModeWD/StatisticWD/KT_TDMStatisticsTableWD.h"
 #include "UI/MainHUD_WD/KT_ScreenOfDeathWD.h"
 #include "UI/MenusWD/PauseMenuWD/KT_PauseMenuWD.h"
 #include "UI/WeaponsWD/KT_SniperScopeWD.h"
@@ -94,6 +95,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "MainHUD")
 		void RemoveDMStatisticTableWD();
 
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void CreateDMWinWindowWD(TArray<AKT_PlayerState*> PlayerStatesArray, const FString& WinnerName);
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void RemoveDMWinWindowWD();
+
+	// UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	// 	void CreateDMWinWindowWD(TArray<AKT_PlayerState*> TeammatesPlayerStates,
+	// 								 TArray<AKT_PlayerState*> EnemiesPlayerStates);
+	// UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	// 	void RemoveDMWinWindowWD();
+	
 	UFUNCTION(BlueprintCallable, Category = "MainMenu")
 		void CreateMainMenuWD();
 	UFUNCTION(BlueprintCallable, Category = "MainMenu")
@@ -148,14 +160,24 @@ public:
 		UKT_StartGameSpectatorWD* SpectatorWD = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
-		TSubclassOf<UKT_StatisticsTableWD>  TDMStatisticTableWDClass;
+		TSubclassOf<UKT_TDMStatisticsTableWD>  TDMStatisticTableWDClass;
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
-		UKT_StatisticsTableWD* TDMStatisticTableWD = nullptr;
+		UKT_TDMStatisticsTableWD* TDMStatisticTableWD = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
 		TSubclassOf<UKT_DeathmatchStatisticTable>  DMStatisticTableWDClass;
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
 		UKT_DeathmatchStatisticTable* DMStatisticTableWD = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+		TSubclassOf<UKT_DMWinWD>  DMWinWindowWDClass;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UKT_DMWinWD* DMWinWindowWD = nullptr;
+
+	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+	// 	TSubclassOf<UKT_DMWinWD>  DMWinWindowWDClass;
+	// UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+	// 	UKT_DMWinWD* DMWinWindowWD = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
 		TSubclassOf<UKT_MainMenuWD>  MainMenuClass;

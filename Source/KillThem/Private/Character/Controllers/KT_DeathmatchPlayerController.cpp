@@ -53,3 +53,11 @@ void AKT_DeathmatchPlayerController::HideStatistic()
 	
 	GameHUD->RemoveDMStatisticTableWD();
 }
+
+
+void AKT_DeathmatchPlayerController::GameOver_Implementation(const TArray<AKT_PlayerState*>& PlayerStatesArray, const FString& WinnerName)
+{
+	if (!IsValid(GameHUD) || HasAuthority()) return;
+
+	GameHUD->CreateDMWinWindowWD(PlayerStatesArray, WinnerName);
+}

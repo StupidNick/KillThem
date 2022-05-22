@@ -1,4 +1,4 @@
-#include "UI/HelpersWD/Panels/KT_StatisticsLineWD.h"
+#include "UI/GameModeWD/StatisticWD/Panels/KT_StatisticsLineWD.h"
 
 
 

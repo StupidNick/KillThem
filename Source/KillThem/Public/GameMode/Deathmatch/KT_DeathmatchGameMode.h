@@ -18,4 +18,6 @@ public:
 	virtual void Killed(const AController* KilledController, const AController* VictimController) override;
 
 	virtual void UpdateStatistic() override;
+
+	virtual void GameOver(const FString& WinnerName) override;
 };

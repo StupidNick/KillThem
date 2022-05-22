@@ -46,6 +46,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget), Category = "Widgets")
 		UVerticalBox* MainVerticalBox = nullptr;
 
-	UPROPERTY(EditAnywhere, Category = "Widgets")
+	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
 		TSubclassOf<UKT_StatisticsLineWD> StatisticLineClass;	
 };

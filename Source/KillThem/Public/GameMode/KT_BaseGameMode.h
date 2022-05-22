@@ -31,7 +31,7 @@ public:
 		virtual void Killed(const AController* KilledController, const AController* VictimController);
 
 	UFUNCTION()
-		void GameOver(const FName& WinnerName);
+		virtual void GameOver(const FString& WinnerName);
 
 	UFUNCTION()
 		virtual bool IsTeammates(const AController* Controller1, const AController* Controller2) const;
@@ -79,4 +79,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Game", meta = (ClampMin = "-1", ClampMax = "300"))
 		int32 WinScore = 2;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Game", meta = (ClampMin = "1", ClampMax = "20"))
+		int32 RespawnTime;  // in seconds
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Game", meta = (ClampMin = "1", ClampMax = "20"))
+		int32 ItemsDestructionTimer;
 };
