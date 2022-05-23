@@ -34,8 +34,13 @@ void UKT_MainHUD_WD::InitializeMainHUD_Implementation(AKT_PlayerCharacter* Playe
 	UpdateAmmo(Character->ItemsManagerComponent->AmmoForFirstWeapon);
 	
 	Character->ItemsManagerComponent->OnAmmoInTheClipChange.AddDynamic(this, &UKT_MainHUD_WD::UpdateAmmoInTheClip);
-	
 	Character->ItemsManagerComponent->OnWeaponChange.AddDynamic(this, &UKT_MainHUD_WD::UpdateIcon);
+	if (IsValid(Character->ItemsManagerComponent->GetSelectedWeaponSlot()))
+	{
+		const auto LWeapon = Character->ItemsManagerComponent->GetSelectedWeaponSlot();
+		UpdateAmmoInTheClip(LWeapon->GetAmmoInTheClip());
+		UpdateIcon(LWeapon->WeaponIcon, LWeapon->AimIcon);
+	}
 	
 	Character->OnBoosterActivated.AddDynamic(this, &UKT_MainHUD_WD::ActivateBooster);
 	Character->OnBoosterDeactivated.AddDynamic(this, &UKT_MainHUD_WD::DeactivatedBooster);
@@ -49,7 +54,7 @@ void UKT_MainHUD_WD::InitializeMainHUD_Implementation(AKT_PlayerCharacter* Playe
 
 void UKT_MainHUD_WD::UpdateBooster_Implementation(float Timer)
 {
-	Ability->ValueTextBlock->SetText(FText::FromString(FString::FromInt(Timer)));
+	Ability->ValueTextBlock->SetText(FText::AsNumber(FMath::Floor(Timer)));
 	Ability->ValueProgressBar->SetPercent(Timer/Ability->TimerValue);
 }
 
@@ -57,7 +62,7 @@ void UKT_MainHUD_WD::UpdateBooster_Implementation(float Timer)
 void UKT_MainHUD_WD::ActivateBooster_Implementation(UTexture2D* Icon, float Time)
 {
 	Ability->BackgroundImage->SetBrushFromTexture(Icon);
-	Ability->ValueTextBlock->SetText(FText::FromString(FString::FromInt(Time)));
+	Ability->ValueTextBlock->SetText(FText::AsNumber(FMath::Floor(Time)));
 	Ability->TimerValue = Time;
 	Ability->SetVisibility(ESlateVisibility::Visible);
 }
@@ -72,26 +77,26 @@ void UKT_MainHUD_WD::DeactivatedBooster_Implementation(bool Deactivated)
 void UKT_MainHUD_WD::UpdateHP_Implementation(float HPStat)
 {
 	HPBar->ValueProgressBar->SetPercent(HPStat / 100);
-	HPBar->ValueTextBlock->SetText(FText::FromString(FString::FromInt(HPStat)));
+	HPBar->ValueTextBlock->SetText(FText::AsNumber(FMath::Floor(HPStat)));
 }
 
 
 void UKT_MainHUD_WD::UpdateSP_Implementation(float SPStat)
 {
 	SPBar->ValueProgressBar->SetPercent(SPStat / 100);
-	SPBar->ValueTextBlock->SetText(FText::FromString(FString::FromInt(SPStat)));
+	SPBar->ValueTextBlock->SetText(FText::AsNumber(FMath::Floor(SPStat)));
 }
 
 
 void UKT_MainHUD_WD::UpdateAmmo_Implementation(int InAmmo)
 {
-	WeaponBar->AmmoTextBlock->SetText(FText::FromString(FString::FromInt(InAmmo)));
+	WeaponBar->AmmoTextBlock->SetText(FText::AsNumber(InAmmo));
 }
 
 
 void UKT_MainHUD_WD::UpdateAmmoInTheClip_Implementation(int InAmmo)
 {
-	WeaponBar->AmmoInTheClipTextBlock->SetText(FText::FromString(FString::FromInt(InAmmo)));
+	WeaponBar->AmmoInTheClipTextBlock->SetText(FText::AsNumber(InAmmo));
 }
 
 

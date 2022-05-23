@@ -27,7 +27,7 @@ void AKT_BaseAmmo::Initialize(int16 InAmountAmmo, bool IsDropped)
 	FTimerDelegate LTimerDelegate;
 	
 	LTimerDelegate.BindUFunction(this, "Destruction");
-	GetWorldTimerManager().SetTimer(LTimerHandle, LTimerDelegate, Cast<AKT_BaseGameMode>(UGameplayStatics::GetGameMode(this))->ItemsDestructionTimer, false);
+	GetWorldTimerManager().SetTimer(LTimerHandle, LTimerDelegate, Cast<AKT_BaseGameMode>(UGameplayStatics::GetGameMode(GetWorld()))->ItemsDestructionTimer, false);
 }
 
 

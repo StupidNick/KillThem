@@ -2,11 +2,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "UI/GameModeWD/KT_DMWinWD.h"
+#include "UI/GameModeWD/StatisticWD/KT_DeathmatchStatisticTable.h"
+#include "UI/GameModeWD/StatisticWD/KT_TDMStatisticsTableWD.h"
+#include "UI/MainHUD_WD/KT_ScreenOfDeathWD.h"
 #include "UI/MenusWD/PauseMenuWD/KT_PauseMenuWD.h"
+#include "UI/WeaponsWD/KT_SniperScopeWD.h"
 #include "KT_GameHUD.generated.h"
 
 
-
+class UKT_StartGameSpectatorWD;
 class AKT_PlayerCharacter;
 class UKT_SettingsWD;
 class UKT_FindServerWD;
@@ -54,11 +59,9 @@ public:
 
 //c++ protected values
 protected:
-	
 
 //c++ privat values
 private:
-
 
 //Blueprint methods
 public:
@@ -69,29 +72,68 @@ public:
 		void RemoveMainHUD_WD();
 
 	UFUNCTION(BlueprintCallable, Category = "MainHUD")
-		void CreateMainMenuWD();
+		void CreateSniperScopeWD();
 	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void RemoveSniperScopeWD();
+
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void CreateScreenOfDeathWD(AKT_PlayerController* Controller, const FText& InKillerName, const int32& InRespawnTimer);
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void RemoveScreenOfDeathWD();
+
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void CreateSpectatorWD();
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void RemoveSpectatorWD();
+
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void CreateStatisticTableWD(TArray<AKT_PlayerState*> TeammatesPlayerStates,
+									 TArray<AKT_PlayerState*> EnemiesPlayerStates);
+		void CreateStatisticTableWD(TArray<AKT_PlayerState*> PlayerStatesArray);
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void RemoveTDMStatisticTableWD();
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void RemoveDMStatisticTableWD();
+
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void CreateDMWinWindowWD(TArray<AKT_PlayerState*> PlayerStatesArray, const FString& WinnerName);
+	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+		void RemoveDMWinWindowWD();
+
+	// UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	// 	void CreateDMWinWindowWD(TArray<AKT_PlayerState*> TeammatesPlayerStates,
+	// 								 TArray<AKT_PlayerState*> EnemiesPlayerStates);
+	// UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	// 	void RemoveDMWinWindowWD();
+	
+	UFUNCTION(BlueprintCallable, Category = "MainMenu")
+		void CreateMainMenuWD();
+	UFUNCTION(BlueprintCallable, Category = "MainMenu")
 		void RemoveMainMenuWD();
 
-	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	UFUNCTION(BlueprintCallable, Category = "PauseMenu")
 		void CreatePauseMenuWD();
-	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	UFUNCTION(BlueprintCallable, Category = "PauseMenu")
 		void RemovePauseMenuWD();
 
-	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	UFUNCTION(BlueprintCallable, Category = "MainMenu")
 		void CreateFindServerWD();
-	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	UFUNCTION(BlueprintCallable, Category = "MainMenu")
 		void RemoveFindServerWD();
 
-	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	UFUNCTION(BlueprintCallable, Category = "MainMenu")
 		void CreateSettingsWD();
-	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	UFUNCTION(BlueprintCallable, Category = "MainMenu")
 		void RemoveSettingsWD();
 
-	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	UFUNCTION(BlueprintCallable, Category = "MainMenu")
 		void CreateMadeByWD();
-	UFUNCTION(BlueprintCallable, Category = "MainHUD")
+	UFUNCTION(BlueprintCallable, Category = "MainMenu")
 		void RemoveMadeByWD();
+
+
+	UFUNCTION(BlueprintCallable, Category = "General")
+		void RemoveAllWD();
 
 
 //Blueprint values
@@ -101,6 +143,41 @@ public:
 		TSubclassOf<UKT_MainHUD_WD>  MainHUDClass;
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
 		UKT_MainHUD_WD* MainHUD = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+		TSubclassOf<UKT_SniperScopeWD>  SniperScopeClass;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UKT_SniperScopeWD* SniperScope = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+		TSubclassOf<UKT_ScreenOfDeathWD>  ScreenOfDeathClass;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UKT_ScreenOfDeathWD* ScreenOfDeath = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+		TSubclassOf<UKT_StartGameSpectatorWD>  SpectatorWDClass;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UKT_StartGameSpectatorWD* SpectatorWD = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+		TSubclassOf<UKT_TDMStatisticsTableWD>  TDMStatisticTableWDClass;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UKT_TDMStatisticsTableWD* TDMStatisticTableWD = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+		TSubclassOf<UKT_DeathmatchStatisticTable>  DMStatisticTableWDClass;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UKT_DeathmatchStatisticTable* DMStatisticTableWD = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+		TSubclassOf<UKT_DMWinWD>  DMWinWindowWDClass;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+		UKT_DMWinWD* DMWinWindowWD = nullptr;
+
+	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+	// 	TSubclassOf<UKT_DMWinWD>  DMWinWindowWDClass;
+	// UPROPERTY(BlueprintReadOnly, Category = "Widgets")
+	// 	UKT_DMWinWD* DMWinWindowWD = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
 		TSubclassOf<UKT_MainMenuWD>  MainMenuClass;

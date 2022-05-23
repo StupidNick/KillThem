@@ -2,8 +2,7 @@
 
 #include "EngineUtils.h"
 #include "Character/KT_PlayerCharacter.h"
-#include "Kismet/GameplayStatics.h"
-#include "Math/TransformCalculus3D.h"
+#include "GameMode/KT_PlayerState.h"
 
 
 
@@ -12,13 +11,29 @@ AKT_BaseGameMode::AKT_BaseGameMode()
 }
 
 
+void AKT_BaseGameMode::StartPlay()
+{
+	Super::StartPlay();
+	
+	StartGame();
+	MyGameState = Cast<AKT_BaseGameState>(GameState);
+}
+
+
+void AKT_BaseGameMode::StartGame()
+{
+}
+
+
+void AKT_BaseGameMode::GameOver(const FString& WinnerName)
+{
+	UE_LOG(LogTemp, Error, TEXT("Game over! %s is a winner!"), *WinnerName);
+}
+
+
 void AKT_BaseGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-	// for (AKT_PlayerController* PlayerController : TActorRange<AKT_PlayerController>(GetWorld()))
-	// {
-	// 	RespawnPlayer(PlayerController);
-	// }
 }
 
 
@@ -34,26 +49,36 @@ void AKT_BaseGameMode::RespawnPlayer_Implementation(AController* Player)
 	{
 		Player->Possess(LPawn);
 	}
+	// SetPlayerColor(Player);
 }
 
 
-void AKT_BaseGameMode::Respawn(AController* Player)
+void AKT_BaseGameMode::Killed(const AController* KilledController, const AController* VictimController)
 {
-	// const int LRandPoint = FMath::RandRange(0, MaxPlayerCount);
-	// for (const auto LPayerStart : PlayerStartArray)
-	// {
-	// 	if(LPayerStart->PlayerStartTag == FName(FString::FromInt(LRandPoint)))
-	// 	{
-	// 		const FTransform LSpawnTransform = LPayerStart->GetActorTransform();
-	// 		const FActorSpawnParameters LSpawnInfo;
-	// 			
-	// 		AKT_PlayerCharacter* LPawn = GetWorld()->SpawnActor<AKT_PlayerCharacter>(DefaultCharacterClass, LSpawnTransform.GetLocation(), LSpawnTransform.GetRotation().Rotator(), LSpawnInfo);
-	// 			
-	// 		if (IsValid(LPawn) && IsValid(Player))
-	// 		{
-	// 			Player->Possess(LPawn);
-	// 		}
-	// 		LPawn->HealthComponent->OnDead.AddDynamic(this, &AKT_BaseGameMode::RespawnPlayer);
-	// 	}
-	// }
+	const auto KillerPlayerState = Cast<AKT_PlayerState>(KilledController->PlayerState);
+	const auto VictimPlayerState = Cast<AKT_PlayerState>(VictimController->PlayerState);
+
+	if (!IsValid(KillerPlayerState) || !IsValid(VictimPlayerState)) return;
+	
+	VictimPlayerState->AddDeath();
+}
+
+
+TArray<AKT_PlayerState*> AKT_BaseGameMode::FindPlayerStates() const
+{
+	TArray<AKT_PlayerState*> LPlayerStatesArray;
+	for (auto Iterator = GetWorld()->GetControllerIterator(); Iterator; ++Iterator)
+	{
+		AKT_PlayerState* LPlayerState = Cast<AKT_PlayerState>(Iterator->Get()->PlayerState);
+		if (!IsValid(LPlayerState)) continue;
+
+		LPlayerStatesArray.AddUnique(LPlayerState);
+	}
+	return LPlayerStatesArray;
+}
+
+
+bool AKT_BaseGameMode::IsTeammates(const AController* Controller1, const AController* Controller2) const
+{
+	return false;
 }

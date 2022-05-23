@@ -160,6 +160,9 @@ public:
 	UFUNCTION(Client, Reliable)
 		void DieOnClient();
 
+	UFUNCTION()
+		void SetPlayerColor(const FLinearColor Color);
+
 	
 //public c++ variables
 public:
@@ -212,6 +215,9 @@ public:
 /////////////////////////////////////More/////////////////////////////////////////
 	UPROPERTY(EditAnywhere, Category = "Character | Weapons")
 		UCurveFloat* ScopingCameraTilt;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Material")
+		FName MaterialColorName = "Paint Color";
 
 	UPROPERTY(BlueprintAssignable, Category = "HealthComponent | EventsForBind")
 		FOnBusterActivated OnBoosterActivated;

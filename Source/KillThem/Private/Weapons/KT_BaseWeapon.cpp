@@ -9,21 +9,13 @@
 AKT_BaseWeapon::AKT_BaseWeapon()
 {
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>("Mesh");
-	ScopeCamera = CreateDefaultSubobject<UCameraComponent>("ScopeCamera");
 	
 	RootComponent = Mesh;
-	ScopeCamera->SetupAttachment(Mesh);
 
 	Mesh->SetCollisionProfileName(FName("IgnoreAll"));
 	bReplicates = true;
 
 	PrimaryActorTick.bCanEverTick = false;
-}
-
-
-void AKT_BaseWeapon::BeginPlay()
-{
-	Super::BeginPlay();
 }
 
 

@@ -21,7 +21,7 @@ public:
 	UPROPERTY()
 		bool IsDroppedAmmo = false;
 
-	//public C++ functions
+//public C++ functions
 public:
 
 	UFUNCTION(NetMulticast, Reliable)
@@ -43,7 +43,6 @@ protected:
 
 	FTimerHandle BoostDownTimerHandle;
 	FTimerDelegate BoostDownTimerDelegate;
-
 	
 //public BP variables
 public:

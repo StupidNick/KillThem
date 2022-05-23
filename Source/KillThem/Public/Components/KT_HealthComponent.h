@@ -5,6 +5,7 @@
 #include "KT_HealthComponent.generated.h"
 
 
+class AKT_BaseGameMode;
 class AKT_PlayerCharacter;
 
 
@@ -26,6 +27,9 @@ public:
 //private C++ functions
 private:
 
+	UFUNCTION(Server, Reliable)
+		void Killed(AController* KilledController);
+
 
 //private C++ variables
 private:
@@ -40,7 +44,7 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	UFUNCTION()
+	UFUNCTION(Server, Reliable)
 		void TakeDamage(AActor* DamagedActor, const float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 
 	
@@ -110,8 +114,10 @@ public:
 //public BP variables
 public:
 
-	UPROPERTY(EditAnywhere, Category = "HealthComponent | Health")
+	UPROPERTY(EditAnywhere, Category = "Components")
 		AKT_PlayerCharacter* PlayerCharacter;
+	UPROPERTY(EditAnywhere, Category = "Components")
+		AKT_BaseGameMode* GameMode;
 
 	UPROPERTY(BlueprintAssignable, Category = "HealthComponent | EventsForBind")
 		FOnHPChange OnHPChangeBind;

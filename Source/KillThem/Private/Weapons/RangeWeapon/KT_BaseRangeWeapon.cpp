@@ -19,6 +19,10 @@ void AKT_BaseRangeWeapon::Initialize_Implementation(AKT_PlayerCharacter* InChara
 	Super::Initialize_Implementation(InCharacter, InAmmoInTheClip);
 
 	ScatterFactor = BaseScatterFactor;
+	if (!ClipReload)
+	{
+		ReloadTimerDelegate.BindUFunction(this, "Reload", 1);
+	}
 }
 
 
@@ -34,7 +38,11 @@ void AKT_BaseRangeWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 void AKT_BaseRangeWeapon::UseWeapon()
 {
-	if (AmmoInTheClip <= 0 || IsReloading || !GetWeaponCanShoot()) return;
+	if (AmmoInTheClip <= 0 || !GetWeaponCanShoot()) return;
+	if (IsReloading && !ClipReload)
+	{
+		StopReloading();
+	}
 
 	if (UseAlterFire)
 	{
@@ -108,7 +116,7 @@ void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile>& I
 	if (IsValid(DamageTypeClass) && LHitResult.Actor->GetClass() == Character->GetClass())
 	{
 		UGameplayStatics::ApplyDamage(LHitResult.GetActor(), InDamage * Character->DamageBooster,
-		                              LHitResult.GetActor()->GetInstigatorController(), Character, DamageTypeClass);
+		                              Character->Controller, Character, DamageTypeClass);
 	}
 }
 
@@ -177,13 +185,15 @@ void AKT_BaseRangeWeapon::Reload(const int InAmmo)
 	IsReloading = false;
 	AmmoInTheClip += InAmmo;
 	Character->ItemsManagerComponent->RemoveAmmoOnServer(GetClass(), InAmmo);
+	
+	if (ClipReload || AmmoInTheClip >= ClipSize) return;
+
+	BulletReloading();
 }
 
 
-void AKT_BaseRangeWeapon::ToReload_Implementation()
+void AKT_BaseRangeWeapon::ClipReloading()
 {
-	if (IsChangingFireMode || !IsValid(Character)) return;
-	
 	int32 LCountOfAmmo, LClipSize = ClipSize;
 	LClipSize++;
 	
@@ -210,7 +220,40 @@ void AKT_BaseRangeWeapon::ToReload_Implementation()
 	}
 	ReloadTimerDelegate.BindUFunction(this, "Reload", LCountOfAmmo);
 	GetWorldTimerManager().SetTimer(ReloadTimerHandle, ReloadTimerDelegate, ReloadTime / Character->BerserkBooster,
-	                                false);
+									false);
+}
+
+
+void AKT_BaseRangeWeapon::BulletReloading()
+{
+	IsReloading = true;
+	int32 LCountOfAmmo;
+	if (!Character->ItemsManagerComponent->CountAmmo(GetClass(), LCountOfAmmo) || AmmoInTheClip >= ClipSize) return;
+
+	GetWorldTimerManager().SetTimer(ReloadTimerHandle, ReloadTimerDelegate, ReloadTime / Character->BerserkBooster,
+									false);
+}
+
+
+void AKT_BaseRangeWeapon::ToReload_Implementation()
+{
+	if (IsChangingFireMode || !IsValid(Character) || IsReloading) return;
+
+	if (ClipReload)
+	{
+		ClipReloading();
+	}
+	else
+	{
+		BulletReloading();
+	}
+}
+
+
+void AKT_BaseRangeWeapon::StopReloading()
+{
+	IsReloading = false;
+	GetWorld()->GetTimerManager().ClearTimer(ReloadTimerHandle);
 }
 
 

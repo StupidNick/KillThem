@@ -38,7 +38,7 @@ private:
 //private C++ functions
 protected:
 
-	virtual void BeginPlay() override;
+	// virtual void BeginPlay() override;
 
 	UFUNCTION()
 		void AutoFireReload();
@@ -121,9 +121,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Components")
 		USkeletalMeshComponent* Mesh;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Components")
-		UCameraComponent* ScopeCamera;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
 		int ClipSize;

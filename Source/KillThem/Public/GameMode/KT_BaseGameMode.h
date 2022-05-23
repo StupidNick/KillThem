@@ -1,10 +1,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "KT_PlayerStart.h"
+#include "KT_BaseGameState.h"
+#include "KT_PlayerState.h"
 #include "Character/KT_PlayerCharacter.h"
+#include "Character/Controllers/KT_PlayerController.h"
 #include "GameFramework/GameModeBase.h"
-#include "GameFramework/PlayerStart.h"
 #include "KT_BaseGameMode.generated.h"
 
 
@@ -15,40 +16,73 @@ class KILLTHEM_API AKT_BaseGameMode : public AGameModeBase
 
 //public C++ methods
 public:
+	
 	AKT_BaseGameMode();
 
 	UFUNCTION(Reliable, Server)
 		void RespawnPlayer(AController* Player);
 
+	virtual void StartPlay() override;
+
 	UFUNCTION()
-		void Respawn(AController* Player);
+		TArray<AKT_PlayerState*> FindPlayerStates() const;
 
-//public C++ variables
-public:
+	UFUNCTION()
+		virtual void Killed(const AController* KilledController, const AController* VictimController);
 
-	UPROPERTY()
-		TArray<AKT_PlayerCharacter*> Players;
+	UFUNCTION()
+		virtual void GameOver(const FString& WinnerName);
+
+	UFUNCTION()
+		virtual bool IsTeammates(const AController* Controller1, const AController* Controller2) const;
+
+	UFUNCTION()
+		virtual void UpdateStatistic(){};
+
+//private C++ functions
+private:
+
+	UFUNCTION()
+		void StartGame();
+
 
 //protected C++ functions
 protected:
+
+    
 	
 	virtual void BeginPlay() override;
 	
 //public BP variables
 public:
 
-	UPROPERTY(EditDefaultsOnly, Category = "Players")
-		int MaxPlayerCount;
+	// UPROPERTY(EditDefaultsOnly, Category = "Game")
+	// 	FGameData GameData;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Players")
-		float TimerForRespawnPlayers;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Items")
-		float ItemsDestructionTimer;
-
-	UPROPERTY(EditAnywhere, Category = "Players")
-		AKT_PlayerStart* PlayerStart = nullptr;
+	UPROPERTY()
+		AKT_BaseGameState* MyGameState;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Players")
 		TSubclassOf<AKT_PlayerCharacter> DefaultCharacterClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Players")
+		TSubclassOf<AKT_PlayerController> DefaultControllerClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Game", meta = (ClampMin = "0", ClampMax = "100"))
+		int32 DamageToTeammatesAsPercent = 10;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Game", meta = (ClampMin = "3", ClampMax = "3000"))
+		int32 GameTime = 10;  // in seconds
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Game", meta = (ClampMin = "1", ClampMax = "50"))
+		int32 NumbersOfPlayer = 2;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Game", meta = (ClampMin = "-1", ClampMax = "300"))
+		int32 WinScore = 2;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Game", meta = (ClampMin = "1", ClampMax = "20"))
+		int32 RespawnTime;  // in seconds
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Game", meta = (ClampMin = "1", ClampMax = "20"))
+		int32 ItemsDestructionTimer;
 };

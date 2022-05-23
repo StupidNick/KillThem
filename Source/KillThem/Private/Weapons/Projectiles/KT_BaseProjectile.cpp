@@ -52,7 +52,7 @@ void AKT_BaseProjectile::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 	if (IsRadialDamage)
 	{
 		UGameplayStatics::ApplyRadialDamage(GetWorld(), Damage, GetActorLocation(),
-			DamageRadius, UDamageType::StaticClass(), {GetOwner()}, this,
+			DamageRadius, UDamageType::StaticClass(), {}, this,
 			PlayerOwner->Controller, DoFullDamage);
 		DrawDebugSphere(GetWorld(), GetActorLocation(), DamageRadius, 24, FColor::Red, false, 5);
 	}

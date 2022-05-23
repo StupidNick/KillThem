@@ -3,16 +3,9 @@
 #include "Camera/CameraComponent.h"
 #include "Character/Controllers/KT_PlayerController.h"
 #include "Components/KT_HealthComponent.h"
-#include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Components/KT_CharacterMovementComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Misc/OutputDeviceNull.h"
 #include "Components/TimelineComponent.h"
-#include "GameFramework/PlayerState.h"
-#include "Kismet/GameplayStatics.h"
-#include "Weapons/KT_BaseWeapon.h"
 #include "InteractiveObjects/KT_BaseInteractiveObject.h"
 
 #include "Components/KT_ItemsManagerComponent.h"
@@ -210,7 +203,7 @@ void AKT_PlayerCharacter::ScopingTimeLineFloatReturn(float Value)
 
 FTransform AKT_PlayerCharacter::CalculateADSTransform()
 {
-	const auto LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot());
+	const auto LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetFirstPersonSelectedWeaponSlot());
 	return UKismetMathLibrary::InvertTransform(UKismetMathLibrary::MakeRelativeTransform(
 		LWeapon->Mesh->GetSocketTransform(LWeapon->ScopingSocketName),
 		FirstPersonMeshComponent->GetComponentTransform()));
@@ -219,13 +212,12 @@ FTransform AKT_PlayerCharacter::CalculateADSTransform()
 
 void AKT_PlayerCharacter::Scope_Implementation()
 {
-	const auto LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot());
-	if (!LWeapon->IsReloading)
-	{
-		// PlayerController->SetViewTargetWithBlend(ItemsManagerComponent->GetFirstPersonSelectedWeaponSlot(), 0.1f, EViewTargetBlendFunction::VTBlend_Linear, 0.0f, false);
-		// ScopingTimeLine->Play();
-		// LWeapon->Scope();
-	}
+	const auto LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetFirstPersonSelectedWeaponSlot());
+	if (LWeapon->IsReloading) return;
+	
+	ScopingTimeLine->Play();
+	ItemsManagerComponent->GetSelectedWeaponSlot()->Scope();
+	IsScoping = true;
 }
 
 
@@ -237,9 +229,9 @@ void AKT_PlayerCharacter::ScopeOnServer_Implementation()
 
 void AKT_PlayerCharacter::UnScope_Implementation()
 {
-	// ScopingTimeLine->Reverse();
-	// ItemsManagerComponent->GetSelectedWeaponSlot()->UnScope();
-	// PlayerController->SetViewTargetWithBlend(this, 0.1f, EViewTargetBlendFunction::VTBlend_Linear, 0.0f, false);
+	ScopingTimeLine->Reverse();
+	ItemsManagerComponent->GetSelectedWeaponSlot()->UnScope();
+	IsScoping = false;
 }
 
 
@@ -292,7 +284,7 @@ void AKT_PlayerCharacter::DieOnClient_Implementation()
 {
 	if (IsValid(GetController()))
 	{
-		Cast<AKT_PlayerController>(GetController())->RespawnPlayer();
+		Cast<AKT_PlayerController>(GetController())->PreparePlayerForRespawnOnServer();
 		Cast<AKT_PlayerController>(GetController())->UnPossess();
 	}
 	if (IsValid(HUD))
@@ -309,21 +301,14 @@ void AKT_PlayerCharacter::Die(AController* Player)
 		FirstPersonMeshComponent->DestroyComponent();
 	}
 
-	const FVector LLocation = GetActorLocation() + FVector(0, 0, -60);
-	const FRotator LRotation = GetActorRotation();
-	const FActorSpawnParameters LSpawnInfo;
-
 
 	if (HasAuthority())
 	{
-		FTimerHandle LDestroyTimerHandle;
-		FTimerDelegate LDestroyTimerDelegate;
-
 		DieOnClient();
 		DieMulticast();
 
-		LDestroyTimerDelegate.BindUFunction(this, "Destruction");
-		GetWorldTimerManager().SetTimer(LDestroyTimerHandle, LDestroyTimerDelegate, 5, false);
+		FTimerHandle LDestroyTimerHandle;
+		GetWorldTimerManager().SetTimer(LDestroyTimerHandle, this, &AKT_PlayerCharacter::Destruction, 5, false);
 	}
 	OnDead.Broadcast(this);
 	PlayerController = nullptr;
@@ -369,4 +354,13 @@ void AKT_PlayerCharacter::Destruction()
 	// }
 
 	Destroy();
+}
+
+
+void AKT_PlayerCharacter::SetPlayerColor(const FLinearColor Color)
+{
+	const auto LMaterialInst = FirstPersonMeshComponent->CreateAndSetMaterialInstanceDynamic(0);
+	if (!IsValid(LMaterialInst)) return;
+
+	LMaterialInst->SetVectorParameterValue(MaterialColorName, Color);
 }
