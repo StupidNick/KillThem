@@ -24,6 +24,7 @@ public:
 
 	virtual void GameOver(const FString& WinnerName) override;
 
+	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 
 public:
 

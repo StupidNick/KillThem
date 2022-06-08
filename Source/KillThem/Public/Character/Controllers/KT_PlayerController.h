@@ -91,9 +91,6 @@ public:
 		AKT_PlayerCharacter* PlayerCharacter;
 
 	UPROPERTY(BlueprintReadOnly)
-		class AKT_SpectatorPawn* SpectatorPlayerPawn;
-
-	UPROPERTY(BlueprintReadOnly)
 		class AKT_GameHUD* GameHUD;
 
 	UPROPERTY(BlueprintAssignable)

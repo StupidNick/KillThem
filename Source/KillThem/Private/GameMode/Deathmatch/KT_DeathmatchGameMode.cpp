@@ -55,3 +55,11 @@ void AKT_DeathmatchGameMode::GameOver(const FString& WinnerName)
 		Controller->GameOver(LPlayerStateArray, WinnerName);
 	}
 }
+
+
+void AKT_DeathmatchGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
+{
+	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+
+	CurrentGameState->PlayerControllers.AddUnique(Cast<AKT_DeathmatchPlayerController>(NewPlayer));
+}

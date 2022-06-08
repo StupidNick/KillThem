@@ -41,6 +41,7 @@ void AKT_DeathmatchPlayerController::ShowStatistic_Implementation(const TArray<A
 {
 	if (!IsValid(GameHUD) || HasAuthority()) return;
 	
+	GameHUD->RemoveAllWD();
 	GameHUD->CreateStatisticTableWD(PlayerStatesArray);
 }
 
@@ -52,6 +53,7 @@ void AKT_DeathmatchPlayerController::HideStatistic()
 	if (!IsValid(GameHUD) || HasAuthority()) return;
 	
 	GameHUD->RemoveDMStatisticTableWD();
+	GameHUD->CreateMainHUD_WD();
 }
 
 

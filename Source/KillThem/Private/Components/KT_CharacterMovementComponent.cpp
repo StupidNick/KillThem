@@ -4,12 +4,10 @@
 #include "Character/KT_PlayerCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/KT_ItemsManagerComponent.h"
-#include "GameMode/KT_GameHUD.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "UI/MainHUD_WD/KT_MainHUD_WD.h"
-#include "UI/MainHUD_WD/Panels/KT_DashProgressBarsContainer.h"
 
 
 UKT_CharacterMovementComponent::UKT_CharacterMovementComponent()
