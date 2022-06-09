@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "UI/MainHUD_WD/KT_MainHUD_WD.h"
+#include "Weapons/DamageTypes/KT_BaseDamageType.h"
 
 
 UKT_HealthComponent::UKT_HealthComponent()
@@ -34,8 +35,10 @@ void UKT_HealthComponent::BeginPlay()
 void UKT_HealthComponent::TakeDamage_Implementation(AActor* DamagedActor, const float Damage, const UDamageType* DamageType,
 	AController* InstigatedBy, AActor* DamageCauser)
 {
-	float LDamage = Damage;
 	if (!IsValid(GameMode) || !IsValid(PlayerCharacter) || IsDead) return;
+
+	const UKT_BaseDamageType* LDamageType = Cast<UKT_BaseDamageType>(DamageType);
+	float LDamage = Damage * LDamageType->DamageFactor;
 	
 	if (GameMode->IsTeammates(PlayerCharacter->Controller, InstigatedBy))
 	{

@@ -82,6 +82,9 @@ protected:
 	UFUNCTION()
 		void StopReloading();
 
+	UFUNCTION()
+		TSubclassOf<UDamageType> GetDamageType(const FName& BoneName) const;
+
 //Protected C++ variables
 protected:
 
@@ -119,8 +122,19 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
 		TSubclassOf<AKT_BaseProjectile> ProjectileClass;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
-		TSubclassOf<UDamageType> DamageTypeClass;
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Damage")
+		FName HeadBoneName;
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Damage")
+		FName BodyBoneName;
+	// UPROPERTY(EditDefaultsOnly, Category = "Weapon | Damage")
+	// 	FName LimbsBoneName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Damage")
+		TSubclassOf<UDamageType> HeadDamageType;
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Damage")
+		TSubclassOf<UDamageType> BodyDamageType;
+	// UPROPERTY(EditDefaultsOnly, Category = "Weapon | Damage")
+	// 	TSubclassOf<UDamageType> LimbsDamageType;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
 		FName FireSocketName;

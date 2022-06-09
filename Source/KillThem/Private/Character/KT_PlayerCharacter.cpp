@@ -69,7 +69,7 @@ void AKT_PlayerCharacter::Initialize()
 	}
 
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Block);
+	// GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Block);
 
 	DefaultArmsTransform = FirstPersonMeshComponent->GetRelativeTransform();
 

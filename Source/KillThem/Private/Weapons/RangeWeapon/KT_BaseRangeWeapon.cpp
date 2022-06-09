@@ -43,6 +43,10 @@ void AKT_BaseRangeWeapon::UseWeapon()
 	{
 		StopReloading();
 	}
+	else if(IsReloading)
+	{
+		return;
+	}
 
 	if (UseAlterFire)
 	{
@@ -99,7 +103,7 @@ void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile>& I
 {
 	if (!IsValid(Character)) return;
 	if (!IsValid(Controller)) return;
-
+	
 	FVector LStartLocation, LEndLocation;
 	if (!GetTraceData(LStartLocation, LEndLocation, InScatterFactor)) return;
 
@@ -107,16 +111,21 @@ void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile>& I
 
 	FHitResult LHitResult;
 	MakeHit(LHitResult, LStartLocation, LEndLocation);
+	if (LHitResult.bBlockingHit)
+	{
+		DrawDebugSphere(GetWorld(), LHitResult.ImpactPoint, 5, 5, FColor::Red, false, 5, 0, 5.0); //TODO debug
+	}
 	
 	SpawnMuzzleFlash(MuzzleParticle, InShotSocketName);
 	SpawnProjectile(LHitResult, LEndLocation, InShotSocketName, InProjectileClass);
 	
 	if (!LHitResult.Actor.IsValid()) return;
 
-	if (IsValid(DamageTypeClass) && LHitResult.Actor->GetClass() == Character->GetClass())
+	const TSubclassOf<UDamageType> LDamageType = GetDamageType(LHitResult.BoneName);
+	if (IsValid(LDamageType) && LHitResult.Actor->GetClass() == Character->GetClass())
 	{
 		UGameplayStatics::ApplyDamage(LHitResult.GetActor(), InDamage * Character->DamageBooster,
-		                              Character->Controller, Character, DamageTypeClass);
+		                              Character->Controller, Character, LDamageType);
 	}
 }
 
@@ -177,6 +186,16 @@ void AKT_BaseRangeWeapon::SpawnProjectile(const FHitResult& HitResult, const FVe
 		LProjectile->Initialize(InDamage * Character->DamageBooster, Character, this);
 		LProjectile->FinishSpawning(LSpawnTransform);
 	}
+}
+
+
+TSubclassOf<UDamageType> AKT_BaseRangeWeapon::GetDamageType(const FName& BoneName) const
+{
+	if (BoneName == HeadBoneName)
+	{
+		return HeadDamageType;
+	}
+	return BodyDamageType;
 }
 
 

@@ -45,21 +45,21 @@ void AKT_BaseProjectile::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 {
 	if (!IsValid(PlayerOwner) || OtherActor == PlayerOwner || OtherActor == this) return;
 	
-	if (OtherComp->IsSimulatingPhysics())
-	{
-		OtherComp->AddImpulseAtLocation(ProjectileMovementComponent->Velocity * 100.0f, Hit.ImpactPoint);
-	}
 	if (IsRadialDamage)
 	{
 		UGameplayStatics::ApplyRadialDamage(GetWorld(), Damage, GetActorLocation(),
 			DamageRadius, UDamageType::StaticClass(), {}, this,
 			PlayerOwner->Controller, DoFullDamage);
-		DrawDebugSphere(GetWorld(), GetActorLocation(), DamageRadius, 24, FColor::Red, false, 5);
+		DrawDebugSphere(GetWorld(), GetActorLocation(), DamageRadius, 5, FColor::Red, false, 5);
 	}
 	else
 	{
 		UGameplayStatics::ApplyDamage(OtherActor, Damage, PlayerOwner->PlayerController,
 			PlayerOwner, UDamageType::StaticClass());
+	}
+	if (OtherComp->IsSimulatingPhysics())
+	{
+		OtherComp->AddImpulseAtLocation(ProjectileMovementComponent->Velocity * 100.0f, Hit.ImpactPoint);
 	}
 	ProjectileMovementComponent->StopMovementImmediately();
 	Destroy();
