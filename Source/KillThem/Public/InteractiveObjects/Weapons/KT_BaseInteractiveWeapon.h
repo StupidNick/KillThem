@@ -37,7 +37,6 @@ private:
 protected:
 	
 	virtual void InteractiveOnServer(AKT_PlayerCharacter* Player) override;
-	virtual void InteractiveOnClient(AKT_PlayerCharacter* Player) override;
 
 //public C++ functions
 public:

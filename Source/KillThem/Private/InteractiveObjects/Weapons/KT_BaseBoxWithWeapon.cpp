@@ -40,7 +40,6 @@ void AKT_BaseBoxWithWeapon::InteractiveOnClient(AKT_PlayerCharacter* Player)
 	{
 		if (i == Player) return;
 	}
-	Player->ItemsManagerComponent->AddWeaponOnClient(WeaponClass);
 	DisableObject();
 
 	if (RecoverTime > 0)

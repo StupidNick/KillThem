@@ -13,8 +13,13 @@ AKT_WeaponShotgun::AKT_WeaponShotgun()
 void AKT_WeaponShotgun::UseWeapon()
 {
 	if (AmmoInTheClip <= 0 || !GetWeaponCanShoot()) return;
-	StopReloading();
-	
+	if (IsReloading)
+	{
+		EndBulletReloading();
+		return;
+	}
+
+	IsShoot = true;
 	if (UseAlterFire)
 	{
 		if (AmmoInTheClip < CostAlterShotInAmmo) return;
@@ -31,4 +36,5 @@ void AKT_WeaponShotgun::UseWeapon()
 		AmmoInTheClip--;
 	}
 	ActivateTimerBetweenShots();
+	PlayAnimation(ShootAnimation);
 }

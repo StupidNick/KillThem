@@ -6,7 +6,6 @@
 
 #include "Components/TimelineComponent.h"
 #include "GameFramework/Character.h"
-#include "GameMode/KT_PlayerStart.h"
 
 
 #include "KT_PlayerCharacter.generated.h"
@@ -127,6 +126,9 @@ public:
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UFUNCTION()
+		USkeletalMeshComponent* GetVisibleMesh() const;
+
 /////////////////////////////////////Boosters//////////////////////////////////////
 	
 	UFUNCTION(Server, Reliable)
@@ -218,6 +220,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Material")
 		FName MaterialColorName = "Paint Color";
+
+	UPROPERTY(EditDefaultsOnly, Category = "Character | Damage")
+		FName HeadBoneName;
 
 	UPROPERTY(BlueprintAssignable, Category = "HealthComponent | EventsForBind")
 		FOnBusterActivated OnBoosterActivated;

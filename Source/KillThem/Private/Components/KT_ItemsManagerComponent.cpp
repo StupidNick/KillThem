@@ -26,10 +26,10 @@ void UKT_ItemsManagerComponent::BeginPlay()
 		AddWeaponOnServer(FirstWeaponSlotClass, AmmoForFirstWeapon);
 		PlayerCharacter->OnDead.AddDynamic(this, &UKT_ItemsManagerComponent::PlayerDead);
 	}
-	if (!PlayerCharacter->HasAuthority())
-	{
-		AddWeaponOnClient(FirstWeaponSlotClass);
-	}
+	// if (!PlayerCharacter->HasAuthority())
+	// {
+	// 	AddWeaponOnClient(FirstWeaponSlotClass);
+	// }
 }
 
 
@@ -106,7 +106,8 @@ void UKT_ItemsManagerComponent::OnRep_WeaponChanged_Implementation()
 		OnHandWeaponAmmoChangeBind.Broadcast(LAmountAmmo);
 	}
 	OnWeaponChange.Broadcast(GetSelectedWeaponSlot()->WeaponIcon, GetSelectedWeaponSlot()->AimIcon);
-	SetWeaponOwnerNoSee(GetSelectedWeaponSlot());
+	
+	CurrentWeapon = GetSelectedWeaponSlot()->WeaponType;
 }
 
 
@@ -190,8 +191,8 @@ void UKT_ItemsManagerComponent::AddWeaponOnServer_Implementation(TSubclassOf<AKT
 		const auto LWeapon = SpawnWeaponOnServer(InWeaponClass, InAmountOfAmmo, InAmmoInTheClip);
 		if (IsValid(LWeapon))
 		{
+			LWeapon->AttachToActor(PlayerCharacter, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, true));
 			AttachWeaponToSocket(LWeapon, PlayerCharacter->GetMesh(), HandsSocketName);
-			SetWeaponOwnerNoSee(GetSelectedWeaponSlot());
 		}
 		return;
 	}
@@ -217,54 +218,6 @@ void UKT_ItemsManagerComponent::AddWeaponOnServer_Implementation(TSubclassOf<AKT
 }
 
 
-void UKT_ItemsManagerComponent::AddWeaponOnClient_Implementation(TSubclassOf<AKT_BaseWeapon> InWeaponClass)
-{
-	if (FirstPersonWeaponsArray.Num() == 0)
-	{
-		const auto LWeapon = SpawnWeaponOnClient(InWeaponClass);
-		if (IsValid(LWeapon))
-		{
-			AttachWeaponToSocket(LWeapon, PlayerCharacter->FirstPersonMeshComponent, FirstPersonHandsSocketName);
-			FirstPersonWeaponsArray.Add(LWeapon);
-			AddClientWeaponToServer(LWeapon, 0);
-		}
-		return;
-	}
-	if (FirstPersonWeaponsArray.Num() == 1)
-	{
-		const auto LWeapon = SpawnWeaponOnClient(InWeaponClass);
-		if (IsValid(LWeapon))
-		{
-			AttachWeaponToSocket(LWeapon, PlayerCharacter->FirstPersonMeshComponent, BehindBackSocketName);
-			FirstPersonWeaponsArray.Add(LWeapon);
-			AddClientWeaponToServer(LWeapon, 1);
-		}
-		return;
-	}
-	GetFirstPersonSelectedWeaponSlot()->Destroy();
-	GetFirstPersonSelectedWeaponSlot() = SpawnWeaponOnClient(InWeaponClass);
-	if (IsValid(GetFirstPersonSelectedWeaponSlot()))
-	{
-		AttachWeaponToSocket(GetFirstPersonSelectedWeaponSlot(), PlayerCharacter->FirstPersonMeshComponent,
-		                     FirstPersonHandsSocketName);
-		AddClientWeaponToServer(GetFirstPersonSelectedWeaponSlot(), CurrentWeaponIndex);
-	}
-}
-
-
-void UKT_ItemsManagerComponent::AddClientWeaponToServer_Implementation(AKT_BaseWeapon* InWeapon, int32 Index)
-{
-	if (FirstPersonWeaponsArray.IsValidIndex(Index))
-	{
-		FirstPersonWeaponsArray[Index] = InWeapon;
-	}
-	else
-	{
-		FirstPersonWeaponsArray.Add(InWeapon);
-	}
-}
-
-
 AKT_BaseWeapon* UKT_ItemsManagerComponent::SpawnWeaponOnServer(TSubclassOf<AKT_BaseWeapon> InWeaponClass,
                                                                const int16& InAmountOfAmmo,
                                                                const int16& InAmmoInTheClip)
@@ -279,27 +232,6 @@ AKT_BaseWeapon* UKT_ItemsManagerComponent::SpawnWeaponOnServer(TSubclassOf<AKT_B
 		return LWeapon;
 	}
 	return nullptr;
-}
-
-
-AKT_BaseWeapon* UKT_ItemsManagerComponent::SpawnWeaponOnClient(TSubclassOf<AKT_BaseWeapon> InWeaponClass)
-{
-	const auto LWeapon = GetWorld()->SpawnActor<AKT_BaseWeapon>(InWeaponClass);
-	if (IsValid(LWeapon))
-	{
-		LWeapon->SetOwner(PlayerCharacter);
-		LWeapon->Mesh->SetOnlyOwnerSee(true);
-		return LWeapon;
-	}
-	return nullptr;
-}
-
-
-void UKT_ItemsManagerComponent::SetWeaponOwnerNoSee_Implementation(AKT_BaseWeapon* InWeapon)
-{
-	if (!IsValid(InWeapon)) return;
-
-	InWeapon->Mesh->SetOwnerNoSee(true);
 }
 
 
@@ -325,20 +257,19 @@ void UKT_ItemsManagerComponent::DetachWeaponFromActor_Implementation(AKT_BaseWea
 }
 
 
-void UKT_ItemsManagerComponent::AttachWeaponToSocket(AKT_BaseWeapon* InWeapon, USceneComponent* InSceneComponent,
+void UKT_ItemsManagerComponent::AttachWeaponToSocket_Implementation(AKT_BaseWeapon* InWeapon, USceneComponent* InSceneComponent,
                                                      const FName& InSocketName)
 {
-	if (!IsValid(InWeapon) || !IsValid(InSceneComponent)) return;
+	if (!IsValid(InWeapon) || PlayerCharacter->HasAuthority()) return;
 
-	const FAttachmentTransformRules LAttachmentRules(EAttachmentRule::SnapToTarget, false);
-	InWeapon->AttachToComponent(InSceneComponent, LAttachmentRules, InSocketName);
+	const FAttachmentTransformRules LAttachmentRules(EAttachmentRule::SnapToTarget, true);
+	InWeapon->AttachToComponent( PlayerCharacter->GetVisibleMesh(), LAttachmentRules, InSocketName);
 }
 
 
 void UKT_ItemsManagerComponent::ToChangeWeapon()
 {
 	ChangeWeaponOnServer();
-	ChangeWeaponOnClient();
 }
 
 
@@ -357,27 +288,6 @@ void UKT_ItemsManagerComponent::ChangeWeaponOnServer_Implementation()
 	if (IsValid(GetSelectedWeaponSlot()))
 	{
 		AttachWeaponToSocket(GetSelectedWeaponSlot(), PlayerCharacter->GetMesh(), HandsSocketName);
-	}
-}
-
-
-void UKT_ItemsManagerComponent::ChangeWeaponOnClient_Implementation()
-{
-	if (!PlayerCharacter) return;
-
-	int32 LIndex = CurrentWeaponIndex;
-	if (FirstPersonWeaponsArray.IsValidIndex(LIndex))
-	{
-		AttachWeaponToSocket(FirstPersonWeaponsArray[LIndex], PlayerCharacter->FirstPersonMeshComponent,
-		                     FirstPersonBehindBackSocketName);
-	}
-
-	LIndex = (LIndex + 1) % FirstPersonWeaponsArray.Num();
-
-	if (FirstPersonWeaponsArray.IsValidIndex(LIndex))
-	{
-		AttachWeaponToSocket(FirstPersonWeaponsArray[LIndex], PlayerCharacter->FirstPersonMeshComponent,
-		                     FirstPersonHandsSocketName);
 	}
 }
 

@@ -42,6 +42,9 @@ protected:
 	UFUNCTION()
 		void OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& Hit);
 
+	UFUNCTION()
+		TSubclassOf<UDamageType> GetDamageType(const FHitResult& InHit) const;
+
 	UPROPERTY()
 		AKT_PlayerCharacter* PlayerOwner;
 
@@ -80,4 +83,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 		bool DoFullDamage = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Damage types")
+		TSubclassOf<UDamageType> HeadDamageType;
+	UPROPERTY(EditDefaultsOnly, Category = "Damage types")
+		TSubclassOf<UDamageType> BodyDamageType;
 };

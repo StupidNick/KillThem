@@ -37,14 +37,6 @@ void AKT_BaseInteractiveWeapon::InteractiveOnServer(AKT_PlayerCharacter* Player)
 }
 
 
-void AKT_BaseInteractiveWeapon::InteractiveOnClient(AKT_PlayerCharacter* Player)
-{
-	Super::InteractiveOnClient(Player);
-
-	Player->ItemsManagerComponent->AddWeaponOnClient(WeaponClass);
-}
-
-
 void AKT_BaseInteractiveWeapon::Initialize_Implementation(const int16& InAmountOfAmmo)
 {
 	AmmoInTheClip = InAmountOfAmmo;

@@ -126,6 +126,16 @@ void AKT_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 }
 
 
+USkeletalMeshComponent* AKT_PlayerCharacter::GetVisibleMesh() const
+{
+	if (IsLocallyControlled())
+	{
+		return FirstPersonMeshComponent;
+	}
+	return GetMesh();
+}
+
+
 void AKT_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -203,7 +213,7 @@ void AKT_PlayerCharacter::ScopingTimeLineFloatReturn(float Value)
 
 FTransform AKT_PlayerCharacter::CalculateADSTransform()
 {
-	const auto LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetFirstPersonSelectedWeaponSlot());
+	const auto LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot());
 	return UKismetMathLibrary::InvertTransform(UKismetMathLibrary::MakeRelativeTransform(
 		LWeapon->Mesh->GetSocketTransform(LWeapon->ScopingSocketName),
 		FirstPersonMeshComponent->GetComponentTransform()));
@@ -212,7 +222,7 @@ FTransform AKT_PlayerCharacter::CalculateADSTransform()
 
 void AKT_PlayerCharacter::Scope_Implementation()
 {
-	const auto LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetFirstPersonSelectedWeaponSlot());
+	const auto LWeapon = Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot());
 	if (LWeapon->IsReloading) return;
 	
 	ScopingTimeLine->Play();
@@ -223,6 +233,8 @@ void AKT_PlayerCharacter::Scope_Implementation()
 
 void AKT_PlayerCharacter::ScopeOnServer_Implementation()
 {
+	if (!IsValid(ItemsManagerComponent->GetSelectedWeaponSlot())) return;
+	
 	Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot())->IsScoping = true;
 }
 
@@ -237,6 +249,8 @@ void AKT_PlayerCharacter::UnScope_Implementation()
 
 void AKT_PlayerCharacter::UnScopeOnServer_Implementation()
 {
+	if (!IsValid(ItemsManagerComponent->GetSelectedWeaponSlot())) return;
+	
 	Cast<AKT_BaseRangeWeapon>(ItemsManagerComponent->GetSelectedWeaponSlot())->IsScoping = false;
 }
 

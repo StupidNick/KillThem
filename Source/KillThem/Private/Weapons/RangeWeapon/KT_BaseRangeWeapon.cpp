@@ -32,7 +32,9 @@ void AKT_BaseRangeWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 	DOREPLIFETIME(AKT_BaseRangeWeapon, IsScoping);
 	DOREPLIFETIME(AKT_BaseRangeWeapon, Character);
-	DOREPLIFETIME(AKT_BaseRangeWeapon, IsReloading);
+	DOREPLIFETIME(AKT_BaseRangeWeapon, IsOneBulletReloading);
+	DOREPLIFETIME(AKT_BaseRangeWeapon, IsSendingBullet);
+	DOREPLIFETIME(AKT_BaseRangeWeapon, IsEndingReload);
 }
 
 
@@ -41,13 +43,17 @@ void AKT_BaseRangeWeapon::UseWeapon()
 	if (AmmoInTheClip <= 0 || !GetWeaponCanShoot()) return;
 	if (IsReloading && !ClipReload)
 	{
-		StopReloading();
+		if (IsEndingReload) return;
+		
+		EndBulletReloading();
+		return;
 	}
-	else if(IsReloading)
+	if(IsReloading)
 	{
 		return;
 	}
 
+	IsShoot = true;
 	if (UseAlterFire)
 	{
 		if (AmmoInTheClip < CostAlterShotInAmmo) return;
@@ -75,6 +81,7 @@ void AKT_BaseRangeWeapon::UseWeapon()
 		AmmoInTheClip--;
 	}
 	ActivateTimerBetweenShots();
+	PlayAnimation(ShootAnimation);
 }
 
 
@@ -83,7 +90,6 @@ void AKT_BaseRangeWeapon::ProjectileShoot(const TSubclassOf<AKT_BaseProjectile>&
                                           const FName& InShotSocketName, const float& InScatterFactor, UParticleSystem* MuzzleParticle)
 {
 	if (!IsValid(Character)) return;
-	if (!IsValid(Controller)) return;
 
 	FVector LStartLocation, LEndLocation;
 	if (!GetTraceData(LStartLocation, LEndLocation, InScatterFactor)) return;
@@ -102,7 +108,6 @@ void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile>& I
                                         const FName& InShotSocketName, const float& InScatterFactor, UParticleSystem* MuzzleParticle)
 {
 	if (!IsValid(Character)) return;
-	if (!IsValid(Controller)) return;
 	
 	FVector LStartLocation, LEndLocation;
 	if (!GetTraceData(LStartLocation, LEndLocation, InScatterFactor)) return;
@@ -121,7 +126,7 @@ void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile>& I
 	
 	if (!LHitResult.Actor.IsValid()) return;
 
-	const TSubclassOf<UDamageType> LDamageType = GetDamageType(LHitResult.BoneName);
+	const TSubclassOf<UDamageType> LDamageType = GetDamageType(LHitResult);
 	if (IsValid(LDamageType) && LHitResult.Actor->GetClass() == Character->GetClass())
 	{
 		UGameplayStatics::ApplyDamage(LHitResult.GetActor(), InDamage * Character->DamageBooster,
@@ -189,9 +194,11 @@ void AKT_BaseRangeWeapon::SpawnProjectile(const FHitResult& HitResult, const FVe
 }
 
 
-TSubclassOf<UDamageType> AKT_BaseRangeWeapon::GetDamageType(const FName& BoneName) const
+TSubclassOf<UDamageType> AKT_BaseRangeWeapon::GetDamageType(const FHitResult& InHit) const
 {
-	if (BoneName == HeadBoneName)
+	if (!Cast<AKT_PlayerCharacter>(InHit.Actor)) return BodyDamageType;
+	
+	if (InHit.BoneName == Cast<AKT_PlayerCharacter>(InHit.Actor)->HeadBoneName)
 	{
 		return HeadDamageType;
 	}
@@ -199,15 +206,43 @@ TSubclassOf<UDamageType> AKT_BaseRangeWeapon::GetDamageType(const FName& BoneNam
 }
 
 
+void AKT_BaseRangeWeapon::ToReload_Implementation()
+{
+	if (IsChangingFireMode || !IsValid(Character) || IsReloading) return;
+
+	if (ClipReload)
+	{
+		ClipReloading();
+	}
+	else
+	{
+		StartBulletReloading();
+	}
+}
+
+
 void AKT_BaseRangeWeapon::Reload(const int InAmmo)
 {
-	IsReloading = false;
 	AmmoInTheClip += InAmmo;
 	Character->ItemsManagerComponent->RemoveAmmoOnServer(GetClass(), InAmmo);
 	
-	if (ClipReload || AmmoInTheClip >= ClipSize) return;
+	if (ClipReload)
+	{
+		IsReloading = false;
+		return;
+	}
+	if (AmmoInTheClip >= ClipSize)
+	{
+		EndBulletReloading();
+		return;
+	}
 
-	BulletReloading();
+	if (AmmoInTheClip == 1 && NeedSendingOneBullet)
+	{
+		SendBullet();
+		return;
+	}
+	OneBulletReloading();
 }
 
 
@@ -221,7 +256,8 @@ void AKT_BaseRangeWeapon::ClipReloading()
 		Character->UnScope_Implementation();
 	}
 	if (!Character->ItemsManagerComponent->CountAmmo(GetClass(), LCountOfAmmo) || AmmoInTheClip >= LClipSize) return;
-	
+
+	PlayAnimation(ReloadAnimation);
 	IsReloading = true;
 	if (AmmoInTheClip > 0)
 	{
@@ -243,35 +279,73 @@ void AKT_BaseRangeWeapon::ClipReloading()
 }
 
 
-void AKT_BaseRangeWeapon::BulletReloading()
+void AKT_BaseRangeWeapon::StartBulletReloading()
 {
-	IsReloading = true;
 	int32 LCountOfAmmo;
 	if (!Character->ItemsManagerComponent->CountAmmo(GetClass(), LCountOfAmmo) || AmmoInTheClip >= ClipSize) return;
 
+	IsReloading = true;
+	FTimerDelegate LTimerDelegate;
+	LTimerDelegate.BindUFunction(this, "OneBulletReloading");
+	GetWorldTimerManager().SetTimer(ReloadTimerHandle, LTimerDelegate, StartReloadTime / Character->BerserkBooster,
+									false);
+
+	PlayAnimation(StartReloadingAnimation);
+}
+
+
+void AKT_BaseRangeWeapon::OneBulletReloading()
+{
+	IsSendingBullet = false;
+	int32 LCountOfAmmo;
+	if (!Character->ItemsManagerComponent->CountAmmo(GetClass(), LCountOfAmmo) || AmmoInTheClip >= ClipSize)
+	{
+		EndBulletReloading();
+		return;
+	}
+
+	IsReloading = true;
+	IsOneBulletReloading = true;
+	PlayAnimation(ReloadAnimation);
+	
 	GetWorldTimerManager().SetTimer(ReloadTimerHandle, ReloadTimerDelegate, ReloadTime / Character->BerserkBooster,
 									false);
 }
 
 
-void AKT_BaseRangeWeapon::ToReload_Implementation()
+void AKT_BaseRangeWeapon::EndBulletReloading()
 {
-	if (IsChangingFireMode || !IsValid(Character) || IsReloading) return;
+	IsSendingBullet = false;
+	IsOneBulletReloading = false;
+	IsEndingReload = true;
+	IsReloading = false;
+	
+	PlayAnimation(EndReloadingAnimation);
+	GetWorld()->GetTimerManager().ClearTimer(ReloadTimerHandle);
+	
+	FTimerDelegate LTimerDelegate;
+	LTimerDelegate.BindUFunction(this, "StopReloading");
+	GetWorldTimerManager().SetTimer(ReloadTimerHandle, LTimerDelegate, EndReloadTime / Character->BerserkBooster,
+								false);
+}
 
-	if (ClipReload)
-	{
-		ClipReloading();
-	}
-	else
-	{
-		BulletReloading();
-	}
+
+void AKT_BaseRangeWeapon::SendBullet()
+{
+	IsOneBulletReloading = false;
+	
+	IsSendingBullet = true;
+	PlayAnimation(SendBulletAnimation);
+	FTimerDelegate LTimerDelegate;
+	LTimerDelegate.BindUFunction(this, "OneBulletReloading");
+	GetWorldTimerManager().SetTimer(ReloadTimerHandle, LTimerDelegate, SendBulletTime / Character->BerserkBooster,
+								false);
 }
 
 
 void AKT_BaseRangeWeapon::StopReloading()
 {
-	IsReloading = false;
+	IsEndingReload = false;
 	GetWorld()->GetTimerManager().ClearTimer(ReloadTimerHandle);
 }
 
@@ -301,4 +375,12 @@ void AKT_BaseRangeWeapon::SpawnMuzzleFlash_Implementation(UParticleSystem* Muzzl
 	UGameplayStatics::SpawnEmitterAttached(MuzzleParticle, Mesh, InShotSocketName, LSocketTransform.GetLocation(),
 		LSocketTransform.GetRotation().Rotator(), FVector::OneVector, EAttachLocation::KeepWorldPosition,
 		true, EPSCPoolMethod::None, true);
+}
+
+
+void AKT_BaseRangeWeapon::PlayAnimation_Implementation(UAnimationAsset* InAnimation)
+{
+	if (HasAuthority()) return;
+	
+	Mesh->PlayAnimation(InAnimation, false);
 }

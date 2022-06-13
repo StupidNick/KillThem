@@ -90,6 +90,7 @@ void UKT_CharacterMovementComponent::GetLifetimeReplicatedProps(TArray<FLifetime
 	DOREPLIFETIME(UKT_CharacterMovementComponent, MovingForwardSpeed);
 	DOREPLIFETIME(UKT_CharacterMovementComponent, MovingRightSpeed);
 	DOREPLIFETIME(UKT_CharacterMovementComponent, SpeedBooster);
+	DOREPLIFETIME(UKT_CharacterMovementComponent, JumpCounter);
 }
 
 
@@ -286,6 +287,7 @@ void UKT_CharacterMovementComponent::Jumping_Implementation()
 	if (bCrouched)
 	{
 		ChangeCrouch();
+		return;
 	}
 	if (JumpCounter < MaxJump)
 	{

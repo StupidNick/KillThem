@@ -37,6 +37,9 @@ public:
 	
 	virtual void UseWeapon() override;
 
+	UFUNCTION(NetMulticast, Unreliable)
+		void PlayAnimation(UAnimationAsset* InAnimation);
+
 	UFUNCTION(Server, Reliable)
 		virtual void ToReload();
 
@@ -77,13 +80,22 @@ protected:
 		void ClipReloading();
 
 	UFUNCTION()
-		void BulletReloading();
+		void StartBulletReloading();
+
+	UFUNCTION()
+		void OneBulletReloading();
+
+	UFUNCTION()
+		void EndBulletReloading();
+
+	UFUNCTION()
+		void SendBullet();
 
 	UFUNCTION()
 		void StopReloading();
 
 	UFUNCTION()
-		TSubclassOf<UDamageType> GetDamageType(const FName& BoneName) const;
+		TSubclassOf<UDamageType> GetDamageType(const FHitResult& InHit) const;
 
 //Protected C++ variables
 protected:
@@ -105,6 +117,27 @@ public:
 		float ReloadTime;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Reload")
+		float SendBulletTime;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Reload")
+		float StartReloadTime;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Reload")
+		float EndReloadTime;
+
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Weapon | Reload")
+		bool IsOneBulletReloading = false;
+
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Weapon | Reload")
+		bool IsSendingBullet = false;
+
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Weapon | Reload")
+		bool IsEndingReload = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Reload")
+		bool NeedSendingOneBullet = false;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Reload")
 		bool ClipReload = true;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
@@ -123,18 +156,9 @@ public:
 		TSubclassOf<AKT_BaseProjectile> ProjectileClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Damage")
-		FName HeadBoneName;
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Damage")
-		FName BodyBoneName;
-	// UPROPERTY(EditDefaultsOnly, Category = "Weapon | Damage")
-	// 	FName LimbsBoneName;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Damage")
 		TSubclassOf<UDamageType> HeadDamageType;
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Damage")
 		TSubclassOf<UDamageType> BodyDamageType;
-	// UPROPERTY(EditDefaultsOnly, Category = "Weapon | Damage")
-	// 	TSubclassOf<UDamageType> LimbsDamageType;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
 		FName FireSocketName;
@@ -162,4 +186,19 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Scoping")
 		FName ScopingSocketName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Animations")
+		UAnimationAsset* ReloadAnimation;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Animations")
+		UAnimationAsset* ShootAnimation;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Animations")
+		UAnimationAsset* StartReloadingAnimation;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Animations")
+		UAnimationAsset* EndReloadingAnimation;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Animations")
+		UAnimationAsset* SendBulletAnimation;
 };

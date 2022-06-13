@@ -216,7 +216,7 @@ public:
 	UPROPERTY(Replicated)
 		float SpeedBooster = 1.0f;
 
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(Replicated, BlueprintReadWrite)
 		int32 JumpCounter = 0;
 	
 //public BP variables

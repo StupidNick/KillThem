@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "WeaponsEnum.h"
 #include "Character/Controllers/KT_PlayerController.h"
 
 
@@ -110,6 +111,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, Replicated)
 		bool IsReloading = false;
 
+	UPROPERTY(BlueprintReadOnly, Replicated)
+		bool IsShoot = false;
+
 	
 //public BP variables
 public:
@@ -122,8 +126,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon | Components")
 		USkeletalMeshComponent* Mesh;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Info")
 		int ClipSize;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
+		TEnumAsByte<Weapons> WeaponType;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon | Info")
 		UTexture2D* WeaponIcon;

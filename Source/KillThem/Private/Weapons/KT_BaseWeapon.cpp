@@ -27,6 +27,8 @@ void AKT_BaseWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(AKT_BaseWeapon, Character);
 	DOREPLIFETIME(AKT_BaseWeapon, Controller);
 	DOREPLIFETIME(AKT_BaseWeapon, UseAlterFire);
+	DOREPLIFETIME(AKT_BaseWeapon, IsReloading);
+	DOREPLIFETIME(AKT_BaseWeapon, IsShoot);
 }
 
 
@@ -50,6 +52,7 @@ void AKT_BaseWeapon::BreakAllAction_Implementation()
 
 void AKT_BaseWeapon::AutoFireReload()
 {
+	IsShoot = false;
 	CanShoot = true;
 	if (!AutoFire) return;
 	

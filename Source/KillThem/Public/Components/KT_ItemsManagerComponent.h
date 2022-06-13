@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "WeaponsEnum.h"
 #include "Components/ActorComponent.h"
 #include "Weapons/KT_BaseWeapon.h"
 #include "Engine/Texture2D.h"
@@ -60,9 +61,6 @@ private:
 
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponChanged)
 		TArray<AKT_BaseWeapon*> WeaponsArray;
-
-	UPROPERTY()
-		TArray<AKT_BaseWeapon*> FirstPersonWeaponsArray;
 
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponChanged)
 		int32 CurrentWeaponIndex = 0;
@@ -130,30 +128,15 @@ public:
 	
 	UFUNCTION(Server, Reliable)
 		void AddWeaponOnServer(TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int16& InAmountOfAmmo, const int16& InAmmoInTheClip = -1);
-
-	UFUNCTION(Client, Reliable)
-		void AddWeaponOnClient(TSubclassOf<AKT_BaseWeapon> InWeaponClass);
-
-	UFUNCTION(Server, Reliable)
-		void AddClientWeaponToServer(AKT_BaseWeapon* InWeapon, int32 Index);
 	
 	UFUNCTION()
 		AKT_BaseWeapon* SpawnWeaponOnServer(TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int16& InAmountOfAmmo, const int16& InAmmoInTheClip = -1);
-
-	UFUNCTION()
-		AKT_BaseWeapon* SpawnWeaponOnClient(TSubclassOf<AKT_BaseWeapon> InWeaponClass);
-	
-	UFUNCTION(Client, Reliable)
-		void SetWeaponOwnerNoSee(AKT_BaseWeapon* InWeapon);
 	
 	UFUNCTION()
 		void ToChangeWeapon();
 
 	UFUNCTION(Server, Reliable)
 		void ChangeWeaponOnServer();
-
-	UFUNCTION(Client, Reliable)
-		void ChangeWeaponOnClient();
 
 	UFUNCTION(Server, Reliable)
 		void Reload();
@@ -167,7 +150,7 @@ public:
 	UFUNCTION(Server, Reliable)
 		void StopFire();
 
-	UFUNCTION()
+	UFUNCTION(NetMulticast, Unreliable)
 		void AttachWeaponToSocket(AKT_BaseWeapon* InWeapon, USceneComponent* InSceneComponent, const FName& InSocketName);
 
 	UFUNCTION(Server, Reliable)
@@ -177,12 +160,6 @@ public:
 	FORCEINLINE AKT_BaseWeapon*& GetSelectedWeaponSlot()
 	{
 		return WeaponsArray[CurrentWeaponIndex];
-	}
-
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	FORCEINLINE AKT_BaseWeapon*& GetFirstPersonSelectedWeaponSlot()
-	{
-		return FirstPersonWeaponsArray[CurrentWeaponIndex];
 	}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,6 +181,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Character | Weapons")
 		TSubclassOf<AKT_BaseWeapon> FirstWeaponSlotClass = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Character | Weapons")
+		TEnumAsByte<Weapons> CurrentWeapon;
 	
 	UPROPERTY(EditAnywhere, Category = "Character | Weapons")
 		int AmmoForFirstWeapon;

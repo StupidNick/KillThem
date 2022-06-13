@@ -55,7 +55,7 @@ void AKT_BaseProjectile::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 	else
 	{
 		UGameplayStatics::ApplyDamage(OtherActor, Damage, PlayerOwner->PlayerController,
-			PlayerOwner, UDamageType::StaticClass());
+			PlayerOwner, GetDamageType(Hit));
 	}
 	if (OtherComp->IsSimulatingPhysics())
 	{
@@ -77,4 +77,16 @@ void AKT_BaseProjectile::Initialize(const float InDamage, AKT_PlayerCharacter* I
 void AKT_BaseProjectile::SetShootDirection(const FVector& Direction)
 {
 	ShootDirection = Direction;
+}
+
+
+TSubclassOf<UDamageType> AKT_BaseProjectile::GetDamageType(const FHitResult& InHit) const
+{
+	if (!Cast<AKT_PlayerCharacter>(InHit.Actor)) return BodyDamageType;
+	
+	if (InHit.BoneName == Cast<AKT_PlayerCharacter>(InHit.Actor)->HeadBoneName)
+	{
+		return HeadDamageType;
+	}
+	return BodyDamageType;
 }
