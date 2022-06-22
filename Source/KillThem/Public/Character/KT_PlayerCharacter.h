@@ -199,13 +199,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character | Components")
 		UCameraComponent* CameraComponent;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Character | Components")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Components")
 		UCapsuleComponent* ParkourCapsuleComponent;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Character | Components")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Components")
 		UBoxComponent* WallRunRightCollisionComponent;
 	
-	UPROPERTY(BlueprintReadOnly, Category = "Character | Components")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Components")
 		UBoxComponent* WallRunLeftCollisionComponent;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Character | Components")

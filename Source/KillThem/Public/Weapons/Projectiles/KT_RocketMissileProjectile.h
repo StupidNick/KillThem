@@ -22,7 +22,7 @@ protected:
 	
 	virtual void BeginPlay() override;
 
-	UFUNCTION(Server, Reliable)
+	UFUNCTION()
 		void SpawnMicroRockets();
 
 //public BP variables

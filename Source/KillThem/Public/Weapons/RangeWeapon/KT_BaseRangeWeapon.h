@@ -8,6 +8,10 @@
 
 
 
+class AKT_BaseBulletShell;
+
+
+
 UCLASS()
 class KILLTHEM_API AKT_BaseRangeWeapon : public AKT_BaseWeapon
 {
@@ -39,10 +43,9 @@ public:
 
 	UFUNCTION(NetMulticast, Unreliable)
 		void PlayAnimation(UAnimationAsset* InAnimation);
-
+	
 	UFUNCTION(Server, Reliable)
 		virtual void ToReload();
-
 	
 	void SetScatterFactor(const float InScatterFactor);
 
@@ -51,6 +54,15 @@ protected:
 
 	UFUNCTION(NetMulticast, Unreliable)
 		void SpawnMuzzleFlash(UParticleSystem* MuzzleParticle, const FName& InShotSocketName);
+
+	UFUNCTION(NetMulticast, Unreliable)
+		void ToSpawnBulletShell();
+
+	UFUNCTION()
+		void SpawnBulletShell() const;
+
+	UFUNCTION(NetMulticast, Unreliable)
+		void SpawnFakeProjectile(const FHitResult& HitResult, const FVector& EndLocation, TSubclassOf<AKT_BaseProjectile> InProjectileClass, const FName& SocketName) const;
 
 	UFUNCTION()
 		virtual void ProjectileShoot(const TSubclassOf<AKT_BaseProjectile>& InProjectileClass, const int32& InDamage, const FName& InShotSocketName, const float& InScatterFactor, UParticleSystem* MuzzleParticle);
@@ -70,8 +82,8 @@ protected:
 	UFUNCTION()
 		void MakeHit(FHitResult& HitResult, const FVector& StartLocation, const FVector& EndLocation) const;
 
-	UFUNCTION()
-		void SpawnProjectile(const FHitResult& HitResult, const FVector& EndLocation, const FName& SocketName, const TSubclassOf<AKT_BaseProjectile>& InProjectileClass, const int32& InDamage = 0);
+	UFUNCTION(NetMulticast, Reliable)
+		void SpawnProjectile(const FHitResult& HitResult, const FVector& EndLocation, const FName& SocketName, TSubclassOf<AKT_BaseProjectile> InProjectileClass, const int32& InDamage = 0);
 	
 	UFUNCTION()
 		virtual void Reload(const int InAmmo);
@@ -163,9 +175,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
 		FName FireSocketName;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Fire")
-		UParticleSystem* FireParticle;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | AlterFire")
 		bool ProjectileShootingAtAlterFire;
 
@@ -201,4 +210,16 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Animations")
 		UAnimationAsset* SendBulletAnimation;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Effects")
+		UParticleSystem* FireParticle;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Effects")
+		float SpawnBulletShellDelay;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Effects")
+		TSubclassOf<AKT_BaseBulletShell> BulletShellClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Effects")
+		FName BulletShellSocketName;
 };

@@ -7,6 +7,7 @@
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Weapons/Projectiles/KT_BaseBulletShell.h"
 
 
 AKT_BaseRangeWeapon::AKT_BaseRangeWeapon()
@@ -82,6 +83,7 @@ void AKT_BaseRangeWeapon::UseWeapon()
 	}
 	ActivateTimerBetweenShots();
 	PlayAnimation(ShootAnimation);
+	ToSpawnBulletShell();
 }
 
 
@@ -94,13 +96,14 @@ void AKT_BaseRangeWeapon::ProjectileShoot(const TSubclassOf<AKT_BaseProjectile>&
 	FVector LStartLocation, LEndLocation;
 	if (!GetTraceData(LStartLocation, LEndLocation, InScatterFactor)) return;
 
-	DrawDebugLine(GetWorld(), LStartLocation, LEndLocation, FColor(255, 0, 0), false, 5, 0, 1.0);
+	// DrawDebugLine(GetWorld(), LStartLocation, LEndLocation, FColor(255, 0, 0), false, 5, 0, 1.0); //TODO debug
 
 	FHitResult LHitResult;
 	MakeHit(LHitResult, LStartLocation, LEndLocation);
 
 	SpawnMuzzleFlash(MuzzleParticle, InShotSocketName);
 	SpawnProjectile(LHitResult, LEndLocation, InShotSocketName, InProjectileClass, InDamage);
+	// SpawnFakeProjectile(LHitResult, LEndLocation, InProjectileClass, InShotSocketName);
 }
 
 
@@ -112,7 +115,7 @@ void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile>& I
 	FVector LStartLocation, LEndLocation;
 	if (!GetTraceData(LStartLocation, LEndLocation, InScatterFactor)) return;
 
-	DrawDebugLine(GetWorld(), LStartLocation, LEndLocation, FColor(0, 0, 255), false, 5, 0, 5.0); //TODO debug
+	// DrawDebugLine(GetWorld(), LStartLocation, LEndLocation, FColor(0, 0, 255), false, 5, 0, 5.0); //TODO debug
 
 	FHitResult LHitResult;
 	MakeHit(LHitResult, LStartLocation, LEndLocation);
@@ -122,7 +125,7 @@ void AKT_BaseRangeWeapon::LineTraceShot(const TSubclassOf<AKT_BaseProjectile>& I
 	}
 	
 	SpawnMuzzleFlash(MuzzleParticle, InShotSocketName);
-	SpawnProjectile(LHitResult, LEndLocation, InShotSocketName, InProjectileClass);
+	SpawnFakeProjectile(LHitResult, LEndLocation, InProjectileClass, InShotSocketName);
 	
 	if (!LHitResult.Actor.IsValid()) return;
 
@@ -175,21 +178,35 @@ void AKT_BaseRangeWeapon::MakeHit(FHitResult& HitResult, const FVector& StartLoc
 }
 
 
-void AKT_BaseRangeWeapon::SpawnProjectile(const FHitResult& HitResult, const FVector& EndLocation,
+void AKT_BaseRangeWeapon::SpawnProjectile_Implementation(const FHitResult& HitResult, const FVector& EndLocation,
                                           const FName& SocketName,
-                                          const TSubclassOf<AKT_BaseProjectile>& InProjectileClass,
+                                          TSubclassOf<AKT_BaseProjectile> InProjectileClass,
                                           const int32& InDamage)
 {
-	const FTransform LSpawnTransform = Mesh->GetSocketTransform(SocketName);
+	FTransform LSpawnTransform;
+	if (HasAuthority())
+	{
+		LSpawnTransform = Character->CameraComponent->GetComponentTransform();
+	}
+	else
+	{
+		LSpawnTransform = Mesh->GetSocketTransform(SocketName);
+	}
+	
 	AKT_BaseProjectile* LProjectile = GetWorld()->SpawnActorDeferred<AKT_BaseProjectile>(
 		InProjectileClass, LSpawnTransform);
 	if (IsValid(LProjectile))
 	{
 		const FVector LEndPoint = HitResult.bBlockingHit ? HitResult.ImpactPoint : EndLocation;
-		const FVector LDirection = (LEndPoint - GetMuzzleWorldLocation(SocketName)).GetSafeNormal();
+		const FVector LDirection = (LEndPoint - LSpawnTransform.GetLocation()).GetSafeNormal();
 		LProjectile->SetShootDirection(LDirection);
 		LProjectile->Initialize(InDamage * Character->DamageBooster, Character, this);
+		LProjectile->SetIsOnServer(true);
 		LProjectile->FinishSpawning(LSpawnTransform);
+	}
+	if (HasAuthority())
+	{
+		LProjectile->HiddenProjectile();
 	}
 }
 
@@ -369,8 +386,53 @@ void AKT_BaseRangeWeapon::SetScatterFactor(const float InScatterFactor)
 }
 
 
+void AKT_BaseRangeWeapon::SpawnFakeProjectile_Implementation(const FHitResult& HitResult, const FVector& EndLocation, TSubclassOf<AKT_BaseProjectile> InProjectileClass, const FName& SocketName) const
+{
+	if (HasAuthority()) return;
+
+	const FTransform LSpawnTransform = Mesh->GetSocketTransform(SocketName);
+	AKT_BaseProjectile* LProjectile = GetWorld()->SpawnActorDeferred<AKT_BaseProjectile>(
+		InProjectileClass, LSpawnTransform);
+	if (IsValid(LProjectile))
+	{
+		const FVector LEndPoint = HitResult.bBlockingHit ? HitResult.ImpactPoint : EndLocation;
+		const FVector LDirection = (LEndPoint - GetMuzzleWorldLocation(SocketName)).GetSafeNormal();
+		LProjectile->SetShootDirection(LDirection);
+		LProjectile->Initialize(0, Character);
+		LProjectile->FinishSpawning(LSpawnTransform);
+	}
+}
+
+
+void AKT_BaseRangeWeapon::ToSpawnBulletShell_Implementation()
+{
+	if (HasAuthority()) return;
+	
+	FTimerHandle LTimerHandle;
+	FTimerDelegate LTimerDelegate;
+	LTimerDelegate.BindUFunction(this, "SpawnBulletShell");
+	GetWorldTimerManager().SetTimer(LTimerHandle, LTimerDelegate, SpawnBulletShellDelay / Character->BerserkBooster,
+								false);
+}
+
+
+void AKT_BaseRangeWeapon::SpawnBulletShell() const
+{
+	const FTransform LSpawnTransform = Mesh->GetSocketTransform(BulletShellSocketName);
+	const auto LBulletShell = GetWorld()->SpawnActorDeferred<AKT_BaseBulletShell>(
+		BulletShellClass, LSpawnTransform);
+	if (IsValid(LBulletShell))
+	{
+		LBulletShell->Mesh->AddImpulse(LSpawnTransform.GetRotation().GetForwardVector() * 30, NAME_None, false);
+		LBulletShell->FinishSpawning(LSpawnTransform);
+	}
+}
+
+
 void AKT_BaseRangeWeapon::SpawnMuzzleFlash_Implementation(UParticleSystem* MuzzleParticle, const FName& InShotSocketName)
 {
+	if (HasAuthority()) return;
+	
 	const FTransform LSocketTransform = Mesh->GetSocketTransform(InShotSocketName);
 	UGameplayStatics::SpawnEmitterAttached(MuzzleParticle, Mesh, InShotSocketName, LSocketTransform.GetLocation(),
 		LSocketTransform.GetRotation().Rotator(), FVector::OneVector, EAttachLocation::KeepWorldPosition,

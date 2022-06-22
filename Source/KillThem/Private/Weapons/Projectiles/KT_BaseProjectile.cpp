@@ -6,6 +6,7 @@
 #include "Weapons/RangeWeapon/KT_BaseRangeWeapon.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystemComponent.h"
 
 
 AKT_BaseProjectile::AKT_BaseProjectile()
@@ -19,6 +20,9 @@ AKT_BaseProjectile::AKT_BaseProjectile()
 	
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
 	Mesh->SetupAttachment(CollisionComponent);
+
+	ParticleSystem = CreateDefaultSubobject<UParticleSystemComponent>("ParticleSystem");
+	ParticleSystem->SetupAttachment(Mesh);
 
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>("ProjectileMovement");
 	ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
@@ -44,15 +48,25 @@ void AKT_BaseProjectile::BeginPlay()
 void AKT_BaseProjectile::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& Hit)
 {
 	if (!IsValid(PlayerOwner) || OtherActor == PlayerOwner || OtherActor == this) return;
+	if (!IsOnServer)
+	{
+		if (IsRadialDamage)
+		{
+			SpawnHitEffect(DestroyParticleSystem);
+		}
+		ProjectileMovementComponent->StopMovementImmediately();
+		Destroy();
+		return;
+	}
 	
 	if (IsRadialDamage)
 	{
 		UGameplayStatics::ApplyRadialDamage(GetWorld(), Damage, GetActorLocation(),
-			DamageRadius, UDamageType::StaticClass(), {}, this,
+			DamageRadius, BodyDamageType, {}, this,
 			PlayerOwner->Controller, DoFullDamage);
-		DrawDebugSphere(GetWorld(), GetActorLocation(), DamageRadius, 5, FColor::Red, false, 5);
+		DrawDebugSphere(GetWorld(), Hit.Location, DamageRadius, 5, FColor::Red, false, 5);
 	}
-	else
+	else if (OtherActor->IsA<AKT_PlayerCharacter>())
 	{
 		UGameplayStatics::ApplyDamage(OtherActor, Damage, PlayerOwner->PlayerController,
 			PlayerOwner, GetDamageType(Hit));
@@ -74,9 +88,27 @@ void AKT_BaseProjectile::Initialize(const float InDamage, AKT_PlayerCharacter* I
 }
 
 
+void AKT_BaseProjectile::HiddenProjectile_Implementation()
+{
+	Mesh->SetHiddenInGame(true);
+	ParticleSystem->SetHiddenInGame(true);
+}
+
+
 void AKT_BaseProjectile::SetShootDirection(const FVector& Direction)
 {
 	ShootDirection = Direction;
+}
+
+
+void AKT_BaseProjectile::SpawnHitEffect_Implementation(UParticleSystem* InParticleSystem)
+{
+	// if (HasAuthority()) return;
+
+	const FTransform LSocketTransform = Mesh->GetComponentTransform();
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), InParticleSystem, LSocketTransform.GetLocation(),
+		LSocketTransform.GetRotation().Rotator(), FVector::OneVector,
+		true, EPSCPoolMethod::None, true);
 }
 
 
@@ -89,4 +121,10 @@ TSubclassOf<UDamageType> AKT_BaseProjectile::GetDamageType(const FHitResult& InH
 		return HeadDamageType;
 	}
 	return BodyDamageType;
+}
+
+
+void AKT_BaseProjectile::SetIsOnServer(bool Value)
+{
+	IsOnServer = Value;
 }

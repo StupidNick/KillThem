@@ -37,4 +37,5 @@ void AKT_WeaponShotgun::UseWeapon()
 	}
 	ActivateTimerBetweenShots();
 	PlayAnimation(ShootAnimation);
+	ToSpawnBulletShell();
 }

@@ -16,8 +16,11 @@ void AKT_RocketMissileProjectile::BeginPlay()
 }
 
 
-void AKT_RocketMissileProjectile::SpawnMicroRockets_Implementation()//TODO refactor
+void AKT_RocketMissileProjectile::SpawnMicroRockets()//TODO refactor
 {
+	// if (!IsOnServer) return;
+	if (!HasAuthority()) return;
+	
 	FRotator LSpawnRotator = FRotator::ZeroRotator;
 	for (int32 Counter = 0; Counter < CountOfMissile; Counter++)
 	{
@@ -40,4 +43,6 @@ void AKT_RocketMissileProjectile::SpawnMicroRockets_Implementation()//TODO refac
 		}
 		LSpawnRotator += FRotator(0.0f, 10.0f,0.0f);
 	}
+	Destroy();
+	SpawnHitEffect(DestroyParticleSystem);
 }

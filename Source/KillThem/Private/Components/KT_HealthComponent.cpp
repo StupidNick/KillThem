@@ -43,7 +43,7 @@ void UKT_HealthComponent::TakeDamage_Implementation(AActor* DamagedActor, const 
 	if (GameMode->IsTeammates(PlayerCharacter->Controller, InstigatedBy))
 	{
 		if (GameMode->DamageToTeammatesAsPercent == 0) return;
-
+	
 		LDamage = Damage * (static_cast<float>(GameMode->DamageToTeammatesAsPercent) / 100);
 	}
 	

@@ -50,6 +50,8 @@ protected:
 
 	UPROPERTY()
 		AKT_BaseRangeWeapon* WeaponInstigator;
+
+	bool IsOnServer = false;
 	
 //public C++ functions
 public:
@@ -57,8 +59,17 @@ public:
 	UFUNCTION()
 		void Initialize(float InDamage, AKT_PlayerCharacter* InPlayerOwner, AKT_BaseRangeWeapon* InWeaponInstigator = nullptr);
 
+	UFUNCTION(NetMulticast, Unreliable)
+		void HiddenProjectile();
+
 	UFUNCTION()
 		void SetShootDirection(const FVector& Direction);
+
+	UFUNCTION(NetMulticast, UnReliable)
+		void SpawnHitEffect(UParticleSystem* InParticleSystem);
+
+	UFUNCTION()
+		void SetIsOnServer(bool Value);
 	
 //public BP variables
 public:
@@ -68,6 +79,12 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
 		UStaticMeshComponent* Mesh = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+		UParticleSystemComponent* ParticleSystem = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+		UParticleSystem* DestroyParticleSystem = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
 		UProjectileMovementComponent* ProjectileMovementComponent = nullptr;

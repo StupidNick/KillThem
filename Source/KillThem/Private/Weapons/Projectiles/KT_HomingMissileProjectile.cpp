@@ -35,15 +35,7 @@ void AKT_HomingMissileProjectile::SetRotationToTarget() const
 	FHitResult LHitResult;
 	MakeHit(LHitResult, LStartLocation, LEndLocation);
 
-	FRotator LRotationToTarget;
-	if (LHitResult.IsValidBlockingHit())
-	{
-		LRotationToTarget = UKismetMathLibrary::FindLookAtRotation(this->GetActorLocation(), LHitResult.Location);
-	}
-	else
-	{
-		LRotationToTarget = UKismetMathLibrary::FindLookAtRotation(this->GetActorLocation(), LEndLocation);
-	}
+	FRotator LRotationToTarget = UKismetMathLibrary::FindLookAtRotation(this->GetActorLocation(), LEndLocation);
 	const FRotator LInterpRotation = FMath::RInterpTo(GetActorRotation(), LRotationToTarget, GetWorld()->DeltaTimeSeconds, RotationSpeed);
 	CollisionComponent->SetWorldRotation(LInterpRotation);
 }

@@ -240,7 +240,7 @@ void UKT_ItemsManagerComponent::DetachWeaponFromActor_Implementation(AKT_BaseWea
 	if (!IsValid(InWeapon) || !IsValid(PlayerCharacter)) return;
 
 	InWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	const FVector LLocation = InWeapon->GetActorLocation() + FVector(100, 0, 0);
+	const FVector LLocation = PlayerCharacter->GetActorLocation() + PlayerCharacter->GetTransform().GetRotation().GetForwardVector() * 100;
 	const FRotator LRotation = InWeapon->GetActorRotation();
 	const FActorSpawnParameters LSpawnInfo;
 
