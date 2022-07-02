@@ -91,6 +91,7 @@ void UKT_CharacterMovementComponent::GetLifetimeReplicatedProps(TArray<FLifetime
 	DOREPLIFETIME(UKT_CharacterMovementComponent, MovingRightSpeed);
 	DOREPLIFETIME(UKT_CharacterMovementComponent, SpeedBooster);
 	DOREPLIFETIME(UKT_CharacterMovementComponent, JumpCounter);
+	DOREPLIFETIME(UKT_CharacterMovementComponent, IsSliding);
 }
 
 
@@ -228,7 +229,6 @@ void UKT_CharacterMovementComponent::Crouching_Implementation()
 	bCrouched = true;
 	IsSprinted = false;
 	PlayerCharacter->ItemsManagerComponent->SetCanShoot(true);
-	// CanDash = false;
 }
 
 void UKT_CharacterMovementComponent::UnCrouching_Implementation()
@@ -236,6 +236,7 @@ void UKT_CharacterMovementComponent::UnCrouching_Implementation()
 	CrouchingTimeLine->Reverse();
 	
 	bCrouched = false;
+	IsSliding = false;
 }
 
 
@@ -243,7 +244,7 @@ void UKT_CharacterMovementComponent::CrouchingTimeLineFloatReturn_Implementation
 {
 	PlayerCharacter->CameraComponent->SetRelativeLocation(FMath::Lerp(CrouchingStartLocation, CrouchingEndLocation, Value));
 	PlayerCharacter->GetCapsuleComponent()->SetCapsuleHalfHeight(
-		FMath::Lerp(UpperHalfHeightCapsuleCollision, LowerHalfHeightCapsuleCollision, Value), true);
+		FMath::Lerp(UpperHalfHeightCapsuleCollision, LowerHalfHeightCapsuleCollision, Value), false);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -254,6 +255,7 @@ void UKT_CharacterMovementComponent::Sliding_Implementation()
 {
 	SlidingTimeLine->PlayFromStart();
 	IsSprinted = false;
+	IsSliding = true;
 }
 
 
@@ -272,6 +274,10 @@ void UKT_CharacterMovementComponent::SlidingTimeLineFloatReturn_Implementation(f
 {
 	const FVector LSlideDirection = PlayerCharacter->GetVelocity().GetSafeNormal(0.0001);
 	PlayerCharacter->AddActorWorldOffset(LSlideDirection * Value * UGameplayStatics::GetWorldDeltaSeconds(this) * SlidingSpeed);
+	if (Value <= 0.001)
+	{
+		IsSliding = false;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -320,6 +326,7 @@ void UKT_CharacterMovementComponent::WallRunningEnd(UPrimitiveComponent* Overlap
 {
 	WallRunningStop(OtherActor);
 }
+
 
 void UKT_CharacterMovementComponent::WallRunningStart(AActor*& OtherActor)
 {

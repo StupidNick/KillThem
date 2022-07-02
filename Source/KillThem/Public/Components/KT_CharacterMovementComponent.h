@@ -90,12 +90,6 @@ private:
 	float DashRecoveryValuePerTick = 0.0f;
 
 /////////////////////////////////////WallRun/////////////////////////////////////////
-	
-	UPROPERTY()
-		bool OnWall;
-
-	UPROPERTY()
-		bool CameraTiltToRight;
 
 	UPROPERTY()
 		bool CameraIsTilt = false;
@@ -259,6 +253,8 @@ public:
 		UCurveFloat* CurveFloatForSliding;
 	UPROPERTY(EditDefaultsOnly, Category = "Character | Sliding")
 		float SlidingSpeed = 1000;
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Character | Sliding")
+		bool IsSliding = false;
 
 /////////////////////////////////////Jumping/////////////////////////////////////////
 	UPROPERTY(EditDefaultsOnly, Category = "Character | Jumping")
@@ -279,6 +275,12 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Character | WallRunning")
 		FName ParkourTag;
+
+	UPROPERTY(BlueprintReadOnly)
+		bool OnWall;
+
+	UPROPERTY(BlueprintReadOnly)
+		bool CameraTiltToRight;
 
 /////////////////////////////////////Dashing/////////////////////////////////////////
 	UPROPERTY(EditDefaultsOnly, Category = "Character | Dashing")

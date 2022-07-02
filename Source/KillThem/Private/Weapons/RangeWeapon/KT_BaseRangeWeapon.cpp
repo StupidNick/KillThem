@@ -335,7 +335,6 @@ void AKT_BaseRangeWeapon::EndBulletReloading()
 	IsSendingBullet = false;
 	IsOneBulletReloading = false;
 	IsEndingReload = true;
-	IsReloading = false;
 	
 	PlayAnimation(EndReloadingAnimation);
 	GetWorld()->GetTimerManager().ClearTimer(ReloadTimerHandle);
@@ -362,6 +361,7 @@ void AKT_BaseRangeWeapon::SendBullet()
 
 void AKT_BaseRangeWeapon::StopReloading()
 {
+	IsReloading = false;
 	IsEndingReload = false;
 	GetWorld()->GetTimerManager().ClearTimer(ReloadTimerHandle);
 }
