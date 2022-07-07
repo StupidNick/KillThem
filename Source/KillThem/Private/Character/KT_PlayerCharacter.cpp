@@ -108,7 +108,7 @@ void AKT_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, ItemsManagerComponent, &UKT_ItemsManagerComponent::Reload);
 
-	PlayerInputComponent->BindAction("ChangeWeapon", IE_Pressed, ItemsManagerComponent, &UKT_ItemsManagerComponent::ToChangeWeapon);
+	PlayerInputComponent->BindAction("ChangeWeapon", IE_Pressed, ItemsManagerComponent, &UKT_ItemsManagerComponent::LowerTheWeapon);
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, CharacterMovementComponent, &UKT_CharacterMovementComponent::Jumping);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);

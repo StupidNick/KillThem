@@ -218,6 +218,9 @@ public:
 		float SpawnBulletShellDelay;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Effects")
+		float ImpulseFactor;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Effects")
 		TSubclassOf<AKT_BaseBulletShell> BulletShellClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Effects")

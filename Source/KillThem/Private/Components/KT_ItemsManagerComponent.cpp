@@ -40,6 +40,7 @@ void UKT_ItemsManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME(UKT_ItemsManagerComponent, WeaponsArray);
 	DOREPLIFETIME(UKT_ItemsManagerComponent, CurrentWeaponIndex);
 	DOREPLIFETIME(UKT_ItemsManagerComponent, CanShoot);
+	DOREPLIFETIME(UKT_ItemsManagerComponent, IsChangingWeapon);
 }
 
 
@@ -267,16 +268,19 @@ void UKT_ItemsManagerComponent::AttachWeaponToSocket_Implementation(AKT_BaseWeap
 }
 
 
-void UKT_ItemsManagerComponent::ToChangeWeapon()
+void UKT_ItemsManagerComponent::LowerTheWeapon_Implementation()
 {
-	ChangeWeaponOnServer();
+	if (!PlayerCharacter || WeaponsArray.Num() <= 1) return;
+	
+	IsChangingWeapon = true;
+	
+	ChangeWeaponTimerDelegate.BindUFunction(this, "UpperTheWeapon");
+	GetWorld()->GetTimerManager().SetTimer(ChangeWeaponTimerHandle, ChangeWeaponTimerDelegate, GetSelectedWeaponSlot()->LowerWeaponTime, false);
 }
 
 
-void UKT_ItemsManagerComponent::ChangeWeaponOnServer_Implementation()
+void UKT_ItemsManagerComponent::UpperTheWeapon_Implementation()
 {
-	if (!PlayerCharacter) return;
-
 	if (IsValid(GetSelectedWeaponSlot()))
 	{
 		AttachWeaponToSocket(GetSelectedWeaponSlot(), PlayerCharacter->GetMesh(), BehindBackSocketName);
@@ -289,6 +293,15 @@ void UKT_ItemsManagerComponent::ChangeWeaponOnServer_Implementation()
 	{
 		AttachWeaponToSocket(GetSelectedWeaponSlot(), PlayerCharacter->GetMesh(), HandsSocketName);
 	}
+	
+	ChangeWeaponTimerDelegate.BindUFunction(this, "ChangeWeaponOnServer");
+	GetWorld()->GetTimerManager().SetTimer(ChangeWeaponTimerHandle, ChangeWeaponTimerDelegate, GetSelectedWeaponSlot()->UpperWeaponTime, false);
+}
+
+
+void UKT_ItemsManagerComponent::ChangeWeaponOnServer_Implementation()
+{
+	IsChangingWeapon = false;
 }
 
 
@@ -307,11 +320,8 @@ void UKT_ItemsManagerComponent::Reload_Implementation()
 
 void UKT_ItemsManagerComponent::StartFire_Implementation()
 {
-	if (!IsValid(PlayerCharacter)) return;
-	if (!CanShoot)
-	{
-		Cast<UKT_CharacterMovementComponent>(PlayerCharacter->GetMovementComponent())->UnSprint();
-	}
+	if (!IsValid(PlayerCharacter) || !CanShoot || IsChangingWeapon) return;
+	Cast<UKT_CharacterMovementComponent>(PlayerCharacter->GetMovementComponent())->UnSprint();
 
 	WantShoot = true;
 	if (IsValid(GetSelectedWeaponSlot()))

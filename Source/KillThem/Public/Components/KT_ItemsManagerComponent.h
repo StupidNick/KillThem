@@ -68,6 +68,9 @@ private:
 	UPROPERTY(Replicated)
 		bool CanShoot = true;
 
+	FTimerHandle ChangeWeaponTimerHandle;
+	FTimerDelegate ChangeWeaponTimerDelegate;
+
 //Protected C++ functions
 protected:
 
@@ -132,8 +135,11 @@ public:
 	UFUNCTION()
 		AKT_BaseWeapon* SpawnWeaponOnServer(TSubclassOf<AKT_BaseWeapon> InWeaponClass, const int16& InAmountOfAmmo, const int16& InAmmoInTheClip = -1);
 	
-	UFUNCTION()
-		void ToChangeWeapon();
+	UFUNCTION(Server, Reliable)
+		void LowerTheWeapon();
+
+	UFUNCTION(Server, Reliable)
+		void UpperTheWeapon();
 
 	UFUNCTION(Server, Reliable)
 		void ChangeWeaponOnServer();
@@ -170,6 +176,9 @@ public:
 
 	UPROPERTY()
 		bool WantShoot = true;
+
+	UPROPERTY(BlueprintReadOnly, Replicated)
+		bool IsChangingWeapon = false;
 
 //Public BP variables
 public:

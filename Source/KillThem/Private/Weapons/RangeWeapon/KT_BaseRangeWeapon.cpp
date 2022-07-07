@@ -313,6 +313,7 @@ void AKT_BaseRangeWeapon::StartBulletReloading()
 
 void AKT_BaseRangeWeapon::OneBulletReloading()
 {
+	IsOneBulletReloading = true;
 	IsSendingBullet = false;
 	int32 LCountOfAmmo;
 	if (!Character->ItemsManagerComponent->CountAmmo(GetClass(), LCountOfAmmo) || AmmoInTheClip >= ClipSize)
@@ -322,7 +323,7 @@ void AKT_BaseRangeWeapon::OneBulletReloading()
 	}
 
 	IsReloading = true;
-	IsOneBulletReloading = true;
+	
 	PlayAnimation(ReloadAnimation);
 	
 	GetWorldTimerManager().SetTimer(ReloadTimerHandle, ReloadTimerDelegate, ReloadTime / Character->BerserkBooster,
@@ -423,7 +424,8 @@ void AKT_BaseRangeWeapon::SpawnBulletShell() const
 		BulletShellClass, LSpawnTransform);
 	if (IsValid(LBulletShell))
 	{
-		LBulletShell->Mesh->AddImpulse(LSpawnTransform.GetRotation().GetForwardVector() * 30, NAME_None, false);
+		LBulletShell->Mesh->AddImpulse(LSpawnTransform.GetRotation().GetForwardVector() * ImpulseFactor +
+			FVector(FMath::RandRange(-5, 5), FMath::RandRange(-5, 5), FMath::RandRange(-5, 5)), NAME_None, false);
 		LBulletShell->FinishSpawning(LSpawnTransform);
 	}
 }

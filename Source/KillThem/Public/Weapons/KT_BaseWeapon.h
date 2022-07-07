@@ -138,6 +138,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Weapon | Info")
 		UTexture2D* AimIcon;
 
+	UPROPERTY(EditAnywhere, Category = "Weapon | Info")
+		float LowerWeaponTime;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon | Info")
+		float UpperWeaponTime;
+
 	// UPROPERTY(EditDefaultsOnly, Category = "Weapon | Info")
 	// 	TSubclassOf<UUserWidget> ScopeUserWidgetClass;
 
